@@ -33,7 +33,8 @@ class AppBuffer(BrowserBuffer):
     def __init__(self, buffer_id, url, arguments):
         BrowserBuffer.__init__(self, buffer_id, url, arguments, False)
         
-        self.fetch_git_log_threads = []
+        self.fetch_log_threads = []
+        self.fetch_submodule_threads = []
         
         self.current_dir = get_emacs_var("default-directory")
         self.repo_path = os.path.sep.join(list(filter(lambda x: x != '', self.current_dir.split(os.path.sep)))[-2:])
@@ -48,7 +49,8 @@ class AppBuffer(BrowserBuffer):
     def init_app(self):
         self.init_vars()
         
-        self.fetch_git_log()
+        self.fetch_log_info()
+        self.fetch_submodule_info()
         
     def init_vars(self):
         (text_color, nav_item_color, info_color, date_color, id_color, author_color) = get_emacs_func_result(
@@ -66,16 +68,26 @@ class AppBuffer(BrowserBuffer):
             date_color, id_color, author_color,
             self.repo_path, self.head_name, self.last_commit_id, self.last_commit_message))
         
-    def fetch_git_log(self):
-        thread = GitCommitThread(self.repo)
-        thread.fetch_command_result.connect(self.update_git_log)
-        self.fetch_git_log_threads.append(thread)
+    def fetch_log_info(self):
+        thread = FetchLogThread(self.repo)
+        thread.fetch_result.connect(self.update_log_info)
+        self.fetch_log_threads.append(thread)
         thread.start()
-
+        
     @PostGui()
-    def update_git_log(self, log):
+    def update_log_info(self, log):
         self.buffer_widget.eval_js('''updateLogInfo({})'''.format(json.dumps(log)))
-
+        
+    def fetch_submodule_info(self):
+        thread = FetchSubmoduleThread(self.repo)
+        thread.fetch_result.connect(self.update_submodule_info)
+        self.fetch_submodule_threads.append(thread)
+        thread.start()
+        
+    @PostGui()
+    def update_submodule_info(self, submodule):
+        self.buffer_widget.eval_js('''updateSubmoduleInfo({})'''.format(json.dumps(submodule)))
+        
     def switch_to_dashboard(self):
         self.buffer_widget.eval_js('''changePage(\"Dashboard\");''')
         
@@ -91,9 +103,9 @@ class AppBuffer(BrowserBuffer):
     def switch_to_patch(self):
         self.buffer_widget.eval_js('''changePage(\"Patch\");''')
         
-class GitCommitThread(QThread):
+class FetchLogThread(QThread):
 
-    fetch_command_result = QtCore.pyqtSignal(list)
+    fetch_result = QtCore.pyqtSignal(list)
 
     def __init__(self, repo):
         QThread.__init__(self)
@@ -111,5 +123,17 @@ class GitCommitThread(QThread):
                 "message": commit.message.rstrip()
             })
             
-        self.fetch_command_result.emit(git_log)
+        self.fetch_result.emit(git_log)
+
+class FetchSubmoduleThread(QThread):
+
+    fetch_result = QtCore.pyqtSignal(list)
+
+    def __init__(self, repo):
+        QThread.__init__(self)
+
+        self.repo = repo
+
+    def run(self):
+        self.fetch_result.emit(self.repo.listall_submodules())
 

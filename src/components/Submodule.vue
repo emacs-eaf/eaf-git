@@ -1,6 +1,15 @@
 <template>
   <div class="box">
-    Submodule
+    <div
+      v-if="submoduleInfo.length > 0"
+      v-for="info in submoduleInfo"
+      :key="info"
+      class="item">
+      {{ info }}
+    </div>
+    <div class="notify">
+      No submodule found in current repository.
+    </div>
   </div>
 </template>
 
@@ -8,6 +17,7 @@
 export default {
   name: 'Submodule',
   props: {
+    submoduleInfo: Array
   }
 }
 </script>
@@ -17,5 +27,21 @@ export default {
  .box {
    width: 100%;
    height: 100%;
+ }
+ 
+ .item {
+   padding-left: 10px;
+   padding-right: 10px;
+   padding-top: 2px;
+   padding-bottom: 2px;
+   font-size: 16px;
+ }
+ 
+ .notify {
+   font-size: 16px;
+   text-align: center;
+   justify-self: center;
+   margin: auto;
+   font-size: 18px;
  }
 </style>

@@ -26,7 +26,9 @@
         :idColor="idColor"
         :dateColor="dateColor"
         :authorColor="authorColor"/>
-      <Submodule v-if="navCurrentItem == 'Submodule'"/>
+      <Submodule
+        v-if="navCurrentItem == 'Submodule'"
+        :submoduleInfo="submoduleInfo"/>
       <Branch v-if="navCurrentItem == 'Branch'"/>
       <Patch v-if="navCurrentItem == 'Patch'"/>
     </div>
@@ -70,13 +72,15 @@
        repoLastCommitId: "",
        repoLastCommitMessage: "",
        repoPath: "",
-       logInfo: []
+       logInfo: [],
+       submoduleInfo: []
      }
    },
    mounted() {
      window.init = this.init;
      window.changePage = this.changePage;
      window.updateLogInfo = this.updateLogInfo;
+     window.updateSubmoduleInfo = this.updateSubmoduleInfo;
    },
    created() {
      // eslint-disable-next-line no-undef
@@ -119,8 +123,11 @@
      },
      
      updateLogInfo(logInfo) {
-       console.log(logInfo);
        this.logInfo = logInfo;
+     },
+     
+     updateSubmoduleInfo(submoduleInfo) {
+       this.submoduleInfo = submoduleInfo;
      }
    }
  }
