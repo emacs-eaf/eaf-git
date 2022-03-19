@@ -1,7 +1,7 @@
-;;; eaf-git.el --- Vue demo
+;;; eaf-git.el --- Git client
 
 ;; Filename: eaf-git.el
-;; Description: Vue demo
+;; Description: Git client
 ;; Author: Andy Stewart <lazycat.manatee@gmail.com>
 ;; Maintainer: Andy Stewart <lazycat.manatee@gmail.com>
 ;; Copyright (C) 2021, Andy Stewart, all rights reserved.
@@ -39,7 +39,7 @@
 
 ;;; Commentary:
 ;;
-;; Vue demo
+;; Git client
 ;;
 
 ;;; Installation:
@@ -86,7 +86,7 @@
 
 ;;;###autoload
 (defun eaf-open-git ()
-  "Open EAF vue demo"
+  "Open EAF Git client."
   (interactive)
   (eaf-open "eaf-git" "git"))
 

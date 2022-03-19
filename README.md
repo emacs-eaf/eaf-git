@@ -1,5 +1,5 @@
-# EAF Vue Demo
-This repository provides the EAF Vue Demo application for the [Emacs Application Framework](https://github.com/emacs-eaf/emacs-application-framework).
+# EAF Git Client
+This repository provides the EAF Git Client application for the [Emacs Application Framework](https://github.com/emacs-eaf/emacs-application-framework).
 
 ### Load application
 
