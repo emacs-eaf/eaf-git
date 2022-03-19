@@ -1,0 +1,14 @@
+{
+  "pip": {
+    "linux": [
+      "pygit2"
+    ],
+    "win32": [
+      "pygit2"
+    ],
+    "darwin": [
+      "pygit2"
+    ]
+  },
+  "vue_install": true
+}
