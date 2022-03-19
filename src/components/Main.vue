@@ -29,7 +29,10 @@
       <Submodule
         v-if="navCurrentItem == 'Submodule'"
         :submoduleInfo="submoduleInfo"/>
-      <Branch v-if="navCurrentItem == 'Branch'"/>
+      <Branch
+        v-if="navCurrentItem == 'Branch'"
+        :branchInfo="branchInfo"
+      />
       <Patch v-if="navCurrentItem == 'Patch'"/>
     </div>
   </div>
@@ -73,7 +76,8 @@
        repoLastCommitMessage: "",
        repoPath: "",
        logInfo: [],
-       submoduleInfo: []
+       submoduleInfo: [],
+       branchInfo: []
      }
    },
    mounted() {
@@ -81,6 +85,7 @@
      window.changePage = this.changePage;
      window.updateLogInfo = this.updateLogInfo;
      window.updateSubmoduleInfo = this.updateSubmoduleInfo;
+     window.updateBranchInfo = this.updateBranchInfo;
    },
    created() {
      // eslint-disable-next-line no-undef
@@ -128,6 +133,10 @@
      
      updateSubmoduleInfo(submoduleInfo) {
        this.submoduleInfo = submoduleInfo;
+     },
+     
+     updateBranchInfo(branchInfo) {
+       this.branchInfo = branchInfo;
      }
    }
  }

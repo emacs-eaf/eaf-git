@@ -35,6 +35,7 @@ class AppBuffer(BrowserBuffer):
         
         self.fetch_log_threads = []
         self.fetch_submodule_threads = []
+        self.fetch_branch_threads = []
         
         self.current_dir = url
         self.repo_path = os.path.sep.join(list(filter(lambda x: x != '', self.current_dir.split(os.path.sep)))[-2:])
@@ -51,6 +52,7 @@ class AppBuffer(BrowserBuffer):
         
         self.fetch_log_info()
         self.fetch_submodule_info()
+        self.fetch_branch_info()
         
     def init_vars(self):
         (text_color, nav_item_color, info_color, date_color, id_color, author_color) = get_emacs_func_result(
@@ -87,6 +89,16 @@ class AppBuffer(BrowserBuffer):
     @PostGui()
     def update_submodule_info(self, submodule):
         self.buffer_widget.eval_js('''updateSubmoduleInfo({})'''.format(json.dumps(submodule)))
+        
+    def fetch_branch_info(self):
+        thread = FetchBranchThread(self.repo)
+        thread.fetch_result.connect(self.update_branch_info)
+        self.fetch_branch_threads.append(thread)
+        thread.start()
+        
+    @PostGui()
+    def update_branch_info(self, branch):
+        self.buffer_widget.eval_js('''updateBranchInfo({})'''.format(json.dumps(branch)))
         
     def switch_to_dashboard(self):
         self.buffer_widget.eval_js('''changePage(\"Dashboard\");''')
@@ -136,4 +148,16 @@ class FetchSubmoduleThread(QThread):
 
     def run(self):
         self.fetch_result.emit(self.repo.listall_submodules())
+
+class FetchBranchThread(QThread):
+
+    fetch_result = QtCore.pyqtSignal(list)
+
+    def __init__(self, repo):
+        QThread.__init__(self)
+
+        self.repo = repo
+
+    def run(self):
+        self.fetch_result.emit(self.repo.listall_branches())
 
