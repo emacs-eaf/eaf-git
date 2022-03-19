@@ -88,7 +88,10 @@
 (defun eaf-open-git ()
   "Open EAF Git client."
   (interactive)
-  (eaf-open "eaf-git" "git"))
+  (if (and (executable-find "git")
+           (string-equal (car (split-string (shell-command-to-string "git rev-parse --is-inside-work-tree"))) "true"))
+      (eaf-open default-directory "git")
+    (message "%s is not a git repository." default-directory)))
 
 (defcustom eaf-git-keybinding
   '(("1" . "switch_to_dashboard")

@@ -36,7 +36,7 @@ class AppBuffer(BrowserBuffer):
         self.fetch_log_threads = []
         self.fetch_submodule_threads = []
         
-        self.current_dir = get_emacs_var("default-directory")
+        self.current_dir = url
         self.repo_path = os.path.sep.join(list(filter(lambda x: x != '', self.current_dir.split(os.path.sep)))[-2:])
         self.repo = Repository(self.current_dir)
         self.head_name = self.repo.head.name.split("/")[-1]
