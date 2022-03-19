@@ -1,25 +1,28 @@
 <template>
   <div class="box">
-    <div
-      v-if="submoduleInfo.length > 0"
-      v-for="info in submoduleInfo"
-      :key="info"
-      class="item">
-      {{ info }}
+    <div v-if="submoduleInfo.length > 0">
+      <div
+        v-for="info in submoduleInfo"
+        :key="info"
+        class="item">
+        {{ info }}
+      </div>
     </div>
-    <div class="notify">
+    <div
+      v-else
+      class="notify">
       No submodule found in current repository.
     </div>
   </div>
 </template>
 
 <script>
-export default {
-  name: 'Submodule',
-  props: {
-    submoduleInfo: Array
-  }
-}
+ export default {
+   name: 'Submodule',
+   props: {
+     submoduleInfo: Array
+   }
+ }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -28,7 +31,7 @@ export default {
    width: 100%;
    height: 100%;
  }
- 
+
  .item {
    padding-left: 10px;
    padding-right: 10px;
@@ -36,7 +39,7 @@ export default {
    padding-bottom: 2px;
    font-size: 16px;
  }
- 
+
  .notify {
    font-size: 16px;
    text-align: center;
