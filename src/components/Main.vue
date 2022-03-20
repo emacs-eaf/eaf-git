@@ -27,6 +27,7 @@
         v-if="navCurrentItem == 'Log'"
         :logInfo="logInfo"
         :currentCommitId="currentCommitId"
+        :currentCommitIndex="currentCommitIndex"
         :idColor="idColor"
         :dateColor="dateColor"
         :authorColor="authorColor"
@@ -86,6 +87,7 @@
        stageStatusInfo: [],
        unstageStatusInfo: [],
        logInfo: [],
+       currentCommitIndex: 0,
        currentCommitId: "",
        submoduleInfo: [],
        branchInfo: []
@@ -117,7 +119,15 @@
 
        if (that.navCurrentItem === "Dashboard") {
          if (event_key === "C") {
-           that.copyChangesFileToMirrorRepo();
+           window.pyobject.copy_change_files_to_mirror_repo();
+         }
+       } else if (that.navCurrentItem === "Log") {
+         if (event_key === "j") {
+           that.$root.$emit("selectNextLog");
+         } else if (event_key === "k") {
+           that.$root.$emit("selectPrevLog");
+         } else if (event_key === "Enter") {
+           that.$root.$emit("viewLogDiff");
          }
        }
      });
@@ -172,7 +182,8 @@
      updateLogInfo(logInfo) {
        this.logInfo = logInfo;
        if (this.logInfo.length > 0) {
-           this.currentCommitId = this.logInfo[0].id;
+         this.currentCommitIndex = 0;
+         this.currentCommitId = this.logInfo[this.currentCommitIndex].id;
        }
      },
 
@@ -182,10 +193,6 @@
 
      updateBranchInfo(branchInfo) {
        this.branchInfo = branchInfo;
-     },
-
-     copyChangesFileToMirrorRepo() {
-       window.pyobject.copy_change_files_to_mirror_repo();
      }
    }
  }
