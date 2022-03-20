@@ -13,7 +13,7 @@
       <div 
         class="repo-info"
         :style="{ 'color': infoColor }">
-        {{ repoPath }} ({{ repoHeadName }}) [{{ repoLastCommitId }} {{ repoLastCommitMessage }}]
+        {{ repoPath }} ({{ repoHeadName }}) {{ repoLastCommitId }} {{ repoLastCommitMessage }}
       </div>
     </div>
     <div

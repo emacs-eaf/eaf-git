@@ -81,10 +81,10 @@ class AppBuffer(BrowserBuffer):
         self.head_name = self.repo.head.name.split("/")[-1]
         self.last_commit_id = str(self.repo.head.target)[:7]
         self.last_commit = self.repo.revparse_single(str(self.repo.head.target))
-        self.last_commit_message = self.last_commit.message.rstrip()
-
+        self.last_commit_message = self.last_commit.message.splitlines()[0]
+        
         self.load_index_html(__file__)
-
+        
     def init_app(self):
         self.init_vars()
 
@@ -103,6 +103,8 @@ class AppBuffer(BrowserBuffer):
              "font-lock-comment-face",
              "font-lock-string-face"])
 
+        print(self.repo_path, self.head_name, self.last_commit_id, self.last_commit_message)
+        
         self.buffer_widget.eval_js('''init(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\")'''.format(
             self.theme_background_color, QColor(self.theme_background_color).darker(110).name(),
             text_color, nav_item_color, info_color,
@@ -202,7 +204,7 @@ class FetchLogThread(QThread):
                 "id": str(commit.id),
                 "time": datetime.utcfromtimestamp(int(commit.commit_time)).strftime('%Y-%m-%d %H:%M:%S'),
                 "author": commit.author.name,
-                "message": commit.message.rstrip()
+                "message": commit.message.splitlines()[0]
             })
 
         self.fetch_result.emit(git_log)
