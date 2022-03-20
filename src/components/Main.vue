@@ -19,7 +19,10 @@
     <div
       class="page"
       :style="{ 'margin-top': navbarHeight }">
-      <Dashboard v-if="navCurrentItem == 'Dashboard'"/>
+      <Dashboard 
+        v-if="navCurrentItem == 'Dashboard'"
+        :stageStatusInfo="stageStatusInfo"
+        :unstageStatusInfo="unstageStatusInfo"/>
       <Log
         v-if="navCurrentItem == 'Log'" 
         :logInfo="logInfo"
@@ -75,6 +78,8 @@
        repoLastCommitId: "",
        repoLastCommitMessage: "",
        repoPath: "",
+       stageStatusInfo: [],
+       unstageStatusInfo: [],
        logInfo: [],
        submoduleInfo: [],
        branchInfo: []
@@ -83,6 +88,7 @@
    mounted() {
      window.init = this.init;
      window.changePage = this.changePage;
+     window.updateStatusInfo = this.updateStatusInfo;
      window.updateLogInfo = this.updateLogInfo;
      window.updateSubmoduleInfo = this.updateSubmoduleInfo;
      window.updateBranchInfo = this.updateBranchInfo;
@@ -125,6 +131,11 @@
      
      changePage(pageName) {
        this.navCurrentItem = pageName;
+     },
+     
+     updateStatusInfo(stageStatusInfo, unstageStatusInfo) {
+       this.stageStatusInfo = stageStatusInfo;
+       this.unstageStatusInfo = unstageStatusInfo;
      },
      
      updateLogInfo(logInfo) {
