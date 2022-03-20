@@ -25,9 +25,8 @@
         :unstageStatusInfo="unstageStatusInfo"/>
       <Log
         v-if="navCurrentItem == 'Log'"
+        :pyobject="pyobject"
         :logInfo="logInfo"
-        :currentCommitId="currentCommitId"
-        :currentCommitIndex="currentCommitIndex"
         :idColor="idColor"
         :dateColor="dateColor"
         :authorColor="authorColor"
@@ -87,10 +86,9 @@
        stageStatusInfo: [],
        unstageStatusInfo: [],
        logInfo: [],
-       currentCommitIndex: 0,
-       currentCommitId: "",
        submoduleInfo: [],
-       branchInfo: []
+       branchInfo: [],
+       pyobject: null
      }
    },
    mounted() {
@@ -136,6 +134,7 @@
      // eslint-disable-next-line no-undef
      new QWebChannel(qt.webChannelTransport, channel => {
        window.pyobject = channel.objects.pyobject;
+       this.pyobject = window.pyobject;
      });
    },
    methods: {
@@ -181,10 +180,6 @@
 
      updateLogInfo(logInfo) {
        this.logInfo = logInfo;
-       if (this.logInfo.length > 0) {
-         this.currentCommitIndex = 0;
-         this.currentCommitId = this.logInfo[this.currentCommitIndex].id;
-       }
      },
 
      updateSubmoduleInfo(submoduleInfo) {

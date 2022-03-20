@@ -34,13 +34,18 @@
    name: 'Log',
    props: {
      logInfo: Array,
-     currentCommitIndex: Number,
-     currentCommitId: String,
      idColor: String,
      dateColor: String,
      authorColor: String,
      backgroundColor: String,
-     selectColor: String
+     selectColor: String,
+     pyobject: Object
+   },
+   data() {
+     return {
+       currentCommitIndex: 0,
+       currentCommitId: ""
+     }
    },
    watch: {
      currentCommitIndex: {
@@ -54,6 +59,8 @@
    },
    mounted() {
      var that = this;
+     
+     this.currentCommitIndex = 0;
 
      this.$root.$on("selectNextLog", function () {
        that.selectNextLog();
@@ -64,11 +71,15 @@
      });
 
      this.$root.$on("viewLogDiff", function () {
-
+       that.pyobject.show_commit_diff(that.currentCommitId, that.logInfo[that.currentCommitIndex + 1].id);
      });
    },
    methods: {
      itemBackgroundColor(item) {
+       if (this.logInfo.length > 0 && this.currentCommitId == "") {
+         this.currentCommitId = this.logInfo[this.currentCommitIndex].id;
+       }
+       
        if (item.id == this.currentCommitId) {
          return this.selectColor;
        } else {

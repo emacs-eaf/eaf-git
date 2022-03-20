@@ -23,7 +23,7 @@ from PyQt5 import QtCore
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import QThread
 from core.webengine import BrowserBuffer
-from core.utils import get_emacs_func_result, get_emacs_var, PostGui, message_to_emacs
+from core.utils import get_emacs_func_result, get_emacs_var, PostGui, message_to_emacs, eval_in_emacs
 from pygit2 import (Repository, GIT_SORT_TOPOLOGICAL,
                     GIT_STATUS_CURRENT,
                     GIT_STATUS_INDEX_NEW,
@@ -183,6 +183,10 @@ class AppBuffer(BrowserBuffer):
             
         message_to_emacs("Copy {} files to {}".format(len(files), os.path.join(target_repo_dir)))    
 
+    @QtCore.pyqtSlot(str, str)
+    def show_commit_diff(self, commit_id, previous_commit_id):
+        eval_in_emacs("eaf-git-show-commit-diff", [self.repo.diff(previous_commit_id, commit_id).patch])
+        
 class FetchLogThread(QThread):
 
     fetch_result = QtCore.pyqtSignal(list)

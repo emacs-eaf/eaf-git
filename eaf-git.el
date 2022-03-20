@@ -103,6 +103,30 @@
 (setq eaf-git-module-path (concat (file-name-directory load-file-name) "buffer.py"))
 (add-to-list 'eaf-app-module-path-alist '("git" . eaf-git-module-path))
 
+(defun eaf-git-show-commit-diff (diff-string)
+  (let ((log-buffer (current-buffer))
+        (diff-buffer (make-temp-file "eaf-git-commit-diff")))
+    ;; Split window.
+    (when (< (length (cl-remove-if #'window-dedicated-p (window-list))) 2) ;we need remove dedicated window, such as sort-tab window
+      (split-window-below))
+
+    ;; Select top window.
+    (ignore-errors
+      (dotimes (i 50)
+        (windmove-up)))
+
+    ;; Insert diff content.
+    (find-file diff-buffer)
+    (erase-buffer)
+    (insert diff-string)
+    (diff-mode)
+    (goto-char (point-min))
+    (read-only-mode 1)
+
+    ;; Select EAF log window.
+    (select-window (get-buffer-window log-buffer))
+    ))
+
 (provide 'eaf-git)
 
 ;;; eaf-git.el ends here
