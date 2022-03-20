@@ -23,7 +23,7 @@ from PyQt5 import QtCore
 from PyQt5.QtGui import QColor
 from PyQt5.QtCore import QThread
 from core.webengine import BrowserBuffer
-from core.utils import get_emacs_func_result, get_emacs_var, PostGui
+from core.utils import get_emacs_func_result, get_emacs_var, PostGui, message_to_emacs
 from pygit2 import (Repository, GIT_SORT_TOPOLOGICAL,
                     GIT_STATUS_CURRENT,
                     GIT_STATUS_INDEX_NEW,
@@ -44,6 +44,7 @@ from datetime import datetime
 from pathlib import Path
 import os
 import json
+import shutil
 
 GIT_STATUS_DICT = {
     GIT_STATUS_CURRENT: "Current",
@@ -162,6 +163,27 @@ class AppBuffer(BrowserBuffer):
 
     def switch_to_patch(self):
         self.buffer_widget.eval_js('''changePage(\"Patch\");''')
+        
+    def copy_change_files_to_mirror_repo(self):
+        status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
+        
+        if len(status) > 0:
+            self.send_input_message("Copy changes file to: ", "copy_changes_file_to_mirror", "file", self.repo_root)
+        else:
+            message_to_emacs("No file need submitted, nothing to copy.")
+            
+    def handle_input_response(self, callback_tag, result_content):
+        if callback_tag == "copy_changes_file_to_mirror":
+            self.handle_copy_changes_file_to_mirror(result_content)
+            
+    def handle_copy_changes_file_to_mirror(self, target_repo_dir):
+        status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
+        files = list(map(lambda info: info[0], status))
+        
+        for file in files:
+            shutil.copy(os.path.join(self.repo_root, file), os.path.join(target_repo_dir, file))
+            
+        message_to_emacs("Copy {} files to {}".format(len(files), os.path.join(target_repo_dir)))    
 
 class FetchLogThread(QThread):
 
