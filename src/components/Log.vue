@@ -58,15 +58,17 @@ export default {
  }
  
  .log-id {
+   width: 80px;
  }
  
  .log-date {
    padding-left: 20px;
+   width: 200px;
  }
  
  .log-author {
    padding-left: 20px;
-   width: 20%;
+   width: 15%;
 
    overflow: hidden;
    white-space: nowrap;
@@ -75,7 +77,6 @@ export default {
  
  .log-message {
    padding-left: 20px;
-   width: 60%;
    
    overflow: hidden;
    white-space: nowrap;
