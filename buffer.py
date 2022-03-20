@@ -72,6 +72,7 @@ class AppBuffer(BrowserBuffer):
         self.fetch_submodule_threads = []
         self.fetch_branch_threads = []
 
+        self.url = os.path.expanduser(self.url)
         self.repo = Repository(self.url)
         self.repo_root = discover_repository(self.url)
         if os.path.basename(os.path.normpath(self.repo_root)) == ".git":
@@ -103,8 +104,6 @@ class AppBuffer(BrowserBuffer):
              "font-lock-comment-face",
              "font-lock-string-face"])
 
-        print(self.repo_path, self.head_name, self.last_commit_id, self.last_commit_message)
-        
         self.buffer_widget.eval_js('''init(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\")'''.format(
             self.theme_background_color, QColor(self.theme_background_color).darker(110).name(),
             text_color, nav_item_color, info_color,
