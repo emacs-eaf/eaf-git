@@ -67,6 +67,10 @@ export default {
  .log-author {
    padding-left: 20px;
    width: 20%;
+
+   overflow: hidden;
+   white-space: nowrap;
+   text-overflow: ellipsis;
  }
  
  .log-message {
