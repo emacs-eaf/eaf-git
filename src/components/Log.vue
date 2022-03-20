@@ -1,11 +1,18 @@
 <template>
   <div class="box">
-    <div ref="logs">
+    <div
+      ref="highlight-line"
+      class="highlight-line"
+      :style="{ 'background': selectColor, 'height': lineHeight, 'top': lineTop }">
+    </div>
+    <div
+      class="list"
+      ref="logs">
       <div
         v-for="info in logInfo"
         :key="info.id"
         class="log-item"
-        :style="{ 'background': itemBackgroundColor(info) }">
+        :style="{ 'height': lineHeight }">
         <div
           class="log-id"
           :style="{ 'color': idColor }">
@@ -43,6 +50,8 @@
    },
    data() {
      return {
+       lineHeight: "30px",
+       lineTop: 0,
        currentCommitIndex: 0,
        currentCommitId: ""
      }
@@ -59,8 +68,9 @@
    },
    mounted() {
      var that = this;
-     
+
      this.currentCommitIndex = 0;
+     this.updateLineCoordinate();
 
      this.$root.$on("selectNextLog", function () {
        that.selectNextLog();
@@ -75,21 +85,10 @@
      });
    },
    methods: {
-     itemBackgroundColor(item) {
-       if (this.logInfo.length > 0 && this.currentCommitId == "") {
-         this.currentCommitId = this.logInfo[this.currentCommitIndex].id;
-       }
-       
-       if (item.id == this.currentCommitId) {
-         return this.selectColor;
-       } else {
-         return this.backgroundColor;
-       }
-     },
-
      selectNextLog() {
        if (this.logInfo.length > 0 && this.currentCommitIndex < this.logInfo.length - 1) {
          this.currentCommitIndex++;
+         this.updateLineCoordinate();
          this.keepSelectVisible();
        }
      },
@@ -97,8 +96,14 @@
      selectPrevLog() {
        if (this.logInfo.length > 0 && this.currentCommitIndex > 0) {
          this.currentCommitIndex--;
+         this.updateLineCoordinate();
          this.keepSelectVisible();
        }
+     },
+
+     updateLineCoordinate() {
+       this.lineTop = this.$refs.logs.children[this.currentCommitIndex].getBoundingClientRect().top;
+       console.log(this.lineTop);
      },
 
      keepSelectVisible() {
@@ -124,8 +129,6 @@
  .log-item {
    padding-left: 10px;
    padding-right: 10px;
-   padding-top: 2px;
-   padding-bottom: 2px;
    font-size: 16px;
 
    display: flex;
@@ -158,5 +161,15 @@
    overflow: hidden;
    white-space: nowrap;
    text-overflow: ellipsis;
+ }
+
+ .highlight-line {
+   width: 100%;
+   z-index: 10;
+   position: fixed;
+ }
+
+ .list {
+   z-index: 100;
  }
 </style>

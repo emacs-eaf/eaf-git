@@ -18,7 +18,7 @@
     </div>
     <div
       class="page"
-      :style="{ 'margin-top': navbarHeight }">
+      :style="{ 'padding-top': navbarHeight }">
       <Dashboard
         v-if="navCurrentItem == 'Dashboard'"
         :stageStatusInfo="stageStatusInfo"
