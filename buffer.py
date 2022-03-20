@@ -95,6 +95,17 @@ class AppBuffer(BrowserBuffer):
         self.fetch_branch_info()
 
     def init_vars(self):
+        if self.theme_mode == "dark":
+            if self.theme_background_color == "#000000":
+                select_color = "#333333"
+            else:
+                select_color = QColor(self.theme_background_color).darker(120).name()
+        else:
+            if self.theme_background_color == "#FFFFFF":
+                select_color = "#EEEEEE"
+            else:
+                select_color = QColor(self.theme_background_color).darker(110).name()
+
         (text_color, nav_item_color, info_color, date_color, id_color, author_color) = get_emacs_func_result(
             "get-emacs-face-foregrounds",
             ["default",
@@ -104,8 +115,8 @@ class AppBuffer(BrowserBuffer):
              "font-lock-comment-face",
              "font-lock-string-face"])
 
-        self.buffer_widget.eval_js('''init(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\")'''.format(
-            self.theme_background_color, QColor(self.theme_background_color).darker(110).name(),
+        self.buffer_widget.eval_js('''init(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\")'''.format(
+            self.theme_background_color, self.theme_foreground_color, select_color, QColor(self.theme_background_color).darker(110).name(),
             text_color, nav_item_color, info_color,
             date_color, id_color, author_color,
             self.repo_path, self.head_name, self.last_commit_id, self.last_commit_message))

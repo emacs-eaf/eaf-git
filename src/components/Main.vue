@@ -26,9 +26,12 @@
       <Log
         v-if="navCurrentItem == 'Log'"
         :logInfo="logInfo"
+        :currentCommitId="currentCommitId"
         :idColor="idColor"
         :dateColor="dateColor"
-        :authorColor="authorColor"/>
+        :authorColor="authorColor"
+        :backgroundColor="backgroundColor"
+        :selectColor="selectColor"/>
       <Submodule
         v-if="navCurrentItem == 'Submodule'"
         :submoduleInfo="submoduleInfo"/>
@@ -67,6 +70,8 @@
        navItems: ["Dashboard", "Log", "Submodule", "Branch", "Patch"],
        navCurrentItem: "Dashboard",
        backgroundColor: "",
+       foregroundColor: "",
+       selectColor: "",
        panelColor: "",
        textColor: "",
        navItemActiveColor: "",
@@ -81,6 +86,7 @@
        stageStatusInfo: [],
        unstageStatusInfo: [],
        logInfo: [],
+       currentCommitId: "",
        submoduleInfo: [],
        branchInfo: []
      }
@@ -108,7 +114,7 @@
        } else if (event_key === "5") {
          that.changePage("Patch");
        }
-       
+
        if (that.navCurrentItem === "Dashboard") {
          if (event_key === "C") {
            that.copyChangesFileToMirrorRepo();
@@ -123,10 +129,12 @@
      });
    },
    methods: {
-     init(backgroundColor, panelColor, textColor, navItemActiveColor, infoColor,
+     init(backgroundColor, foregroundColor, selectColor, panelColor, textColor, navItemActiveColor, infoColor,
           dateColor, idColor, authorColor,
           repoPath, repoHeadName, repoLastCommitId, repoLastCommitMessage) {
        this.backgroundColor = backgroundColor;
+       this.foregroundColor = foregroundColor;
+       this.selectColor = selectColor;
        this.panelColor = panelColor;
        this.textColor = textColor;
        this.navItemActiveColor = navItemActiveColor;
@@ -163,6 +171,9 @@
 
      updateLogInfo(logInfo) {
        this.logInfo = logInfo;
+       if (this.logInfo.length > 0) {
+           this.currentCommitId = this.logInfo[0].id;
+       }
      },
 
      updateSubmoduleInfo(submoduleInfo) {
@@ -172,7 +183,7 @@
      updateBranchInfo(branchInfo) {
        this.branchInfo = branchInfo;
      },
-     
+
      copyChangesFileToMirrorRepo() {
        window.pyobject.copy_change_files_to_mirror_repo();
      }
