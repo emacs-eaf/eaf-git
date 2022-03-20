@@ -3,14 +3,14 @@
     <div
       class="nav-bar"
       :style="{ 'height': navbarHeight, 'background': backgroundColor }">
-      <div 
+      <div
         class="nav-item"
         v-for="(item, index) in navItems"
         :key="item"
         :style="{ 'color': navItemForegroundColor(item), 'background': navItemBackgroundColor(item) }">
         {{ item }} [{{ index + 1 }}]
       </div>
-      <div 
+      <div
         class="repo-info"
         :style="{ 'color': infoColor }">
         {{ repoPath }} ({{ repoHeadName }}) {{ repoLastCommitId }} {{ repoLastCommitMessage }}
@@ -19,12 +19,12 @@
     <div
       class="page"
       :style="{ 'margin-top': navbarHeight }">
-      <Dashboard 
+      <Dashboard
         v-if="navCurrentItem == 'Dashboard'"
         :stageStatusInfo="stageStatusInfo"
         :unstageStatusInfo="unstageStatusInfo"/>
       <Log
-        v-if="navCurrentItem == 'Log'" 
+        v-if="navCurrentItem == 'Log'"
         :logInfo="logInfo"
         :idColor="idColor"
         :dateColor="dateColor"
@@ -43,13 +43,13 @@
 
 <script>
  import { QWebChannel } from "qwebchannel";
- 
+
  import Dashboard from "./Dashboard.vue"
  import Log from "./Log.vue"
  import Submodule from "./Submodule.vue"
  import Branch from "./Branch.vue"
  import Patch from "./Patch.vue"
- 
+
  export default {
    name: 'Main',
    components: {
@@ -92,6 +92,29 @@
      window.updateLogInfo = this.updateLogInfo;
      window.updateSubmoduleInfo = this.updateSubmoduleInfo;
      window.updateBranchInfo = this.updateBranchInfo;
+
+     let that = this;
+     window.addEventListener('keydown', function(event) {
+       var event_key = event.key;
+
+       if (event_key === "1") {
+         that.changePage("Dashboard");
+       } else if (event_key === "2") {
+         that.changePage("Log");
+       } else if (event_key === "3") {
+         that.changePage("Submodule");
+       } else if (event_key === "4") {
+         that.changePage("Branch");
+       } else if (event_key === "5") {
+         that.changePage("Patch");
+       }
+       
+       if (that.navCurrentItem === "Dashboard") {
+         if (event_key === "C") {
+           that.copyChangesFileToMirrorRepo();
+         }
+       }
+     });
    },
    created() {
      // eslint-disable-next-line no-undef
@@ -100,7 +123,7 @@
      });
    },
    methods: {
-     init(backgroundColor, panelColor, textColor, navItemActiveColor, infoColor, 
+     init(backgroundColor, panelColor, textColor, navItemActiveColor, infoColor,
           dateColor, idColor, authorColor,
           repoPath, repoHeadName, repoLastCommitId, repoLastCommitMessage) {
        this.backgroundColor = backgroundColor;
@@ -116,7 +139,7 @@
        this.repoLastCommitId = repoLastCommitId;
        this.repoLastCommitMessage = repoLastCommitMessage;
      },
-     
+
      navItemForegroundColor(item) {
        if (item == this.navCurrentItem) {
          return this.navItemActiveColor;
@@ -124,30 +147,34 @@
          return this.textColor;
        }
      },
-     
+
      navItemBackgroundColor() {
        return "";
      },
-     
+
      changePage(pageName) {
        this.navCurrentItem = pageName;
      },
-     
+
      updateStatusInfo(stageStatusInfo, unstageStatusInfo) {
        this.stageStatusInfo = stageStatusInfo;
        this.unstageStatusInfo = unstageStatusInfo;
      },
-     
+
      updateLogInfo(logInfo) {
        this.logInfo = logInfo;
      },
-     
+
      updateSubmoduleInfo(submoduleInfo) {
        this.submoduleInfo = submoduleInfo;
      },
-     
+
      updateBranchInfo(branchInfo) {
        this.branchInfo = branchInfo;
+     },
+     
+     copyChangesFileToMirrorRepo() {
+       window.pyobject.copy_change_files_to_mirror_repo();
      }
    }
  }
@@ -161,32 +188,32 @@
    width: 100%;
    height: 100%;
  }
- 
+
  .nav-bar {
    display: flex;
    flex-direction: row;
    width: 100%;
    align-items: center;
    font-size: 18px;
-   
+
    position: fixed;
    z-index: 999;
    top: 0;
  }
- 
+
  .nav-item {
    padding-top: 10px;
    padding-bottom: 10px;
    padding-left: 10px;
    padding-right: 10px;
  }
- 
+
  .repo-info {
    text-align: right;
    padding-right: 10px;
    flex: 1;
  }
- 
+
  .page {
    flex: 1;
    position: relative;

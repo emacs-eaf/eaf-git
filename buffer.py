@@ -150,21 +150,7 @@ class AppBuffer(BrowserBuffer):
     def update_branch_info(self, branch):
         self.buffer_widget.eval_js('''updateBranchInfo({})'''.format(json.dumps(branch)))
 
-    def switch_to_dashboard(self):
-        self.buffer_widget.eval_js('''changePage(\"Dashboard\");''')
-
-    def switch_to_log(self):
-        self.buffer_widget.eval_js('''changePage(\"Log\");''')
-
-    def switch_to_submodule(self):
-        self.buffer_widget.eval_js('''changePage(\"Submodule\");''')
-
-    def switch_to_branch(self):
-        self.buffer_widget.eval_js('''changePage(\"Branch\");''')
-
-    def switch_to_patch(self):
-        self.buffer_widget.eval_js('''changePage(\"Patch\");''')
-        
+    @QtCore.pyqtSlot()
     def copy_change_files_to_mirror_repo(self):
         status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
         

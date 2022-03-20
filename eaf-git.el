@@ -94,13 +94,7 @@
     (message "%s is not a git repository." default-directory)))
 
 (defcustom eaf-git-keybinding
-  '(("1" . "switch_to_dashboard")
-    ("2" . "switch_to_log")
-    ("3" . "switch_to_submodule")
-    ("4" . "switch_to_branch")
-    ("5" . "switch_to_patch")
-    ("C" . "copy_change_files_to_mirror_repo")
-    ("<f12>" . "open_devtools"))
+  '(("<f12>" . "open_devtools"))
   "The keybinding of EAF git client."
   :type 'cons)
 
