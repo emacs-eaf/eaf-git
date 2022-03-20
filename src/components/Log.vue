@@ -77,7 +77,7 @@ export default {
  
  .log-message {
    padding-left: 20px;
-   width: 50%;
+   flex: 1;
    
    overflow: hidden;
    white-space: nowrap;
