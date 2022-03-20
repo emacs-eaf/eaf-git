@@ -75,7 +75,7 @@ class AppBuffer(BrowserBuffer):
         self.repo_root = discover_repository(self.url)
         if os.path.basename(os.path.normpath(self.repo_root)) == ".git":
             self.repo_root = str(Path(self.repo_root).parent.absolute())
-            self.repo_path = os.path.sep.join(list(filter(lambda x: x != '', self.repo_root.split(os.path.sep)))[-2:])
+        self.repo_path = os.path.sep.join(list(filter(lambda x: x != '', self.repo_root.split(os.path.sep)))[-2:])
 
         self.head_name = self.repo.head.name.split("/")[-1]
         self.last_commit_id = str(self.repo.head.target)[:7]
