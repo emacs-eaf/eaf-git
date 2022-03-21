@@ -124,6 +124,10 @@
            that.$root.$emit("selectNextLog");
          } else if (event_key === "k") {
            that.$root.$emit("selectPrevLog");
+         } else if (event_key === "J") {
+           that.$root.$emit("selectLastLog");
+         } else if (event_key === "K") {
+           that.$root.$emit("selectFirstLog");
          } else if (event_key === "Enter") {
            that.$root.$emit("viewLogDiff");
          }

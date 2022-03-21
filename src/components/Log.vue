@@ -80,6 +80,14 @@
        that.selectPrevLog();
      });
 
+     this.$root.$on("selectLastLog", function () {
+       that.selectLastLog();
+     });
+
+     this.$root.$on("selectFirstLog", function () {
+       that.selectFirstLog();
+     });
+     
      this.$root.$on("viewLogDiff", function () {
        that.pyobject.show_commit_diff(that.currentCommitId, that.logInfo[that.currentCommitIndex + 1].id);
      });
@@ -93,9 +101,25 @@
        }
      },
 
+     selectLastLog() {
+       if (this.logInfo.length > 0 && this.currentCommitIndex < this.logInfo.length - 1) {
+         this.currentCommitIndex = this.logInfo.length - 1;
+         this.updateLineCoordinate();
+         this.keepSelectVisible();
+       }
+     },
+
      selectPrevLog() {
        if (this.logInfo.length > 0 && this.currentCommitIndex > 0) {
          this.currentCommitIndex--;
+         this.updateLineCoordinate();
+         this.keepSelectVisible();
+       }
+     },
+
+     selectFirstLog() {
+       if (this.logInfo.length > 0 && this.currentCommitIndex > 0) {
+         this.currentCommitIndex = 0;
          this.updateLineCoordinate();
          this.keepSelectVisible();
        }
