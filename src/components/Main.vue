@@ -22,7 +22,9 @@
       <Dashboard
         v-if="navCurrentItem == 'Dashboard'"
         :stageStatusInfo="stageStatusInfo"
-        :unstageStatusInfo="unstageStatusInfo"/>
+        :unstageStatusInfo="unstageStatusInfo"
+        :backgroundColor="backgroundColor"
+        :selectColor="selectColor"/>
       <Log
         v-if="navCurrentItem == 'Log'"
         :pyobject="pyobject"
@@ -118,7 +120,11 @@
        if (that.navCurrentItem === "Dashboard") {
          if (event_key === "C") {
            window.pyobject.copy_change_files_to_mirror_repo();
-         }
+         } else if (event_key === "j") {
+           that.$root.$emit("selectNextChangeItem");
+         } else if (event_key === "k") {
+           that.$root.$emit("selectPrevChangeItem");
+         } 
        } else if (that.navCurrentItem === "Log") {
          if (event_key === "j") {
            that.$root.$emit("selectNextLog");

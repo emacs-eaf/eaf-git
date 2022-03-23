@@ -98,6 +98,13 @@
        that.pyobject.show_commit_diff(that.currentCommitId, that.logInfo[that.currentCommitIndex + 1].id);
      });
    },
+   beforeDestroy() {
+     this.$root.$off("selectNextLog");
+     this.$root.$off("selectPrevLog");
+     this.$root.$off("selectLastLog");
+     this.$root.$off("selectFirstLog");
+     this.$root.$off("viewLogDiff");
+   },
    methods: {
      selectNextLog() {
        if (this.logInfo.length > 0 && this.currentCommitIndex < this.logInfo.length - 1) {
@@ -134,7 +141,7 @@
      updateLineCoordinate() {
        this.lineTop = this.$refs.logs.children[this.currentCommitIndex].getBoundingClientRect().top;
      },
-     
+
      handleScroll() {
        this.updateLineCoordinate();
      },
