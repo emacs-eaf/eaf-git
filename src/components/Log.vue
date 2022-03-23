@@ -66,6 +66,12 @@
        }
      },
    },
+   created () {
+     window.addEventListener('scroll', this.handleScroll);
+   },
+   destroyed () {
+     window.removeEventListener('scroll', this.handleScroll);
+   },
    mounted() {
      var that = this;
 
@@ -87,7 +93,7 @@
      this.$root.$on("selectFirstLog", function () {
        that.selectFirstLog();
      });
-     
+
      this.$root.$on("viewLogDiff", function () {
        that.pyobject.show_commit_diff(that.currentCommitId, that.logInfo[that.currentCommitIndex + 1].id);
      });
@@ -127,7 +133,10 @@
 
      updateLineCoordinate() {
        this.lineTop = this.$refs.logs.children[this.currentCommitIndex].getBoundingClientRect().top;
-       console.log(this.lineTop);
+     },
+     
+     handleScroll() {
+       this.updateLineCoordinate();
      },
 
      keepSelectVisible() {
@@ -135,7 +144,7 @@
        this.$nextTick(function(){
          var selectLog = this.$refs.logs.children[this.currentCommitIndex]
          if (selectLog !== undefined) {
-           selectLog.scrollIntoViewIfNeeded(false);
+           selectLog.scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
          }
        })
      },
