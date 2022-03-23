@@ -242,13 +242,17 @@ class FetchLogThread(QThread):
     def run(self):
         git_log = []
 
-        for commit in self.repo.walk(self.repo.head.target, GIT_SORT_TOPOLOGICAL):
-            git_log.append({
-                "id": str(commit.id),
-                "time": pretty_date(int(commit.commit_time)),
-                "author": commit.author.name,
-                "message": commit.message.splitlines()[0]
-            })
+        try:
+            for commit in self.repo.walk(self.repo.head.target):
+                git_log.append({
+                    "id": str(commit.id),
+                    "time": pretty_date(int(commit.commit_time)),
+                    "author": commit.author.name,
+                    "message": commit.message.splitlines()[0]
+                })
+        except KeyError:
+            import traceback
+            traceback.print_exc()
 
         self.fetch_result.emit(git_log)
 
