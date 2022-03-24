@@ -63,6 +63,7 @@
      unstageStatusInfo: Array,
      backgroundColor: String,
      selectColor: String,
+     pyobject: Object
    },
    data() {
      return {
@@ -80,7 +81,9 @@
        this.selectItemType = "stage";
        this.selectItemIndex = -1;
      }
-
+     
+     setTimeout(this.updateDiff, 1000)
+     
      this.$root.$on("selectNextChangeItem", function () {
        that.selectNextChangeItem();
      });
@@ -116,8 +119,22 @@
        return stage_files_number;
      },
 
+     updateDiff() {
+       if (this.selectItemIndex === -1) {
+         this.pyobject.update_diff(this.selectItemType, "");
+       } else {
+         if (this.selectItemType === "unstage") {
+           this.pyobject.update_diff(this.selectItemType, this.unstageStatusInfo[this.selectItemIndex].file);
+         } else {
+           this.pyobject.update_diff(this.selectItemType, this.stageStatusInfo[this.selectItemIndex].file);
+         }
+       }
+     },
+
      selectNextChangeItem() {
-       
+       var oldSelectItemType = this.selectItemType;
+       var oldSelectItemIndex = this.selectItemIndex;
+
        if (this.selectItemType == "unstage") {
          if (this.selectItemIndex < this.unstageStatusInfo.length - 1) {
            this.selectItemIndex += 1;
@@ -132,10 +149,17 @@
            this.selectItemIndex += 1;
          }
        }
-       
+
+       if (oldSelectItemType != this.selectItemType ||
+           oldSelectItemIndex != this.selectItemIndex) {
+         this.updateDiff();
+       }
      },
 
      selectPrevChangeItem() {
+       var oldSelectItemType = this.selectItemType;
+       var oldSelectItemIndex = this.selectItemIndex;
+
        if (this.selectItemType == "stage") {
          if (this.selectItemIndex > 0) {
            this.selectItemIndex -= 1;
@@ -151,6 +175,11 @@
          } else if (this.selectItemIndex == 0) {
            this.selectItemIndex = -1;
          }
+       }
+
+       if (oldSelectItemType != this.selectItemType ||
+           oldSelectItemIndex != this.selectItemIndex) {
+         this.updateDiff();
        }
      },
 
@@ -199,8 +228,8 @@
  .item {
    padding-left: 20px;
    padding-right: 10px;
-   padding-top: 2px;
-   padding-bottom: 2px;
+   padding-top: 5px;
+   padding-bottom: 5px;
    font-size: 16px;
 
    display: flex;
@@ -217,6 +246,9 @@
  }
 
  .unstaged-title {
+   padding-top: 5px;
+   padding-bottom: 5px;
+
    font-weight: bold;
    padding-left: 10px;
    margin-bottom: 5px;
@@ -224,6 +256,9 @@
  }
 
  .staged-title {
+   padding-top: 5px;
+   padding-bottom: 5px;
+
    font-weight: bold;
    padding-left: 10px;
    margin-top: 20px;

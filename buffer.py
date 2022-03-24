@@ -230,6 +230,10 @@ class AppBuffer(BrowserBuffer):
     def show_commit_diff(self, commit_id, previous_commit_id):
         eval_in_emacs("eaf-git-show-commit-diff", [self.repo.diff(previous_commit_id, commit_id).patch])
         
+    @QtCore.pyqtSlot(str, str)
+    def update_diff(self, type, file):
+        print(type, file)
+        
 class FetchLogThread(QThread):
 
     fetch_result = QtCore.pyqtSignal(list)

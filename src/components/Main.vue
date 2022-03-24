@@ -21,6 +21,7 @@
       :style="{ 'padding-top': navbarHeight }">
       <Dashboard
         v-if="navCurrentItem == 'Dashboard'"
+        :pyobject="pyobject"
         :stageStatusInfo="stageStatusInfo"
         :unstageStatusInfo="unstageStatusInfo"
         :backgroundColor="backgroundColor"

@@ -148,7 +148,7 @@
 
      keepSelectVisible() {
        /* Use nextTick wait DOM update, then make sure current file in visible area. */
-       this.$nextTick(function(){
+       this.$nextTick(function() {
          var selectLog = this.$refs.logs.children[this.currentCommitIndex]
          if (selectLog !== undefined) {
            selectLog.scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
