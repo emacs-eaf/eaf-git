@@ -232,8 +232,28 @@ class AppBuffer(BrowserBuffer):
         
     @QtCore.pyqtSlot(str, str)
     def update_diff(self, type, file):
-        print(type, file)
+        diff_string = ""
         
+        if type == "stage":
+            if file == "":
+                diff_string = self.get_command_result("cd {}; git diff --color --stage".format(self.repo_root))
+            else:
+                diff_string = self.get_command_result("cd {}; git diff --color --stage {}".format(self.repo_root, file))
+        elif type == "unstage":
+            if file == "":
+                diff_string = self.get_command_result("cd {}; git diff --color".format(self.repo_root))
+            else:
+                diff_string = self.get_command_result("cd {}; git diff --color {}".format(self.repo_root, file))
+                
+        self.buffer_widget.eval_js('''updateChangeDiff({})'''.format(json.dumps(diff_string)))        
+        
+    def get_command_result(self, command_string):
+        import subprocess
+        
+        process = subprocess.Popen(command_string, shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process.wait()
+        return "".join(process.stdout.readlines())
+
 class FetchLogThread(QThread):
 
     fetch_result = QtCore.pyqtSignal(list)

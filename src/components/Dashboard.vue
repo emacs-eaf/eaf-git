@@ -50,12 +50,16 @@
         </div>
       </div>
       <div class="diff-preview">
+        <div v-html="prettyHtml"/>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+ var AU = require('ansi_up');
+ var ansiUp = new AU.default;
+
  export default {
    name: 'Dashboard',
    props: {
@@ -67,11 +71,19 @@
    },
    data() {
      return {
+       diffs: "",
        selectItemType: "",
        selectItemIndex: -1
      }
    },
+   computed: {
+     prettyHtml() {
+       return ansiUp.ansi_to_html(this.diffs);
+     },
+   },
    mounted() {
+     window.updateChangeDiff = this.updateChangeDiff;
+
      var that = this;
 
      if (this.unstageStatusInfo) {
@@ -81,9 +93,9 @@
        this.selectItemType = "stage";
        this.selectItemIndex = -1;
      }
-     
+
      setTimeout(this.updateDiff, 1000)
-     
+
      this.$root.$on("selectNextChangeItem", function () {
        that.selectNextChangeItem();
      });
@@ -129,6 +141,10 @@
            this.pyobject.update_diff(this.selectItemType, this.stageStatusInfo[this.selectItemIndex].file);
          }
        }
+     },
+
+     updateChangeDiff(diffString) {
+       this.diffs = diffString;
      },
 
      selectNextChangeItem() {
@@ -281,5 +297,10 @@
  .diff-preview {
    width: 70%;
    height: 100%;
+   padding-left: 10px;
+   padding-right: 10px;
+
+   white-space: pre-wrap;
+   font-size: 16px;
  }
 </style>
