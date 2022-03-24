@@ -9,6 +9,27 @@
       v-else
       class="diff-area">
       <div class="diff-file">
+        <div v-if="untrackFileNumber() > 0">
+          <div
+            class="untrack-title"
+            :style="{ 'background': untrackTitleBackground() }">
+            Untrackd changes ({{ untrackStatusInfo.length }})
+          </div>
+          <div
+            v-for="(info, index) in untrackStatusInfo"
+            :key="info"
+            class="item"
+            :style="{ 'background': untrackItemBackground(index) }">
+            <div class="type">
+              {{ info.type }}
+            </div>
+            <div class="file">
+              {{ info.file }}
+            </div>
+          </div>
+          <div class="split-line"/>
+        </div>
+        
         <div v-if="unstageFileNumber() > 0">
           <div
             class="unstaged-title"
@@ -27,6 +48,7 @@
               {{ info.file }}
             </div>
           </div>
+          <div class="split-line"/>
         </div>
 
         <div v-if="stageFileNumber() > 0">
@@ -65,9 +87,33 @@
    props: {
      stageStatusInfo: Array,
      unstageStatusInfo: Array,
+     untrackStatusInfo: Array,
      backgroundColor: String,
      selectColor: String,
      pyobject: Object
+   },
+   watch: {
+     stageStatusInfo: {
+       // eslint-disable-next-line no-unused-vars
+       handler: function (val, oldVal) {
+         window.pyobject.vue_update_stage_status(val);
+       },
+       deep: true
+     },
+     unstageStatusInfo: {
+       // eslint-disable-next-line no-unused-vars
+       handler: function (val, oldVal) {
+         window.pyobject.vue_update_unstage_status(val);
+       },
+       deep: true
+     },
+     untrackStatusInfo: {
+       // eslint-disable-next-line no-unused-vars
+       handler: function (val, oldVal) {
+         window.pyobject.vue_update_untrack_status(val);
+       },
+       deep: true
+     },
    },
    data() {
      return {
@@ -86,7 +132,10 @@
 
      var that = this;
 
-     if (this.unstageStatusInfo) {
+     if (this.untrackStatusInfo) {
+       this.selectItemType = "untrack";
+       this.selectItemIndex = -1;
+     } else if (this.unstageStatusInfo) {
        this.selectItemType = "unstage";
        this.selectItemIndex = -1;
      } else if (this.stageStatusInfo) {
@@ -113,6 +162,15 @@
        return this.unstageFileNumber() + this.stageFileNumber() === 0;
      },
 
+     untrackFileNumber() {
+       var untrack_files_number = 0;
+       if (this.untrackStatusInfo) {
+         untrack_files_number = this.untrackStatusInfo.length;
+       }
+
+       return untrack_files_number;
+     },
+
      unstageFileNumber() {
        var unstage_files_number = 0;
        if (this.unstageStatusInfo) {
@@ -135,7 +193,9 @@
        if (this.selectItemIndex === -1) {
          this.pyobject.update_diff(this.selectItemType, "");
        } else {
-         if (this.selectItemType === "unstage") {
+         if (this.selectItemType === "untrack") {
+           this.pyobject.update_diff(this.selectItemType, this.untrackStatusInfo[this.selectItemIndex].file);
+         } else if (this.selectItemType === "unstage") {
            this.pyobject.update_diff(this.selectItemType, this.unstageStatusInfo[this.selectItemIndex].file);
          } else {
            this.pyobject.update_diff(this.selectItemType, this.stageStatusInfo[this.selectItemIndex].file);
@@ -151,7 +211,14 @@
        var oldSelectItemType = this.selectItemType;
        var oldSelectItemIndex = this.selectItemIndex;
 
-       if (this.selectItemType == "unstage") {
+       if (this.selectItemType == "untrack") {
+         if (this.selectItemIndex < this.untrackStatusInfo.length - 1) {
+           this.selectItemIndex += 1;
+         } else if (this.unstageStatusInfo.length > 0) {
+           this.selectItemType = "unstage";
+           this.selectItemIndex = -1;
+         }
+       } else if (this.selectItemType == "unstage") {
          if (this.selectItemIndex < this.unstageStatusInfo.length - 1) {
            this.selectItemIndex += 1;
          } else if (this.stageStatusInfo.length > 0) {
@@ -190,12 +257,29 @@
            this.selectItemIndex -= 1;
          } else if (this.selectItemIndex == 0) {
            this.selectItemIndex = -1;
-         }
+         } else {
+           this.selectItemType = "untrack";
+           this.selectItemIndex = this.untrackStatusInfo.length - 1;
+         } 
+       } else if (this.selectItemType == "untrack") {
+         if (this.selectItemIndex > 0) {
+           this.selectItemIndex -= 1;
+         } else if (this.selectItemIndex == 0) {
+           this.selectItemIndex = -1;
+         } 
        }
 
        if (oldSelectItemType != this.selectItemType ||
            oldSelectItemIndex != this.selectItemIndex) {
          this.updateDiff();
+       }
+     },
+
+     untrackTitleBackground() {
+       if (this.selectItemType === "untrack" && this.selectItemIndex === -1) {
+         return this.selectColor;
+       } else {
+         return this.backgroundColor;
        }
      },
 
@@ -215,6 +299,14 @@
        }
      },
 
+     untrackItemBackground(index) {
+       if (this.selectItemType === "untrack" && this.selectItemIndex === index) {
+         return this.selectColor;
+       } else {
+         return this.backgroundColor;
+       }
+     },
+     
      unstageItemBackground(index) {
        if (this.selectItemType === "unstage" && this.selectItemIndex === index) {
          return this.selectColor;
@@ -261,6 +353,16 @@
    padding-left: 10px;
  }
 
+ .untrack-title {
+   padding-top: 5px;
+   padding-bottom: 5px;
+
+   font-weight: bold;
+   padding-left: 10px;
+   margin-bottom: 5px;
+   font-size: 16px;
+ }
+
  .unstaged-title {
    padding-top: 5px;
    padding-bottom: 5px;
@@ -277,7 +379,6 @@
 
    font-weight: bold;
    padding-left: 10px;
-   margin-top: 20px;
    margin-bottom: 5px;
    font-size: 16px;
  }
@@ -302,5 +403,9 @@
 
    white-space: pre-wrap;
    font-size: 16px;
+ }
+ 
+ .split-line {
+   height: 20px;
  }
 </style>

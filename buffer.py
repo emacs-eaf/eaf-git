@@ -110,6 +110,10 @@ class AppBuffer(BrowserBuffer):
     def __init__(self, buffer_id, url, arguments):
         BrowserBuffer.__init__(self, buffer_id, url, arguments, False)
 
+        self.stage_status = []
+        self.unstage_status = []
+        self.untrack_status = []
+        
         self.fetch_status_threads = []
         self.fetch_log_threads = []
         self.fetch_submodule_threads = []
@@ -171,8 +175,8 @@ class AppBuffer(BrowserBuffer):
         thread.start()
 
     @PostGui()
-    def update_status_info(self, stage_status, unstage_status):
-        self.buffer_widget.eval_js('''updateStatusInfo({}, {})'''.format(json.dumps(stage_status), json.dumps(unstage_status)))
+    def update_status_info(self, stage_status, unstage_status, untrack_status):
+        self.buffer_widget.eval_js('''updateStatusInfo({}, {}, {})'''.format(json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status)))
 
     def fetch_log_info(self):
         thread = FetchLogThread(self.repo)
@@ -232,18 +236,31 @@ class AppBuffer(BrowserBuffer):
         
     @QtCore.pyqtSlot(str, str)
     def update_diff(self, type, file):
+        
         diff_string = ""
         
-        if type == "stage":
+        if type == "untrack":
             if file == "":
-                diff_string = self.get_command_result("cd {}; git diff --color --stage".format(self.repo_root))
+                for status in self.untrack_status:
+                    with open(os.path.join(self.repo_root, status["file"])) as f:
+                        diff_string += "Untrack file: {}\n\n".format(status["file"])
+                        diff_string += f.read()
+                        diff_string += "\n"
             else:
-                diff_string = self.get_command_result("cd {}; git diff --color --stage {}".format(self.repo_root, file))
+                with open(os.path.join(self.repo_root, file)) as f:
+                    diff_string = f.read()
+        elif type == "stage":
+            if file == "":
+                diff_string = self.get_command_result("cd {}; git diff --color --staged".format(self.repo_root))
+            else:
+                diff_string = self.get_command_result("cd {}; git diff --color --staged {}".format(self.repo_root, file))
         elif type == "unstage":
             if file == "":
                 diff_string = self.get_command_result("cd {}; git diff --color".format(self.repo_root))
             else:
                 diff_string = self.get_command_result("cd {}; git diff --color {}".format(self.repo_root, file))
+                
+        print(type, file)
                 
         self.buffer_widget.eval_js('''updateChangeDiff({})'''.format(json.dumps(diff_string)))        
         
@@ -254,6 +271,18 @@ class AppBuffer(BrowserBuffer):
         process.wait()
         return "".join(process.stdout.readlines())
 
+    @QtCore.pyqtSlot(list)
+    def vue_update_stage_status(self, stage_status):
+        self.stage_status = stage_status
+
+    @QtCore.pyqtSlot(list)
+    def vue_update_unstage_status(self, unstage_status):
+        self.unstage_status = unstage_status
+
+    @QtCore.pyqtSlot(list)
+    def vue_update_untrack_status(self, untrack_status):
+        self.untrack_status = untrack_status
+        
 class FetchLogThread(QThread):
 
     fetch_result = QtCore.pyqtSignal(list)
@@ -306,7 +335,7 @@ class FetchBranchThread(QThread):
 
 class FetchStatusThread(QThread):
 
-    fetch_result = QtCore.pyqtSignal(list, list)
+    fetch_result = QtCore.pyqtSignal(list, list, list)
 
     def __init__(self, repo):
         QThread.__init__(self)
@@ -316,17 +345,18 @@ class FetchStatusThread(QThread):
     def run(self):
         status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
         
-        (stage_status, unstage_status) = self.parse_status(status)
+        (stage_status, unstage_status, untrack_status) = self.parse_status(status)
         
-        self.fetch_result.emit(stage_status, unstage_status)
+        self.fetch_result.emit(stage_status, unstage_status, untrack_status)
         
     def parse_status(self, status):
         stage_status = []
         unstage_status = []
+        untrack_status = []
         
         for info in status:
             if info[1] in GIT_STATUS_DICT:
-                self.append_file_to_status_list(info, info[1], stage_status, unstage_status)
+                self.append_file_to_status_list(info, info[1], stage_status, unstage_status, untrack_status)
             else:
                 first_dict = GIT_STATUS_DICT
                 second_dict = GIT_STATUS_DICT
@@ -334,12 +364,12 @@ class FetchStatusThread(QThread):
                 for first_key in first_dict:
                     for second_key in second_dict:
                         if info[1] == first_key | second_key:
-                            self.append_file_to_status_list(info, first_key, stage_status, unstage_status)
-                            self.append_file_to_status_list(info, second_key, stage_status, unstage_status)
+                            self.append_file_to_status_list(info, first_key, stage_status, unstage_status, untrack_status)
+                            self.append_file_to_status_list(info, second_key, stage_status, unstage_status, untrack_status)
                             
-        return (stage_status, unstage_status)                    
+        return (stage_status, unstage_status, untrack_status)                    
                             
-    def append_file_to_status_list(self, info, type_key, stage_status, unstage_status):
+    def append_file_to_status_list(self, info, type_key, stage_status, unstage_status, untrack_status):
         status = {
             "file": info[0],
             "type": GIT_STATUS_DICT[type_key]
@@ -348,6 +378,9 @@ class FetchStatusThread(QThread):
         if type_key in [GIT_STATUS_INDEX_MODIFIED, GIT_STATUS_INDEX_DELETED, GIT_STATUS_INDEX_RENAMED, GIT_STATUS_INDEX_TYPECHANGE]:
             if status not in stage_status:
                 stage_status.append(status)
+        elif type_key in [GIT_STATUS_WT_NEW]:
+            if status not in untrack_status:
+                untrack_status.append(status)
         else:
             if status not in unstage_status:
                 unstage_status.append(status)

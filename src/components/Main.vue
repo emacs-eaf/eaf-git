@@ -24,6 +24,7 @@
         :pyobject="pyobject"
         :stageStatusInfo="stageStatusInfo"
         :unstageStatusInfo="unstageStatusInfo"
+        :untrackStatusInfo="untrackStatusInfo"
         :backgroundColor="backgroundColor"
         :selectColor="selectColor"/>
       <Log
@@ -88,6 +89,7 @@
        repoPath: "",
        stageStatusInfo: [],
        unstageStatusInfo: [],
+       untrackStatusInfo: [],
        logInfo: [],
        submoduleInfo: [],
        branchInfo: [],
@@ -184,9 +186,10 @@
        this.navCurrentItem = pageName;
      },
 
-     updateStatusInfo(stageStatusInfo, unstageStatusInfo) {
+     updateStatusInfo(stageStatusInfo, unstageStatusInfo, untrackStatusInfo) {
        this.stageStatusInfo = stageStatusInfo;
        this.unstageStatusInfo = unstageStatusInfo;
+       this.untrackStatusInfo = untrackStatusInfo;
      },
 
      updateLogInfo(logInfo) {
