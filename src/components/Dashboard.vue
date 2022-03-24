@@ -29,7 +29,7 @@
           </div>
           <div class="split-line"/>
         </div>
-        
+
         <div v-if="unstageFileNumber() > 0">
           <div
             class="unstaged-title"
@@ -142,7 +142,7 @@
        this.selectItemType = "stage";
        this.selectItemIndex = -1;
      }
-
+     
      setTimeout(this.updateDiff, 1000)
 
      this.$root.$on("selectNextChangeItem", function () {
@@ -152,10 +152,20 @@
      this.$root.$on("selectPrevChangeItem", function () {
        that.selectPrevChangeItem();
      });
+
+     this.$root.$on("statusStageFile", function () {
+       that.pyobject.status_stage_file(this.selectItemType, this.selectItemIndex);
+     });
+
+     this.$root.$on("statusCancelFile", function () {
+       that.pyobject.status_cancel_file(this.selectItemType, this.selectItemIndex);
+     });
    },
    beforeDestroy() {
      this.$root.$off("selectNextChangeItem");
      this.$root.$off("selectPrevChangeItem");
+     this.$root.$off("statusStageFile");
+     this.$root.$off("statusCancelFile");
    },
    methods: {
      noFileSubmit() {
@@ -217,6 +227,9 @@
          } else if (this.unstageStatusInfo.length > 0) {
            this.selectItemType = "unstage";
            this.selectItemIndex = -1;
+         } else if (this.stageStatusInfo.length > 0) {
+           this.selectItemType = "stage";
+           this.selectItemIndex = -1;
          }
        } else if (this.selectItemType == "unstage") {
          if (this.selectItemIndex < this.unstageStatusInfo.length - 1) {
@@ -248,25 +261,28 @@
            this.selectItemIndex -= 1;
          } else if (this.selectItemIndex == 0) {
            this.selectItemIndex = -1;
-         } else {
+         } else if (this.unstageStatusInfo.length > 0) {
            this.selectItemType = "unstage";
            this.selectItemIndex = this.unstageStatusInfo.length - 1;
+         } else if (this.untrackStatusInfo.length > 0) {
+           this.selectItemType = "untrack";
+           this.selectItemIndex = this.untrackStatusInfo.length - 1;
          }
        } else if (this.selectItemType == "unstage") {
          if (this.selectItemIndex > 0) {
            this.selectItemIndex -= 1;
          } else if (this.selectItemIndex == 0) {
            this.selectItemIndex = -1;
-         } else {
+         } else if (this.untrackStatusInfo.length > 0) {
            this.selectItemType = "untrack";
            this.selectItemIndex = this.untrackStatusInfo.length - 1;
-         } 
+         }
        } else if (this.selectItemType == "untrack") {
          if (this.selectItemIndex > 0) {
            this.selectItemIndex -= 1;
          } else if (this.selectItemIndex == 0) {
            this.selectItemIndex = -1;
-         } 
+         }
        }
 
        if (oldSelectItemType != this.selectItemType ||
@@ -306,7 +322,7 @@
          return this.backgroundColor;
        }
      },
-     
+
      unstageItemBackground(index) {
        if (this.selectItemType === "unstage" && this.selectItemIndex === index) {
          return this.selectColor;
@@ -359,7 +375,6 @@
 
    font-weight: bold;
    padding-left: 10px;
-   margin-bottom: 5px;
    font-size: 16px;
  }
 
@@ -369,7 +384,6 @@
 
    font-weight: bold;
    padding-left: 10px;
-   margin-bottom: 5px;
    font-size: 16px;
  }
 
@@ -379,7 +393,6 @@
 
    font-weight: bold;
    padding-left: 10px;
-   margin-bottom: 5px;
    font-size: 16px;
  }
 
@@ -404,7 +417,7 @@
    white-space: pre-wrap;
    font-size: 16px;
  }
- 
+
  .split-line {
    height: 20px;
  }

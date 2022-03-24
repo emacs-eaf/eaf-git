@@ -260,10 +260,16 @@ class AppBuffer(BrowserBuffer):
             else:
                 diff_string = self.get_command_result("cd {}; git diff --color {}".format(self.repo_root, file))
                 
-        print(type, file)
-                
         self.buffer_widget.eval_js('''updateChangeDiff({})'''.format(json.dumps(diff_string)))        
         
+    @QtCore.pyqtSlot(str, str)
+    def status_stage_file(self, type, file):
+        print("stage action")
+
+    @QtCore.pyqtSlot(str, str)
+    def status_cancel_file(self, type, file):
+        print("cancel action")
+    
     def get_command_result(self, command_string):
         import subprocess
         
