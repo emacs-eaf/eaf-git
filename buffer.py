@@ -220,6 +220,12 @@ class AppBuffer(BrowserBuffer):
     def handle_input_response(self, callback_tag, result_content):
         if callback_tag == "copy_changes_file_to_mirror":
             self.handle_copy_changes_file_to_mirror(result_content)
+        elif callback_tag == "delete_untrack_file":
+            self.handle_delete_untrack_file(result_content)
+        elif callback_tag == "delete_unstage_file":
+            self.handle_delete_unstage_file(result_content)
+        elif callback_tag == "delete_stage_file":
+            self.handle_delete_stage_file(result_content)
             
     def handle_copy_changes_file_to_mirror(self, target_repo_dir):
         status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
@@ -262,13 +268,48 @@ class AppBuffer(BrowserBuffer):
                 
         self.buffer_widget.eval_js('''updateChangeDiff({})'''.format(json.dumps(diff_string)))        
         
-    @QtCore.pyqtSlot(str, str)
-    def status_stage_file(self, type, file):
-        print("stage action")
+    @QtCore.pyqtSlot(str, int)
+    def status_stage_file(self, type, file_index):
+        if type == "untrack":
+            self.stage_untrack_file(self.untrack_status[file_index])
+        elif type == "unstage":
+            self.stage_unstage_file(self.unstage_status[file_index])
+    
+    def stage_unstage_file(self, file_info):
+        pass
+    
+    def stage_unstage_file(self, file_info):
+        pass
 
-    @QtCore.pyqtSlot(str, str)
-    def status_cancel_file(self, type, file):
-        print("cancel action")
+    @QtCore.pyqtSlot(str, int)
+    def status_cancel_file(self, type, file_index):
+        if type == "untrack":
+            self.delete_untrack_file(self.untrack_status[file_index])
+        elif type == "unstage":
+            self.delete_unstage_file(self.unstage_status[file_index])
+        elif type == "stage":
+            self.delete_stage_file(self.stage_status[file_index])
+
+    def delete_untrack_file(self, file_info):
+        self.delete_unstage_mark_file = file_info["file"]
+        self.send_input_message("Discard untracked changes in {}?".format(file_info["file"]), "delete_untrack_file", "yes-or-no")
+    
+    def delete_unstage_file(self, file_info):
+        self.delete_unstage_mark_file = file_info["file"]
+        self.send_input_message("Discard unstaged changes in {}?".format(file_info["file"]), "delete_unstage_file", "yes-or-no")
+    
+    def delete_stage_file(self, file_info):
+        self.delete_stage_mark_file = file_info["file"]
+        self.send_input_message("Discard staged changes in {}?".format(file_info["file"]), "delete_stage_file", "yes-or-no")
+        
+    def handle_delete_untrack_file(self, file_path):
+        pass
+
+    def handle_delete_unstage_file(self, file_path):
+        pass
+
+    def handle_delete_stage_file(self, file_path):
+        pass
     
     def get_command_result(self, command_string):
         import subprocess
