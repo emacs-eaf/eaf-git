@@ -90,7 +90,8 @@
   (interactive)
   (if (and (executable-find "git")
            (string-equal (car (split-string (shell-command-to-string "git rev-parse --is-inside-work-tree"))) "true"))
-      (eaf-open default-directory "git")
+      (let ((repo-root (car (split-string (shell-command-to-string "git rev-parse --show-toplevel")))))
+        (eaf-open repo-root "git"))
     (message "%s is not a git repository." default-directory)))
 
 (defcustom eaf-git-keybinding
