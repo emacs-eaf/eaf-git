@@ -317,6 +317,8 @@ class AppBuffer(BrowserBuffer):
         unstage_status = self.unstage_status
         stage_status = self.stage_status
         
+        for file_info in unstage_status:
+            self.git_add_file(file_info["file"])
         stage_status += unstage_status
         unstage_status = []
         
@@ -356,6 +358,8 @@ class AppBuffer(BrowserBuffer):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
+        
+        self.git_add_file(file_info["file"])
         
         stage_status.append(file_info)
         unstage_file_index = unstage_status.index(file_info)
