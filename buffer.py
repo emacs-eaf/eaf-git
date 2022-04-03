@@ -47,6 +47,7 @@ from pathlib import Path
 import os
 import json
 import shutil
+import pygit2
 
 GIT_STATUS_DICT = {
     GIT_STATUS_CURRENT: "Current",
@@ -120,6 +121,7 @@ class AppBuffer(BrowserBuffer):
         self.fetch_log_threads = []
         self.fetch_submodule_threads = []
         self.fetch_branch_threads = []
+        self.fetch_pull_threads = []
 
         self.url = os.path.expanduser(self.url)
         self.repo = Repository(self.url)
@@ -650,6 +652,40 @@ class AppBuffer(BrowserBuffer):
     def vue_update_untrack_status(self, untrack_status):
         self.untrack_status = untrack_status
         
+    @QtCore.pyqtSlot()
+    def status_pull(self):
+        message_to_emacs("Git pull ...")
+        thread = FetchPullThread(self.repo)
+        thread.fetch_result.connect(message_to_emacs)
+        self.fetch_pull_threads.append(thread)
+        thread.start()
+    
+class GitRemoteCallbacks(pygit2.RemoteCallbacks):
+    
+    def __init__(self):
+        from pathlib import Path
+        home = str(Path.home())
+        ssh_dir = os.path.join(home, ".ssh")
+        files = os.listdir(ssh_dir)
+        pub_file_list = list(filter(lambda f: f.endswith(".pub"), files))
+        
+        self.key_secret_file = ""
+        self.key_pub_file = ""
+        if len(pub_file_list):
+            self.key_pub_file = os.path.join(ssh_dir, pub_file_list[0])
+            self.key_secret_file = os.path.join(ssh_dir, self.key_pub_file.split(".pub")[0])
+
+    def credentials(self, url, username_from_url, allowed_types):
+        if allowed_types & pygit2.credentials.GIT_CREDENTIAL_USERNAME:
+            print("111")
+            return pygit2.Username("git")
+        elif allowed_types & pygit2.credentials.GIT_CREDENTIAL_SSH_KEY:
+            print("222")
+            return pygit2.Keypair("git", self.key_pub_file, self.key_secret_file, "")
+        else:
+            print("3333")
+            return None
+        
 class FetchLogThread(QThread):
 
     fetch_result = QtCore.pyqtSignal(list)
@@ -751,4 +787,53 @@ class FetchStatusThread(QThread):
         else:
             if status not in unstage_status:
                 unstage_status.append(status)
+        
+
+class FetchPullThread(QThread):
+
+    fetch_result = QtCore.pyqtSignal(str)
+
+    def __init__(self, repo):
+        QThread.__init__(self)
+
+        self.repo = repo
+        
+        self.remote_name = "origin"
+        self.branch = "master"
+        self.force = False
+
+    def run(self):
+        for remote in self.repo.remotes:
+            if remote.name == self.remote_name:
+                remote.fetch(callbacks=GitRemoteCallbacks())
+                
+                remote_master_id = self.repo.lookup_reference(
+                    "refs/remotes/origin/%s" % self.branch
+                ).target
+ 
+                if self.force:
+                    repo_branch = self.repo.lookup_reference(
+                        "refs/heads/%s" % self.branch
+                    )
+                    repo_branch.set_target(remote_master_id)
+ 
+                merge_result, _ = self.repo.merge_analysis(remote_master_id)
+                
+                # Up to date, do nothing
+                if merge_result & pygit2.GIT_MERGE_ANALYSIS_UP_TO_DATE:
+                    self.fetch_result.emit("Update to date.")
+                # We can just fastforward
+                elif merge_result & pygit2.GIT_MERGE_ANALYSIS_FASTFORWARD:
+                    self.repo.checkout_tree(self.repo.get(remote_master_id))
+                    master_ref = self.repo.lookup_reference(
+                        "refs/heads/%s" % self.branch
+                    )
+                    master_ref.set_target(remote_master_id)
+                    self.repo.head.set_target(remote_master_id)
+                    
+                    self.fetch_result.emit("Pull newest commit.")
+                elif merge_result & pygit2.GIT_MERGE_ANALYSIS_NORMAL:
+                    self.fetch_result.emit("Pulling remote changes leads to a conflict.")
+                else:
+                    self.fetch_result.emit("Unknown merge analysis result: {}".format(merge_result))
         

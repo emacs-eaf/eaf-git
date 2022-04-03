@@ -170,6 +170,10 @@
      this.$root.$on("statusCommitAll", function () {
        that.pyobject.status_commit_all();
      });
+
+     this.$root.$on("statusPull", function () {
+       that.pyobject.status_pull();
+     });
    },
    beforeDestroy() {
      this.$root.$off("statusSelectNext");
@@ -178,6 +182,7 @@
      this.$root.$off("statusDeleteFile");
      this.$root.$off("statusCommitStage");
      this.$root.$off("statusCommitAll");
+     this.$root.$off("statusPull");
    },
    methods: {
      updateSelectInfo(stageStatusInfo, unstageStatusInfo, untrackStatusInfo, selectItemType, selectItemIndex) {
