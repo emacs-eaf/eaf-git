@@ -163,8 +163,12 @@
        that.pyobject.status_delete_file(that.selectItemType, that.selectItemIndex);
      });
 
-     this.$root.$on("statusCommit", function () {
-       that.pyobject.status_commit();
+     this.$root.$on("statusCommitStage", function () {
+       that.pyobject.status_commit_stage();
+     });
+
+     this.$root.$on("statusCommitAll", function () {
+       that.pyobject.status_commit_all();
      });
    },
    beforeDestroy() {
@@ -172,7 +176,8 @@
      this.$root.$off("statusSelectPrev");
      this.$root.$off("statusStageFile");
      this.$root.$off("statusDeleteFile");
-     this.$root.$off("statusCommit");
+     this.$root.$off("statusCommitStage");
+     this.$root.$off("statusCommitAll");
    },
    methods: {
      updateSelectInfo(stageStatusInfo, unstageStatusInfo, untrackStatusInfo, selectItemType, selectItemIndex) {

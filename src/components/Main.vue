@@ -114,7 +114,7 @@
        }
 
        if (that.navCurrentItem === "Dashboard") {
-         if (event_key === "C") {
+         if (event_key === "m") {
            window.pyobject.copy_change_files_to_mirror_repo();
          } else if (event_key === "j") {
            that.$root.$emit("statusSelectNext");
@@ -125,7 +125,9 @@
          } else if (event_key === "d") {
            that.$root.$emit("statusDeleteFile");
          } else if (event_key === "c") {
-           that.$root.$emit("statusCommit");
+           that.$root.$emit("statusCommitStage");
+         } else if (event_key === "C") {
+           that.$root.$emit("statusCommitAll");
          }
        } else if (that.navCurrentItem === "Log") {
          if (event_key === "j") {
