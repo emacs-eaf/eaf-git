@@ -159,15 +159,15 @@
        that.pyobject.status_stage_file(that.selectItemType, that.selectItemIndex);
      });
 
-     this.$root.$on("statusCancelFile", function () {
-       that.pyobject.status_cancel_file(that.selectItemType, that.selectItemIndex);
+     this.$root.$on("statusDeleteFile", function () {
+       that.pyobject.status_delete_file(that.selectItemType, that.selectItemIndex);
      });
    },
    beforeDestroy() {
      this.$root.$off("selectNextChangeItem");
      this.$root.$off("selectPrevChangeItem");
      this.$root.$off("statusStageFile");
-     this.$root.$off("statusCancelFile");
+     this.$root.$off("statusDeleteFile");
    },
    methods: {
      updateSelectInfo(stageStatusInfo, unstageStatusInfo, untrackStatusInfo, selectItemType, selectItemIndex) {

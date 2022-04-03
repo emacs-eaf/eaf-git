@@ -123,7 +123,7 @@
          } else if (event_key === "s") {
            that.$root.$emit("statusStageFile");
          } else if (event_key === "c") {
-           that.$root.$emit("statusCancelFile");
+           that.$root.$emit("statusDeleteFile");
          }
        } else if (that.navCurrentItem === "Log") {
          if (event_key === "j") {

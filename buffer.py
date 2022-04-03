@@ -24,7 +24,8 @@ from PyQt6.QtGui import QColor
 from PyQt6.QtCore import QThread
 from core.webengine import BrowserBuffer
 from core.utils import get_emacs_func_result, get_emacs_var, PostGui, message_to_emacs, eval_in_emacs
-from pygit2 import (Repository, GIT_SORT_TOPOLOGICAL,
+from pygit2 import (Repository, IndexEntry,
+                    GIT_SORT_TOPOLOGICAL,
                     GIT_STATUS_CURRENT,
                     GIT_STATUS_INDEX_NEW,
                     GIT_STATUS_INDEX_MODIFIED,
@@ -39,6 +40,7 @@ from pygit2 import (Repository, GIT_SORT_TOPOLOGICAL,
                     GIT_STATUS_WT_UNREADABLE,
                     GIT_STATUS_IGNORED,
                     GIT_STATUS_CONFLICTED,
+                    GIT_CHECKOUT_FORCE,
                     discover_repository)
 from datetime import datetime
 from pathlib import Path
@@ -291,6 +293,23 @@ class AppBuffer(BrowserBuffer):
         index.add(path)
         index.write()
         
+    def git_reset_file(self, path):
+        index = self.repo.index
+
+        # Remove path from the index
+        index.remove(path)
+
+        # Restore object from db
+        obj = self.repo.revparse_single('HEAD').tree[path] # Get object from db
+        index.add(IndexEntry(path, obj.id, obj.filemode)) # Add to index
+
+        # Write index
+        index.write()
+        
+    def git_checkout_file(self, path):
+        ref_master = self.repo.lookup_reference('refs/heads/master')
+        self.repo.checkout(ref_master, paths=[path], strategy=GIT_CHECKOUT_FORCE)
+        
     def stage_untrack_files(self):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
@@ -378,7 +397,7 @@ class AppBuffer(BrowserBuffer):
             select_item_type, select_item_index))
 
     @QtCore.pyqtSlot(str, int)
-    def status_cancel_file(self, type, file_index):
+    def status_delete_file(self, type, file_index):
         if type == "untrack":
             if file_index == -1:
                 self.send_input_message("Discard untracked files?", "delete_untrack_files", "yes-or-no")
@@ -440,6 +459,9 @@ class AppBuffer(BrowserBuffer):
         unstage_status = self.unstage_status
         stage_status = self.stage_status
         
+        for file_info in unstage_status:
+            self.git_checkout_file(file_info["file"])
+            
         unstage_status = []
         
         select_item_type = ""
@@ -457,6 +479,10 @@ class AppBuffer(BrowserBuffer):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
+        
+        for file_info in stage_status:
+            self.git_reset_file(file_info["file"])
+            self.git_checkout_file(file_info["file"])
         
         stage_status = []
         
@@ -501,6 +527,8 @@ class AppBuffer(BrowserBuffer):
         unstage_status = self.unstage_status
         stage_status = self.stage_status
         
+        self.git_checkout_file(self.delete_unstage_mark_file["file"])
+        
         unstage_file_index = unstage_status.index(self.delete_unstage_mark_file)
         unstage_status.remove(self.delete_unstage_mark_file)
         
@@ -520,6 +548,9 @@ class AppBuffer(BrowserBuffer):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
+        
+        self.git_reset_file(self.delete_stage_mark_file["file"])
+        self.git_checkout_file(self.delete_stage_mark_file["file"])
         
         stage_file_index = stage_status.index(self.delete_stage_mark_file)
         stage_status.remove(self.delete_stage_mark_file)
