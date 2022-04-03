@@ -22,9 +22,6 @@
       <Dashboard
         v-if="navCurrentItem == 'Dashboard'"
         :pyobject="pyobject"
-        :stageStatusInfo="stageStatusInfo"
-        :unstageStatusInfo="unstageStatusInfo"
-        :untrackStatusInfo="untrackStatusInfo"
         :backgroundColor="backgroundColor"
         :selectColor="selectColor"/>
       <Log
@@ -87,9 +84,6 @@
        repoLastCommitId: "",
        repoLastCommitMessage: "",
        repoPath: "",
-       stageStatusInfo: [],
-       unstageStatusInfo: [],
-       untrackStatusInfo: [],
        logInfo: [],
        submoduleInfo: [],
        branchInfo: [],
@@ -99,7 +93,6 @@
    mounted() {
      window.init = this.init;
      window.changePage = this.changePage;
-     window.updateStatusInfo = this.updateStatusInfo;
      window.updateLogInfo = this.updateLogInfo;
      window.updateSubmoduleInfo = this.updateSubmoduleInfo;
      window.updateBranchInfo = this.updateBranchInfo;
@@ -188,12 +181,6 @@
 
      changePage(pageName) {
        this.navCurrentItem = pageName;
-     },
-
-     updateStatusInfo(stageStatusInfo, unstageStatusInfo, untrackStatusInfo) {
-       this.stageStatusInfo = stageStatusInfo;
-       this.unstageStatusInfo = unstageStatusInfo;
-       this.untrackStatusInfo = untrackStatusInfo;
      },
 
      updateLogInfo(logInfo) {

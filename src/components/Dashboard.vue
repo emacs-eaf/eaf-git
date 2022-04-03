@@ -85,9 +85,6 @@
  export default {
    name: 'Dashboard',
    props: {
-     stageStatusInfo: Array,
-     unstageStatusInfo: Array,
-     untrackStatusInfo: Array,
      backgroundColor: String,
      selectColor: String,
      pyobject: Object
@@ -119,7 +116,10 @@
      return {
        diffs: "",
        selectItemType: "",
-       selectItemIndex: -1
+       selectItemIndex: -1,
+       stageStatusInfo: [],
+       unstageStatusInfo: [],
+       untrackStatusInfo: []
      }
    },
    computed: {
@@ -129,6 +129,8 @@
    },
    mounted() {
      window.updateChangeDiff = this.updateChangeDiff;
+     window.updateStatusInfo = this.updateStatusInfo;
+     window.updateSelectInfo = this.updateSelectInfo;
 
      var that = this;
 
@@ -154,11 +156,11 @@
      });
 
      this.$root.$on("statusStageFile", function () {
-       that.pyobject.status_stage_file(this.selectItemType, this.selectItemIndex);
+       that.pyobject.status_stage_file(that.selectItemType, that.selectItemIndex);
      });
 
      this.$root.$on("statusCancelFile", function () {
-       that.pyobject.status_cancel_file(this.selectItemType, this.selectItemIndex);
+       that.pyobject.status_cancel_file(that.selectItemType, that.selectItemIndex);
      });
    },
    beforeDestroy() {
@@ -168,8 +170,22 @@
      this.$root.$off("statusCancelFile");
    },
    methods: {
+     updateSelectInfo(stageStatusInfo, unstageStatusInfo, untrackStatusInfo, selectItemType, selectItemIndex) {
+       this.stageStatusInfo = stageStatusInfo;
+       this.unstageStatusInfo = unstageStatusInfo;
+       this.untrackStatusInfo = untrackStatusInfo;
+       this.selectItemIndex = selectItemIndex;
+       this.selectItemType = selectItemType;
+     },
+     
+     updateStatusInfo(stageStatusInfo, unstageStatusInfo, untrackStatusInfo) {
+       this.stageStatusInfo = stageStatusInfo;
+       this.unstageStatusInfo = unstageStatusInfo;
+       this.untrackStatusInfo = untrackStatusInfo;
+     },
+
      noFileSubmit() {
-       return this.unstageFileNumber() + this.stageFileNumber() === 0;
+       return this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber() === 0;
      },
 
      untrackFileNumber() {

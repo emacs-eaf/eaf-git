@@ -220,11 +220,17 @@ class AppBuffer(BrowserBuffer):
         if callback_tag == "copy_changes_file_to_mirror":
             self.handle_copy_changes_file_to_mirror(result_content)
         elif callback_tag == "delete_untrack_file":
-            self.handle_delete_untrack_file(result_content)
+            self.handle_delete_untrack_file()
         elif callback_tag == "delete_unstage_file":
-            self.handle_delete_unstage_file(result_content)
+            self.handle_delete_unstage_file()
         elif callback_tag == "delete_stage_file":
-            self.handle_delete_stage_file(result_content)
+            self.handle_delete_stage_file()
+        elif callback_tag == "delete_untrack_files":
+            self.handle_delete_untrack_files()
+        elif callback_tag == "delete_unstage_files":
+            self.handle_delete_unstage_files()
+        elif callback_tag == "delete_stage_files":
+            self.handle_delete_stage_files()
             
     def handle_copy_changes_file_to_mirror(self, target_repo_dir):
         status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
@@ -270,45 +276,241 @@ class AppBuffer(BrowserBuffer):
     @QtCore.pyqtSlot(str, int)
     def status_stage_file(self, type, file_index):
         if type == "untrack":
-            self.stage_untrack_file(self.untrack_status[file_index])
+            if file_index == -1:
+                self.stage_untrack_files()
+            else:
+                self.stage_untrack_file(self.untrack_status[file_index])
         elif type == "unstage":
-            self.stage_unstage_file(self.unstage_status[file_index])
+            if file_index == -1:
+                self.stage_unstage_files()
+            else:
+                self.stage_unstage_file(self.unstage_status[file_index])
+    
+    def stage_untrack_files(self):
+        untrack_status = self.untrack_status
+        unstage_status = self.unstage_status
+        stage_status = self.stage_status
+        
+        stage_status += untrack_status
+        untrack_status = []
+        
+        select_item_type = ""
+        select_item_index = -1
+        if len(unstage_status) > 0:
+            select_item_type = "unstage"
+        else:
+            select_item_type = "stage"
+        
+        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
+            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
+            select_item_type, select_item_index))
+            
+    def stage_unstage_files(self):
+        untrack_status = self.untrack_status
+        unstage_status = self.unstage_status
+        stage_status = self.stage_status
+        
+        stage_status += unstage_status
+        unstage_status = []
+        
+        select_item_type = "stage"
+        select_item_index = -1
+        
+        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
+            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
+            select_item_type, select_item_index))
+    
+    def stage_untrack_file(self, file_info):
+        untrack_status = self.untrack_status
+        unstage_status = self.unstage_status
+        stage_status = self.stage_status
+        
+        stage_status.append(file_info)
+        untrack_file_index = untrack_status.index(file_info)
+        untrack_status.remove(file_info)
+        
+        select_item_type = ""
+        select_item_index = -1
+        if len(untrack_status) > 0:
+            select_item_type = "untrack"
+            select_item_index = max(untrack_file_index - 1, 0)
+        elif len(unstage_status) > 0:
+            select_item_type = "unstage"
+        else:
+            select_item_type = "stage"
+        
+        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
+            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
+            select_item_type, select_item_index))
     
     def stage_unstage_file(self, file_info):
-        pass
-    
-    def stage_unstage_file(self, file_info):
-        pass
+        untrack_status = self.untrack_status
+        unstage_status = self.unstage_status
+        stage_status = self.stage_status
+        
+        stage_status.append(file_info)
+        unstage_file_index = unstage_status.index(file_info)
+        unstage_status.remove(file_info)
+        
+        select_item_type = ""
+        select_item_index = -1
+        if len(unstage_status) > 0:
+            select_item_type = "unstage"
+            select_item_index = max(unstage_file_index - 1, 0)
+        else:
+            select_item_type = "stage"
+        
+        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
+            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
+            select_item_type, select_item_index))
 
     @QtCore.pyqtSlot(str, int)
     def status_cancel_file(self, type, file_index):
         if type == "untrack":
-            self.delete_untrack_file(self.untrack_status[file_index])
+            if file_index == -1:
+                self.send_input_message("Discard untracked files?", "delete_untrack_files", "yes-or-no")
+            else:
+                self.delete_untrack_file(self.untrack_status[file_index])
         elif type == "unstage":
-            self.delete_unstage_file(self.unstage_status[file_index])
+            if file_index == -1:
+                self.send_input_message("Discard unstaged files?", "delete_unstage_files", "yes-or-no")
+            else:
+                self.delete_unstage_file(self.unstage_status[file_index])
         elif type == "stage":
-            self.delete_stage_file(self.stage_status[file_index])
+            if file_index == -1:
+                self.send_input_message("Discard staged files?", "delete_stage_files", "yes-or-no")
+            else:
+                self.delete_stage_file(self.stage_status[file_index])
 
     def delete_untrack_file(self, file_info):
-        self.delete_unstage_mark_file = file_info["file"]
+        self.delete_untrack_mark_file = file_info
         self.send_input_message("Discard untracked changes in {}?".format(file_info["file"]), "delete_untrack_file", "yes-or-no")
     
     def delete_unstage_file(self, file_info):
-        self.delete_unstage_mark_file = file_info["file"]
+        self.delete_unstage_mark_file = file_info
         self.send_input_message("Discard unstaged changes in {}?".format(file_info["file"]), "delete_unstage_file", "yes-or-no")
     
     def delete_stage_file(self, file_info):
-        self.delete_stage_mark_file = file_info["file"]
+        self.delete_stage_mark_file = file_info
         self.send_input_message("Discard staged changes in {}?".format(file_info["file"]), "delete_stage_file", "yes-or-no")
         
-    def handle_delete_untrack_file(self, file_path):
-        pass
+    def handle_delete_untrack_files(self):
+        untrack_status = self.untrack_status
+        unstage_status = self.unstage_status
+        stage_status = self.stage_status
+        
+        untrack_status = []
+        
+        select_item_type = ""
+        select_item_index = -1
+        if len(unstage_status) > 0:
+            select_item_type = "unstage"
+        else:
+            select_item_type = "stage"
+        
+        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
+            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
+            select_item_type, select_item_index))
 
-    def handle_delete_unstage_file(self, file_path):
-        pass
+    def handle_delete_unstage_files(self):
+        untrack_status = self.untrack_status
+        unstage_status = self.unstage_status
+        stage_status = self.stage_status
+        
+        unstage_status = []
+        
+        select_item_type = ""
+        select_item_index = -1
+        if len(untrack_status) > 0:
+            select_item_type = "untrack"
+        else:
+            select_item_type = "stage"
+            
+        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
+            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
+            select_item_type, select_item_index))
 
-    def handle_delete_stage_file(self, file_path):
-        pass
+    def handle_delete_stage_files(self):
+        untrack_status = self.untrack_status
+        unstage_status = self.unstage_status
+        stage_status = self.stage_status
+        
+        stage_status = []
+        
+        select_item_type = ""
+        select_item_index = -1
+        if len(unstage_status) > 0:
+            select_item_type = "unstage"
+        elif len(untrack_status) > 0:
+            select_item_type = "untrack"
+            
+        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
+            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
+            select_item_type, select_item_index))
+    
+    def handle_delete_untrack_file(self):
+        untrack_status = self.untrack_status
+        unstage_status = self.unstage_status
+        stage_status = self.stage_status
+        
+        untrack_file_index = untrack_status.index(self.delete_untrack_mark_file)
+        untrack_status.remove(self.delete_untrack_mark_file)
+        
+        select_item_type = ""
+        select_item_index = -1
+        if len(untrack_status) > 0:
+            select_item_type = "untrack"
+            select_item_index = max(untrack_file_index - 1, 0)
+        elif len(unstage_status) > 0:
+            select_item_type = "unstage"
+        else:
+            select_item_type = "stage"
+        
+        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
+            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
+            select_item_type, select_item_index))
+    
+    def handle_delete_unstage_file(self):
+        untrack_status = self.untrack_status
+        unstage_status = self.unstage_status
+        stage_status = self.stage_status
+        
+        unstage_file_index = unstage_status.index(self.delete_unstage_mark_file)
+        unstage_status.remove(self.delete_unstage_mark_file)
+        
+        select_item_type = ""
+        select_item_index = -1
+        if len(unstage_status) > 0:
+            select_item_type = "unstage"
+            select_item_index = max(unstage_file_index - 1, 0)
+        else:
+            select_item_type = "stage"
+        
+        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
+            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
+            select_item_type, select_item_index))
+
+    def handle_delete_stage_file(self):
+        untrack_status = self.untrack_status
+        unstage_status = self.unstage_status
+        stage_status = self.stage_status
+        
+        stage_file_index = stage_status.index(self.delete_stage_mark_file)
+        stage_status.remove(self.delete_stage_mark_file)
+        
+        select_item_type = ""
+        select_item_index = -1
+        if len(stage_status) > 0:
+            select_item_type = "stage"
+            select_item_index = max(stage_file_index - 1, 0)
+        elif len(unstage_status) > 0:
+            select_item_type = "unstage"
+        elif len(unstage_status) > 0:
+            select_item_type = "untrack"
+        
+        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
+            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
+            select_item_type, select_item_index))
     
     def get_command_result(self, command_string):
         import subprocess
