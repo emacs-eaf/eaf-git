@@ -78,35 +78,35 @@
      this.currentCommitIndex = 0;
      this.updateLineCoordinate();
 
-     this.$root.$on("selectNextLog", function () {
-       that.selectNextLog();
+     this.$root.$on("logSelectNext", function () {
+       that.logSelectNext();
      });
 
-     this.$root.$on("selectPrevLog", function () {
-       that.selectPrevLog();
+     this.$root.$on("logSelectPrev", function () {
+       that.logSelectPrev();
      });
 
-     this.$root.$on("selectLastLog", function () {
-       that.selectLastLog();
+     this.$root.$on("logSelectLast", function () {
+       that.logSelectLast();
      });
 
-     this.$root.$on("selectFirstLog", function () {
-       that.selectFirstLog();
+     this.$root.$on("logSelectFirst", function () {
+       that.logSelectFirst();
      });
 
-     this.$root.$on("viewLogDiff", function () {
+     this.$root.$on("logViewDiff", function () {
        that.pyobject.show_commit_diff(that.currentCommitId, that.logInfo[that.currentCommitIndex + 1].id);
      });
    },
    beforeDestroy() {
-     this.$root.$off("selectNextLog");
-     this.$root.$off("selectPrevLog");
-     this.$root.$off("selectLastLog");
-     this.$root.$off("selectFirstLog");
-     this.$root.$off("viewLogDiff");
+     this.$root.$off("logSelectNext");
+     this.$root.$off("logSelectPrev");
+     this.$root.$off("logSelectLast");
+     this.$root.$off("logSelectFirst");
+     this.$root.$off("logViewDiff");
    },
    methods: {
-     selectNextLog() {
+     logSelectNext() {
        if (this.logInfo.length > 0 && this.currentCommitIndex < this.logInfo.length - 1) {
          this.currentCommitIndex++;
          this.updateLineCoordinate();
@@ -114,7 +114,7 @@
        }
      },
 
-     selectLastLog() {
+     logSelectLast() {
        if (this.logInfo.length > 0 && this.currentCommitIndex < this.logInfo.length - 1) {
          this.currentCommitIndex = this.logInfo.length - 1;
          this.updateLineCoordinate();
@@ -122,7 +122,7 @@
        }
      },
 
-     selectPrevLog() {
+     logSelectPrev() {
        if (this.logInfo.length > 0 && this.currentCommitIndex > 0) {
          this.currentCommitIndex--;
          this.updateLineCoordinate();
@@ -130,7 +130,7 @@
        }
      },
 
-     selectFirstLog() {
+     logSelectFirst() {
        if (this.logInfo.length > 0 && this.currentCommitIndex > 0) {
          this.currentCommitIndex = 0;
          this.updateLineCoordinate();

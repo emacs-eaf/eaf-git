@@ -147,12 +147,12 @@
      
      setTimeout(this.updateDiff, 1000)
 
-     this.$root.$on("selectNextChangeItem", function () {
-       that.selectNextChangeItem();
+     this.$root.$on("statusSelectNext", function () {
+       that.statusSelectNext();
      });
 
-     this.$root.$on("selectPrevChangeItem", function () {
-       that.selectPrevChangeItem();
+     this.$root.$on("statusSelectPrev", function () {
+       that.statusSelectPrev();
      });
 
      this.$root.$on("statusStageFile", function () {
@@ -162,12 +162,17 @@
      this.$root.$on("statusDeleteFile", function () {
        that.pyobject.status_delete_file(that.selectItemType, that.selectItemIndex);
      });
+
+     this.$root.$on("statusCommit", function () {
+       that.pyobject.status_commit();
+     });
    },
    beforeDestroy() {
-     this.$root.$off("selectNextChangeItem");
-     this.$root.$off("selectPrevChangeItem");
+     this.$root.$off("statusSelectNext");
+     this.$root.$off("statusSelectPrev");
      this.$root.$off("statusStageFile");
      this.$root.$off("statusDeleteFile");
+     this.$root.$off("statusCommit");
    },
    methods: {
      updateSelectInfo(stageStatusInfo, unstageStatusInfo, untrackStatusInfo, selectItemType, selectItemIndex) {
@@ -233,7 +238,7 @@
        this.diffs = diffString;
      },
 
-     selectNextChangeItem() {
+     statusSelectNext() {
        var oldSelectItemType = this.selectItemType;
        var oldSelectItemIndex = this.selectItemIndex;
 
@@ -268,7 +273,7 @@
        }
      },
 
-     selectPrevChangeItem() {
+     statusSelectPrev() {
        var oldSelectItemType = this.selectItemType;
        var oldSelectItemIndex = this.selectItemIndex;
 

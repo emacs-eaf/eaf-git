@@ -117,25 +117,27 @@
          if (event_key === "C") {
            window.pyobject.copy_change_files_to_mirror_repo();
          } else if (event_key === "j") {
-           that.$root.$emit("selectNextChangeItem");
+           that.$root.$emit("statusSelectNext");
          } else if (event_key === "k") {
-           that.$root.$emit("selectPrevChangeItem");
+           that.$root.$emit("statusSelectPrev");
          } else if (event_key === "s") {
            that.$root.$emit("statusStageFile");
-         } else if (event_key === "c") {
+         } else if (event_key === "d") {
            that.$root.$emit("statusDeleteFile");
+         } else if (event_key === "c") {
+           that.$root.$emit("statusCommit");
          }
        } else if (that.navCurrentItem === "Log") {
          if (event_key === "j") {
-           that.$root.$emit("selectNextLog");
+           that.$root.$emit("logSelectNext");
          } else if (event_key === "k") {
-           that.$root.$emit("selectPrevLog");
+           that.$root.$emit("logSelectPrev");
          } else if (event_key === "J") {
-           that.$root.$emit("selectLastLog");
+           that.$root.$emit("logSelectLast");
          } else if (event_key === "K") {
-           that.$root.$emit("selectFirstLog");
+           that.$root.$emit("logSelectFirst");
          } else if (event_key === "Enter") {
-           that.$root.$emit("viewLogDiff");
+           that.$root.$emit("logViewDiff");
          }
        }
      });

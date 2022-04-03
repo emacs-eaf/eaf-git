@@ -233,6 +233,8 @@ class AppBuffer(BrowserBuffer):
             self.handle_delete_unstage_files()
         elif callback_tag == "delete_stage_files":
             self.handle_delete_stage_files()
+        elif callback_tag == "commit_stage_files":
+            self.handle_commit_stage_files(result_content)
             
     def handle_copy_changes_file_to_mirror(self, target_repo_dir):
         status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
@@ -275,6 +277,10 @@ class AppBuffer(BrowserBuffer):
                 
         self.buffer_widget.eval_js('''updateChangeDiff({})'''.format(json.dumps(diff_string)))        
         
+    @QtCore.pyqtSlot()
+    def status_commit(self):
+        self.send_input_message("Commit stage files with message: ", "commit_stage_files")
+    
     @QtCore.pyqtSlot(str, int)
     def status_stage_file(self, type, file_index):
         if type == "untrack":
@@ -496,6 +502,19 @@ class AppBuffer(BrowserBuffer):
         self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
             json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
             select_item_type, select_item_index))
+        
+    def handle_commit_stage_files(self, message):
+        tree = self.repo.index.write_tree()
+        parent, ref = self.repo.resolve_refish(refish=self.repo.head.name)
+        self.repo.create_commit(
+            ref.name,
+            self.repo.default_signature,
+            self.repo.default_signature,
+            message,
+            tree,
+            [parent.oid])
+        
+        message_to_emacs("Commit {}".format(message))
     
     def handle_delete_untrack_file(self):
         untrack_status = self.untrack_status
