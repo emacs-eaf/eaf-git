@@ -863,6 +863,6 @@ class GitPushThread(QThread):
     def run(self):
         for remote in self.repo.remotes:
             if remote.name == self.remote_name:
-                remote.push(self.ref)        
+                remote.push([self.ref], callbacks=GitRemoteCallbacks())        
                 self.push_result.emit("Push done.")
                 
