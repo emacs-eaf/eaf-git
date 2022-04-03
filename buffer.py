@@ -399,6 +399,11 @@ class AppBuffer(BrowserBuffer):
         unstage_status = self.unstage_status
         stage_status = self.stage_status
         
+        delete_file_number = len(self.untrack_status)
+        
+        for untrack_file in self.untrack_status:
+            os.remove(os.path.join(self.repo_root, untrack_file["file"]))
+        
         untrack_status = []
         
         select_item_type = ""
@@ -411,6 +416,11 @@ class AppBuffer(BrowserBuffer):
         self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
             json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
             select_item_type, select_item_index))
+        
+        if delete_file_number > 1:
+            message_to_emacs("Delete {} files.".format(delete_file_number))
+        else:
+            message_to_emacs("Delete 1 file.")
 
     def handle_delete_unstage_files(self):
         untrack_status = self.untrack_status
@@ -455,6 +465,7 @@ class AppBuffer(BrowserBuffer):
         
         untrack_file_index = untrack_status.index(self.delete_untrack_mark_file)
         untrack_status.remove(self.delete_untrack_mark_file)
+        os.remove(os.path.join(self.repo_root, self.delete_untrack_mark_file["file"]))
         
         select_item_type = ""
         select_item_index = -1
@@ -469,6 +480,8 @@ class AppBuffer(BrowserBuffer):
         self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
             json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
             select_item_type, select_item_index))
+        
+        message_to_emacs("Delete file {}".format(self.delete_untrack_mark_file["file"]))
     
     def handle_delete_unstage_file(self):
         untrack_status = self.untrack_status
