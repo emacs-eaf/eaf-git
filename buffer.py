@@ -122,6 +122,8 @@ class AppBuffer(BrowserBuffer):
         self.fetch_submodule_threads = []
         self.fetch_branch_threads = []
         self.fetch_pull_threads = []
+        
+        self.git_push_threads = []
 
         self.url = os.path.expanduser(self.url)
         self.repo = Repository(self.url)
@@ -659,7 +661,15 @@ class AppBuffer(BrowserBuffer):
         thread.fetch_result.connect(message_to_emacs)
         self.fetch_pull_threads.append(thread)
         thread.start()
-    
+
+    @QtCore.pyqtSlot()
+    def status_push(self):
+        message_to_emacs("Git push ...")
+        thread = GitPushThread(self.repo)
+        thread.push_result.connect(message_to_emacs)
+        self.git_push_threads.append(thread)
+        thread.start()
+        
 class GitRemoteCallbacks(pygit2.RemoteCallbacks):
     
     def __init__(self):
@@ -837,3 +847,22 @@ class FetchPullThread(QThread):
                 else:
                     self.fetch_result.emit("Unknown merge analysis result: {}".format(merge_result))
         
+
+class GitPushThread(QThread):
+
+    push_result = QtCore.pyqtSignal(str)
+
+    def __init__(self, repo):
+        QThread.__init__(self)
+
+        self.repo = repo
+        
+        self.remote_name = "origin"
+        self.ref = "refs/heads/master:refs/heads/master"
+
+    def run(self):
+        for remote in self.repo.remotes:
+            if remote.name == self.remote_name:
+                remote.push(self.ref)        
+                self.push_result.emit("Push done.")
+                

@@ -130,6 +130,8 @@
            that.$root.$emit("statusCommitAll");
          } else if (event_key === "u") {
            that.$root.$emit("statusPull");
+         } else if (event_key === "U") {
+           that.$root.$emit("statusPush");
          }
        } else if (that.navCurrentItem === "Log") {
          if (event_key === "j") {
