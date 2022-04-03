@@ -286,11 +286,18 @@ class AppBuffer(BrowserBuffer):
             else:
                 self.stage_unstage_file(self.unstage_status[file_index])
     
+    def git_add_file(self, path):
+        index = self.repo.index
+        index.add(path)
+        index.write()
+        
     def stage_untrack_files(self):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
         
+        for file_info in untrack_status:
+            self.git_add_file(file_info["file"])
         stage_status += untrack_status
         untrack_status = []
         
@@ -324,6 +331,8 @@ class AppBuffer(BrowserBuffer):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
+        
+        self.git_add_file(file_info["file"])
         
         stage_status.append(file_info)
         untrack_file_index = untrack_status.index(file_info)
