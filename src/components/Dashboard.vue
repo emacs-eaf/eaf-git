@@ -178,6 +178,10 @@
      this.$root.$on("statusPush", function () {
        that.pyobject.status_push();
      });
+
+     this.$root.$on("statusCheckoutAll", function () {
+       that.pyobject.status_checkout_all();
+     });
    },
    beforeDestroy() {
      this.$root.$off("statusSelectNext");
@@ -188,6 +192,7 @@
      this.$root.$off("statusCommitAll");
      this.$root.$off("statusPull");
      this.$root.$off("statusPush");
+     this.$root.$off("statusCheckoutAll");
    },
    methods: {
      updateSelectInfo(stageStatusInfo, unstageStatusInfo, untrackStatusInfo, selectItemType, selectItemIndex) {

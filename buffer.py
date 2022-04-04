@@ -241,6 +241,8 @@ class AppBuffer(BrowserBuffer):
             self.handle_commit_stage_files(result_content)
         elif callback_tag == "commit_all_files":
             self.handle_commit_all_files(result_content)
+        elif callback_tag == "checkout_all_files":
+            self.handle_checkout_all_files()
             
     def handle_copy_changes_file_to_mirror(self, target_repo_dir):
         status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
@@ -322,9 +324,9 @@ class AppBuffer(BrowserBuffer):
         # Write index
         index.write()
         
-    def git_checkout_file(self, path):
+    def git_checkout_file(self, paths=[]):
         ref_master = self.repo.lookup_reference('refs/heads/master')
-        self.repo.checkout(ref_master, paths=[path], strategy=GIT_CHECKOUT_FORCE)
+        self.repo.checkout(ref_master, paths=paths, strategy=GIT_CHECKOUT_FORCE)
         
     def stage_untrack_files(self):
         untrack_status = self.untrack_status
@@ -476,7 +478,7 @@ class AppBuffer(BrowserBuffer):
         stage_status = self.stage_status
         
         for file_info in unstage_status:
-            self.git_checkout_file(file_info["file"])
+            self.git_checkout_file([file_info["file"]])
             
         unstage_status = []
         
@@ -498,7 +500,7 @@ class AppBuffer(BrowserBuffer):
         
         for file_info in stage_status:
             self.git_reset_file(file_info["file"])
-            self.git_checkout_file(file_info["file"])
+            self.git_checkout_file([file_info["file"]])
         
         stage_status = []
         
@@ -593,7 +595,7 @@ class AppBuffer(BrowserBuffer):
         unstage_status = self.unstage_status
         stage_status = self.stage_status
         
-        self.git_checkout_file(self.delete_unstage_mark_file["file"])
+        self.git_checkout_file([self.delete_unstage_mark_file["file"]])
         
         unstage_file_index = unstage_status.index(self.delete_unstage_mark_file)
         unstage_status.remove(self.delete_unstage_mark_file)
@@ -616,7 +618,7 @@ class AppBuffer(BrowserBuffer):
         stage_status = self.stage_status
         
         self.git_reset_file(self.delete_stage_mark_file["file"])
-        self.git_checkout_file(self.delete_stage_mark_file["file"])
+        self.git_checkout_file([self.delete_stage_mark_file["file"]])
         
         stage_file_index = stage_status.index(self.delete_stage_mark_file)
         stage_status.remove(self.delete_stage_mark_file)
@@ -669,6 +671,19 @@ class AppBuffer(BrowserBuffer):
         thread.push_result.connect(message_to_emacs)
         self.git_push_threads.append(thread)
         thread.start()
+
+    @QtCore.pyqtSlot()
+    def status_checkout_all(self):
+        self.send_input_message("Checkout all changes.", "checkout_all_files", "yes-or-no")
+        
+    def handle_checkout_all_files(self):
+        self.git_checkout_file()
+        
+        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
+            json.dumps([]), json.dumps([]), json.dumps([]),
+            "", -1))
+        
+        message_to_emacs("Checkout all.")
         
 class GitRemoteCallbacks(pygit2.RemoteCallbacks):
     
