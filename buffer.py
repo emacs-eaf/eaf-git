@@ -109,6 +109,13 @@ def pretty_date(time=False):
         return str(day_diff // 30) + " months ago"
     return str(day_diff // 365) + " years ago"
 
+def get_command_result(command_string):
+    import subprocess
+        
+    process = subprocess.Popen(command_string, shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process.wait()
+    return "".join(process.stdout.readlines())
+
 class AppBuffer(BrowserBuffer):
     def __init__(self, buffer_id, url, arguments):
         BrowserBuffer.__init__(self, buffer_id, url, arguments, False)
@@ -274,14 +281,14 @@ class AppBuffer(BrowserBuffer):
                     diff_string = f.read()
         elif type == "stage":
             if file == "":
-                diff_string = self.get_command_result("cd {}; git diff --color --staged".format(self.repo_root))
+                diff_string = get_command_result("cd {}; git diff --color --staged".format(self.repo_root))
             else:
-                diff_string = self.get_command_result("cd {}; git diff --color --staged {}".format(self.repo_root, file))
+                diff_string = get_command_result("cd {}; git diff --color --staged {}".format(self.repo_root, file))
         elif type == "unstage":
             if file == "":
-                diff_string = self.get_command_result("cd {}; git diff --color".format(self.repo_root))
+                diff_string = get_command_result("cd {}; git diff --color".format(self.repo_root))
             else:
-                diff_string = self.get_command_result("cd {}; git diff --color {}".format(self.repo_root, file))
+                diff_string = get_command_result("cd {}; git diff --color {}".format(self.repo_root, file))
                 
         self.buffer_widget.eval_js('''updateChangeDiff({})'''.format(json.dumps(diff_string)))        
         
@@ -637,13 +644,6 @@ class AppBuffer(BrowserBuffer):
             json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
             select_item_type, select_item_index))
     
-    def get_command_result(self, command_string):
-        import subprocess
-        
-        process = subprocess.Popen(command_string, shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        process.wait()
-        return "".join(process.stdout.readlines())
-
     @QtCore.pyqtSlot(list)
     def vue_update_stage_status(self, stage_status):
         self.stage_status = stage_status
@@ -659,15 +659,15 @@ class AppBuffer(BrowserBuffer):
     @QtCore.pyqtSlot()
     def status_pull(self):
         message_to_emacs("Git pull ...")
-        thread = FetchPullThread(self.repo)
-        thread.fetch_result.connect(message_to_emacs)
+        thread = FetchPullThread(self.repo_root)
+        thread.pull_result.connect(message_to_emacs)
         self.fetch_pull_threads.append(thread)
         thread.start()
 
     @QtCore.pyqtSlot()
     def status_push(self):
         message_to_emacs("Git push ...")
-        thread = GitPushThread(self.repo)
+        thread = GitPushThread(self.repo_root)
         thread.push_result.connect(message_to_emacs)
         self.git_push_threads.append(thread)
         thread.start()
@@ -684,32 +684,6 @@ class AppBuffer(BrowserBuffer):
             "", -1))
         
         message_to_emacs("Checkout all.")
-        
-class GitRemoteCallbacks(pygit2.RemoteCallbacks):
-    
-    def __init__(self):
-        from pathlib import Path
-        home = str(Path.home())
-        ssh_dir = os.path.join(home, ".ssh")
-        files = os.listdir(ssh_dir)
-        pub_file_list = list(filter(lambda f: f.endswith(".pub"), files))
-        
-        self.key_secret_file = ""
-        self.key_pub_file = ""
-        if len(pub_file_list):
-            self.key_pub_file = os.path.join(ssh_dir, pub_file_list[0])
-            self.key_secret_file = os.path.join(ssh_dir, self.key_pub_file.split(".pub")[0])
-
-    def credentials(self, url, username_from_url, allowed_types):
-        if allowed_types & pygit2.credentials.GIT_CREDENTIAL_USERNAME:
-            print("111")
-            return pygit2.Username("git")
-        elif allowed_types & pygit2.credentials.GIT_CREDENTIAL_SSH_KEY:
-            print("222")
-            return pygit2.Keypair("git", self.key_pub_file, self.key_secret_file, "")
-        else:
-            print("3333")
-            return None
         
 class FetchLogThread(QThread):
 
@@ -813,71 +787,26 @@ class FetchStatusThread(QThread):
             if status not in unstage_status:
                 unstage_status.append(status)
         
-
 class FetchPullThread(QThread):
 
-    fetch_result = QtCore.pyqtSignal(str)
+    pull_result = QtCore.pyqtSignal(str)
 
-    def __init__(self, repo):
+    def __init__(self, repo_root):
         QThread.__init__(self)
 
-        self.repo = repo
+        self.repo_root = repo_root
         
-        self.remote_name = "origin"
-        self.branch = "master"
-        self.force = False
-
     def run(self):
-        for remote in self.repo.remotes:
-            if remote.name == self.remote_name:
-                remote.fetch(callbacks=GitRemoteCallbacks())
-                
-                remote_master_id = self.repo.lookup_reference(
-                    "refs/remotes/origin/%s" % self.branch
-                ).target
- 
-                if self.force:
-                    repo_branch = self.repo.lookup_reference(
-                        "refs/heads/%s" % self.branch
-                    )
-                    repo_branch.set_target(remote_master_id)
- 
-                merge_result, _ = self.repo.merge_analysis(remote_master_id)
-                
-                # Up to date, do nothing
-                if merge_result & pygit2.GIT_MERGE_ANALYSIS_UP_TO_DATE:
-                    self.fetch_result.emit("Update to date.")
-                # We can just fastforward
-                elif merge_result & pygit2.GIT_MERGE_ANALYSIS_FASTFORWARD:
-                    self.repo.checkout_tree(self.repo.get(remote_master_id))
-                    master_ref = self.repo.lookup_reference(
-                        "refs/heads/%s" % self.branch
-                    )
-                    master_ref.set_target(remote_master_id)
-                    self.repo.head.set_target(remote_master_id)
-                    
-                    self.fetch_result.emit("Pull newest commit.")
-                elif merge_result & pygit2.GIT_MERGE_ANALYSIS_NORMAL:
-                    self.fetch_result.emit("Pulling remote changes leads to a conflict.")
-                else:
-                    self.fetch_result.emit("Unknown merge analysis result: {}".format(merge_result))
-        
+        self.pull_result.emit(get_command_result("cd {}; git pull".format(self.repo_root)))        
 
 class GitPushThread(QThread):
 
     push_result = QtCore.pyqtSignal(str)
 
-    def __init__(self, repo):
+    def __init__(self, repo_root):
         QThread.__init__(self)
 
-        self.repo = repo
-        
-        self.remote_name = "origin"
-        self.ref = "refs/heads/master:refs/heads/master"
+        self.repo_root = repo_root
 
     def run(self):
-        for remote in self.repo.remotes:
-            if remote.name == self.remote_name:
-                remote.push([self.ref], callbacks=GitRemoteCallbacks())        
-                self.push_result.emit("Push done.")
-                
+        self.push_result.emit(get_command_result("cd {}; git push".format(self.repo_root)))        
