@@ -171,6 +171,10 @@
        that.pyobject.status_commit_all();
      });
 
+     this.$root.$on("statusCommitAndPush", function () {
+       that.pyobject.status_commit_and_push();
+     });
+     
      this.$root.$on("statusPull", function () {
        that.pyobject.status_pull();
      });
@@ -190,6 +194,7 @@
      this.$root.$off("statusDeleteFile");
      this.$root.$off("statusCommitStage");
      this.$root.$off("statusCommitAll");
+     this.$root.$off("statusCommitAndPush");
      this.$root.$off("statusPull");
      this.$root.$off("statusPush");
      this.$root.$off("statusCheckoutAll");

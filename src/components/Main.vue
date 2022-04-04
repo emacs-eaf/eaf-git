@@ -132,6 +132,8 @@
            that.$root.$emit("statusPull");
          } else if (event_key === "U") {
            that.$root.$emit("statusPush");
+         } else if (event_key === "y") {
+           that.$root.$emit("statusCommitAndPush");
          } else if (event_key === "z") {
            that.$root.$emit("statusCheckoutAll");
          }

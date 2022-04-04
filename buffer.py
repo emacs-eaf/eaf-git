@@ -248,6 +248,8 @@ class AppBuffer(BrowserBuffer):
             self.handle_commit_stage_files(result_content)
         elif callback_tag == "commit_all_files":
             self.handle_commit_all_files(result_content)
+        elif callback_tag == "commit_and_push":
+            self.handle_commit_and_push(result_content)
         elif callback_tag == "checkout_all_files":
             self.handle_checkout_all_files()
             
@@ -299,6 +301,10 @@ class AppBuffer(BrowserBuffer):
     @QtCore.pyqtSlot()
     def status_commit_all(self):
         self.send_input_message("Commit all files with message: ", "commit_all_files")
+    
+    @QtCore.pyqtSlot()
+    def status_commit_and_push(self):
+        self.send_input_message("Commit all files with message: ", "commit_and_push")
     
     @QtCore.pyqtSlot(str, int)
     def status_stage_file(self, type, file_index):
@@ -571,7 +577,11 @@ class AppBuffer(BrowserBuffer):
             "", -1))
         
         message_to_emacs("Commit stage files with: {}".format(message))
-    
+
+    def handle_commit_and_push(self, message):
+        self.handle_commit_all_files(message)
+        self.status_push()
+        
     def handle_delete_untrack_file(self):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
