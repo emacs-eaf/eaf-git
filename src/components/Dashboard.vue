@@ -1,79 +1,98 @@
 <template>
   <div class="box">
     <div
-      v-if="noFileSubmit()"
+      v-if="noFileSubmit"
       class="clean-workspace">
-      No file need submitted, clean workspace.
+      <div>
+        No file need submitted, clean workspace.
+      </div>
     </div>
     <div
       v-else
-      class="diff-area">
-      <div class="diff-file">
-        <div v-if="untrackFileNumber() > 0">
-          <div
-            class="untrack-title"
-            :style="{ 'background': untrackTitleBackground() }">
-            Untrackd changes ({{ untrackStatusInfo.length }})
-          </div>
-          <div
-            v-for="(info, index) in untrackStatusInfo"
-            :key="info"
-            class="item"
-            :style="{ 'background': untrackItemBackground(index) }">
-            <div class="type">
-              {{ info.type }}
+      class="status-area">
+      <div class="status-left-panel">
+        <fieldset class="dialog flex-expand">
+          <legend class="dialog-title">Commit</legend>
+          <div v-if="untrackFileNumber() > 0">
+            <div
+              class="untrack-title"
+              :style="{ 'background': untrackTitleBackground() }">
+              Untrackd changes ({{ untrackStatusInfo.length }})
             </div>
-            <div class="file">
-              {{ info.file }}
+            <div
+              v-for="(info, index) in untrackStatusInfo"
+              :key="info"
+              class="item"
+              :style="{ 'background': untrackItemBackground(index) }">
+              <div class="type">
+                {{ info.type }}
+              </div>
+              <div class="file">
+                {{ info.file }}
+              </div>
             </div>
+            <div class="split-line"/>
           </div>
-          <div class="split-line"/>
-        </div>
 
-        <div v-if="unstageFileNumber() > 0">
-          <div
-            class="unstaged-title"
-            :style="{ 'background': unstageTitleBackground() }">
-            Unstaged changes ({{ unstageStatusInfo.length }})
-          </div>
-          <div
-            v-for="(info, index) in unstageStatusInfo"
-            :key="info"
-            class="item"
-            :style="{ 'background': unstageItemBackground(index) }">
-            <div class="type">
-              {{ info.type }}
+          <div v-if="unstageFileNumber() > 0">
+            <div
+              class="unstaged-title"
+              :style="{ 'background': unstageTitleBackground() }">
+              Unstaged changes ({{ unstageStatusInfo.length }})
             </div>
-            <div class="file">
-              {{ info.file }}
+            <div
+              v-for="(info, index) in unstageStatusInfo"
+              :key="info"
+              class="item"
+              :style="{ 'background': unstageItemBackground(index) }">
+              <div class="type">
+                {{ info.type }}
+              </div>
+              <div class="file">
+                {{ info.file }}
+              </div>
             </div>
+            <div class="split-line"/>
           </div>
-          <div class="split-line"/>
-        </div>
 
-        <div v-if="stageFileNumber() > 0">
-          <div
-            class="staged-title"
-            :style="{ 'background': stageTitleBackground() }">
-            Staged changes ({{ stageStatusInfo.length }})
-          </div>
-          <div
-            v-for="(info, index) in stageStatusInfo"
-            :key="info"
-            class="item"
-            :style="{ 'background': stageItemBackground(index) }">
-            <div class="type">
-              {{ info.type }}
+          <div v-if="stageFileNumber() > 0">
+            <div
+              class="staged-title"
+              :style="{ 'background': stageTitleBackground() }">
+              Staged changes ({{ stageStatusInfo.length }})
             </div>
-            <div class="file">
-              {{ info.file }}
+            <div
+              v-for="(info, index) in stageStatusInfo"
+              :key="info"
+              class="item"
+              :style="{ 'background': stageItemBackground(index) }">
+              <div class="type">
+                {{ info.type }}
+              </div>
+              <div class="file">
+                {{ info.file }}
+              </div>
             </div>
           </div>
+        </fieldset>
+
+        <fieldset
+          v-if="unpushInfo != ''"
+          class="dialog">
+          <legend class="dialog-title">Unpush</legend>
+          <div class="unpush-info-area">
+            {{ unpushInfo }}
+          </div>
+        </fieldset>
+      </div>
+      <fieldset class="dialog flex-expand">
+        <legend class="dialog-title">Preview</legend>
+        <div class="status-preview-area">
+          <div
+            class="preview-code"
+            v-html="prettyHtml"/>
         </div>
-      </div>
-      <div class="diff-preview">
-        <div v-html="prettyHtml"/>
-      </div>
+      </fieldset>
     </div>
   </div>
 </template>
@@ -119,18 +138,24 @@
        selectItemIndex: -1,
        stageStatusInfo: [],
        unstageStatusInfo: [],
-       untrackStatusInfo: []
+       untrackStatusInfo: [],
+       unpushInfo: ""
      }
    },
    computed: {
      prettyHtml() {
        return ansiUp.ansi_to_html(this.diffs);
      },
+
+     noFileSubmit() {
+       return this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber() === 0 && this.unpushInfo === "";
+     }
    },
    mounted() {
      window.updateChangeDiff = this.updateChangeDiff;
      window.updateStatusInfo = this.updateStatusInfo;
      window.updateSelectInfo = this.updateSelectInfo;
+     window.updateUnpushInfo = this.updateUnpushInfo;
 
      var that = this;
 
@@ -144,7 +169,7 @@
        this.selectItemType = "stage";
        this.selectItemIndex = -1;
      }
-     
+
      setTimeout(this.updateDiff, 1000)
 
      this.$root.$on("statusSelectNext", function () {
@@ -174,7 +199,7 @@
      this.$root.$on("statusCommitAndPush", function () {
        that.pyobject.status_commit_and_push();
      });
-     
+
      this.$root.$on("statusPull", function () {
        that.pyobject.status_pull();
      });
@@ -207,15 +232,15 @@
        this.selectItemIndex = selectItemIndex;
        this.selectItemType = selectItemType;
      },
-     
+
      updateStatusInfo(stageStatusInfo, unstageStatusInfo, untrackStatusInfo) {
        this.stageStatusInfo = stageStatusInfo;
        this.unstageStatusInfo = unstageStatusInfo;
        this.untrackStatusInfo = untrackStatusInfo;
      },
 
-     noFileSubmit() {
-       return this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber() === 0;
+     updateUnpushInfo(unpushInfo) {
+       this.unpushInfo = unpushInfo["info"];
      },
 
      untrackFileNumber() {
@@ -412,7 +437,13 @@
  }
 
  .clean-workspace {
-   padding-left: 10px;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   font-size: 20px;
+   height: 100%;
+   width: 100%;
  }
 
  .untrack-title {
@@ -442,19 +473,31 @@
    font-size: 16px;
  }
 
- .diff-area {
+ .status-area {
    display: flex;
    flex-direction: row;
    width: 100%;
    height: 100%;
  }
 
- .diff-file {
+ .status-left-panel {
+   display: flex;
+   flex-direction: column;
+
    width: 30%;
    height: 100%;
  }
 
- .diff-preview {
+ .flex-expand {
+   flex: 1;
+ }
+
+ .unpush-info-area {
+   padding: 20px;
+   padding: 20px;
+ }
+
+ .status-preview-area {
    width: 70%;
    height: 100%;
    padding-left: 10px;
@@ -463,8 +506,24 @@
    white-space: pre-wrap;
    font-size: 16px;
  }
+ 
+ .preview-code {
+   max-height: calc(100vh - 110px);
+   overflow-y: scroll;
+ }
 
  .split-line {
    height: 20px;
+ }
+
+ .dialog {
+   border: 1px solid;
+   border-radius: 5px;
+   margin: 10px;
+ }
+
+ .dialog-title {
+   margin-left: 1em;
+   padding: 0.2em 0.8em
  }
 </style>

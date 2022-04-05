@@ -129,6 +129,7 @@ class AppBuffer(BrowserBuffer):
         self.fetch_submodule_threads = []
         self.fetch_branch_threads = []
         self.fetch_pull_threads = []
+        self.fetch_unpush_threads = []
         
         self.git_push_threads = []
 
@@ -148,6 +149,7 @@ class AppBuffer(BrowserBuffer):
     def init_app(self):
         self.init_vars()
 
+        self.fetch_unpush_info()
         self.fetch_status_info()
         self.fetch_log_info()
         self.fetch_submodule_info()
@@ -185,10 +187,22 @@ class AppBuffer(BrowserBuffer):
         thread.fetch_result.connect(self.update_status_info)
         self.fetch_status_threads.append(thread)
         thread.start()
-
+        
     @PostGui()
     def update_status_info(self, stage_status, unstage_status, untrack_status):
         self.buffer_widget.eval_js('''updateStatusInfo({}, {}, {})'''.format(json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status)))
+
+    def fetch_unpush_info(self):
+        thread = FetchUnpushThread(self.repo_root)
+        thread.fetch_result.connect(self.update_unpush_info)
+        self.fetch_unpush_threads.append(thread)
+        thread.start()
+        
+    @PostGui()
+    def update_unpush_info(self, info):
+        self.buffer_widget.eval_js('''updateUnpushInfo({})'''.format(json.dumps(
+            {"info": info}
+        )))
 
     def fetch_log_info(self):
         thread = FetchLogThread(self.repo)
@@ -340,9 +354,6 @@ class AppBuffer(BrowserBuffer):
     def git_checkout_file(self, paths=[]):
         ref_master = self.repo.lookup_reference('refs/heads/master')
         self.repo.checkout(ref_master, paths=paths, strategy=GIT_CHECKOUT_FORCE)
-        
-    def git_unpush_commits(self):
-        print(get_command_result("git log origin/master..HEAD"))
         
     def stage_untrack_files(self):
         untrack_status = self.untrack_status
@@ -823,3 +834,17 @@ class GitPushThread(QThread):
 
     def run(self):
         self.push_result.emit(get_command_result("cd {}; git push".format(self.repo_root)))        
+
+class FetchUnpushThread(QThread):
+
+    fetch_result = QtCore.pyqtSignal(str)
+
+    def __init__(self, repo_root):
+        QThread.__init__(self)
+
+        self.repo_root = repo_root
+
+    def run(self):
+        result = get_command_result("cd {}; git log origin/master..HEAD".format(self.repo_root))
+        self.fetch_result.emit(result)         
+        
