@@ -21,7 +21,14 @@
       :style="{ 'padding-top': navbarHeight }">
       <Dashboard
         v-if="navCurrentItem == 'Dashboard'"
+        :diffs="diffs"
+        :selectItemType="selectItemType"
+        :selectItemIndex="selectItemIndex"
+        :stageStatusInfo="stageStatusInfo"
+        :unstageStatusInfo="unstageStatusInfo"
+        :untrackStatusInfo="untrackStatusInfo"
         :pyobject="pyobject"
+        :unpushInfo="unpushInfo"
         :backgroundColor="backgroundColor"
         :selectColor="selectColor"/>
       <Log
@@ -45,6 +52,7 @@
         :branchInfo="branchInfo"
       />
       <Patch v-if="navCurrentItem == 'Patch'"/>
+      <Stash v-if="navCurrentItem == 'Stash'"/>
     </div>
     <div class="help-area">
       <div
@@ -70,6 +78,7 @@
  import Log from "./Log.vue"
  import Submodule from "./Submodule.vue"
  import Branch from "./Branch.vue"
+ import Stash from "./Stash.vue"
  import Patch from "./Patch.vue"
 
  export default {
@@ -79,6 +88,7 @@
      Log,
      Submodule,
      Branch,
+     Stash,
      Patch
    },
    props: {
@@ -86,7 +96,7 @@
    data() {
      return {
        navbarHeight: "40px",
-       navItems: ["Dashboard", "Log", "Submodule", "Branch", "Patch"],
+       navItems: ["Dashboard", "Log", "Branch", "Stash", "Submodule", "Patch"],
        navCurrentItem: "Dashboard",
        backgroundColor: "",
        foregroundColor: "",
@@ -102,6 +112,13 @@
        repoLastCommitId: "",
        repoLastCommitMessage: "",
        repoPath: "",
+       diffs: "",
+       selectItemType: "",
+       selectItemIndex: -1,
+       stageStatusInfo: [],
+       unstageStatusInfo: [],
+       untrackStatusInfo: [],
+       unpushInfo: "",
        logInfo: [],
        submoduleInfo: [],
        currentBranch: "",
@@ -117,8 +134,32 @@
      window.updateLogInfo = this.updateLogInfo;
      window.updateSubmoduleInfo = this.updateSubmoduleInfo;
      window.updateBranchInfo = this.updateBranchInfo;
+     window.updateStatusInfo = this.updateStatusInfo;
+     window.updateUnpushInfo = this.updateUnpushInfo;
+     window.updateSelectInfo = this.updateSelectInfo;
+     window.updateChangeDiff = this.updateChangeDiff;
+     
+     if (this.untrackStatusInfo) {
+       this.selectItemType = "untrack";
+       this.selectItemIndex = -1;
+     } else if (this.unstageStatusInfo) {
+       this.selectItemType = "unstage";
+       this.selectItemIndex = -1;
+     } else if (this.stageStatusInfo) {
+       this.selectItemType = "stage";
+       this.selectItemIndex = -1;
+     }
 
      let that = this;
+     
+     this.$root.$on("statusSelectNext", function () {
+       that.statusSelectNext();
+     });
+
+     this.$root.$on("statusSelectPrev", function () {
+       that.statusSelectPrev();
+     });
+     
      window.addEventListener('keydown', function(event) {
        var event_key = event.key;
 
@@ -127,10 +168,12 @@
        } else if (event_key === "2") {
          that.changePage("Log");
        } else if (event_key === "3") {
-         that.changePage("Submodule");
-       } else if (event_key === "4") {
          that.changePage("Branch");
+       } else if (event_key === "4") {
+         that.changePage("Stash");
        } else if (event_key === "5") {
+         that.changePage("Submodule");
+       } else if (event_key === "6") {
          that.changePage("Patch");
        }
 
@@ -191,6 +234,24 @@
        this.updateKeyDescriptionList();
      },
      
+     updateSelectInfo(stageStatusInfo, unstageStatusInfo, untrackStatusInfo, selectItemType, selectItemIndex) {
+       this.stageStatusInfo = stageStatusInfo;
+       this.unstageStatusInfo = unstageStatusInfo;
+       this.untrackStatusInfo = untrackStatusInfo;
+       this.selectItemIndex = selectItemIndex;
+       this.selectItemType = selectItemType;
+     },
+
+     updateStatusInfo(stageStatusInfo, unstageStatusInfo, untrackStatusInfo) {
+       this.stageStatusInfo = stageStatusInfo;
+       this.unstageStatusInfo = unstageStatusInfo;
+       this.untrackStatusInfo = untrackStatusInfo;
+     },
+
+     updateUnpushInfo(unpushInfo) {
+       this.unpushInfo = unpushInfo["info"];
+     },
+
      updateKeyDescriptionList() {
        for (const [module_name, key_dict] of Object.entries(this.keybindingInfo)) {
          if (this.navCurrentItem === module_name) {
@@ -221,7 +282,99 @@
      updateBranchInfo(currentBranch, branchInfo) {
        this.currentBranch = currentBranch
        this.branchInfo = branchInfo;
-     }
+     },
+     
+     updateChangeDiff(diffString) {
+       this.diffs = diffString;
+     },
+
+     updateDiff() {
+       if (this.selectItemIndex === -1) {
+         this.pyobject.update_diff(this.selectItemType, "");
+       } else {
+         if (this.selectItemType === "untrack") {
+           this.pyobject.update_diff(this.selectItemType, this.untrackStatusInfo[this.selectItemIndex].file);
+         } else if (this.selectItemType === "unstage") {
+           this.pyobject.update_diff(this.selectItemType, this.unstageStatusInfo[this.selectItemIndex].file);
+         } else {
+           this.pyobject.update_diff(this.selectItemType, this.stageStatusInfo[this.selectItemIndex].file);
+         }
+       }
+     },
+
+     statusSelectNext() {
+       var oldSelectItemType = this.selectItemType;
+       var oldSelectItemIndex = this.selectItemIndex;
+
+       if (this.selectItemType == "untrack") {
+         if (this.selectItemIndex < this.untrackStatusInfo.length - 1) {
+           this.selectItemIndex += 1;
+         } else if (this.unstageStatusInfo.length > 0) {
+           this.selectItemType = "unstage";
+           this.selectItemIndex = -1;
+         } else if (this.stageStatusInfo.length > 0) {
+           this.selectItemType = "stage";
+           this.selectItemIndex = -1;
+         }
+       } else if (this.selectItemType == "unstage") {
+         if (this.selectItemIndex < this.unstageStatusInfo.length - 1) {
+           this.selectItemIndex += 1;
+         } else if (this.stageStatusInfo.length > 0) {
+           this.selectItemType = "stage";
+           this.selectItemIndex = -1;
+         }
+       } else if (this.selectItemType == "stage") {
+         if (this.selectItemIndex == -1) {
+           this.selectItemIndex = 0;
+         } else if (this.selectItemIndex < this.stageStatusInfo.length - 1) {
+           this.selectItemIndex += 1;
+         }
+       }
+
+       if (oldSelectItemType != this.selectItemType ||
+           oldSelectItemIndex != this.selectItemIndex) {
+         this.updateDiff();
+       }
+     },
+
+     statusSelectPrev() {
+       var oldSelectItemType = this.selectItemType;
+       var oldSelectItemIndex = this.selectItemIndex;
+
+       if (this.selectItemType == "stage") {
+         if (this.selectItemIndex > 0) {
+           this.selectItemIndex -= 1;
+         } else if (this.selectItemIndex == 0) {
+           this.selectItemIndex = -1;
+         } else if (this.unstageStatusInfo.length > 0) {
+           this.selectItemType = "unstage";
+           this.selectItemIndex = this.unstageStatusInfo.length - 1;
+         } else if (this.untrackStatusInfo.length > 0) {
+           this.selectItemType = "untrack";
+           this.selectItemIndex = this.untrackStatusInfo.length - 1;
+         }
+       } else if (this.selectItemType == "unstage") {
+         if (this.selectItemIndex > 0) {
+           this.selectItemIndex -= 1;
+         } else if (this.selectItemIndex == 0) {
+           this.selectItemIndex = -1;
+         } else if (this.untrackStatusInfo.length > 0) {
+           this.selectItemType = "untrack";
+           this.selectItemIndex = this.untrackStatusInfo.length - 1;
+         }
+       } else if (this.selectItemType == "untrack") {
+         if (this.selectItemIndex > 0) {
+           this.selectItemIndex -= 1;
+         } else if (this.selectItemIndex == 0) {
+           this.selectItemIndex = -1;
+         }
+       }
+
+       if (oldSelectItemType != this.selectItemType ||
+           oldSelectItemIndex != this.selectItemIndex) {
+         this.updateDiff();
+       }
+     },
    }
  }
 </script>

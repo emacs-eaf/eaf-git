@@ -104,6 +104,13 @@
  export default {
    name: 'Dashboard',
    props: {
+     selectItemType: String,
+     selectItemIndex: Number,
+     stageStatusInfo: Array,
+     unstageStatusInfo: Array,
+     untrackStatusInfo: Array,
+     unpushInfo: String,
+     diffs: String,
      backgroundColor: String,
      selectColor: String,
      pyobject: Object
@@ -131,17 +138,6 @@
        deep: true
      },
    },
-   data() {
-     return {
-       diffs: "",
-       selectItemType: "",
-       selectItemIndex: -1,
-       stageStatusInfo: [],
-       unstageStatusInfo: [],
-       untrackStatusInfo: [],
-       unpushInfo: ""
-     }
-   },
    computed: {
      prettyHtml() {
        return ansiUp.ansi_to_html(this.diffs);
@@ -152,36 +148,11 @@
      }
    },
    mounted() {
-     window.updateChangeDiff = this.updateChangeDiff;
-     window.updateStatusInfo = this.updateStatusInfo;
-     window.updateSelectInfo = this.updateSelectInfo;
-     window.updateUnpushInfo = this.updateUnpushInfo;
 
      var that = this;
 
-     if (this.untrackStatusInfo) {
-       this.selectItemType = "untrack";
-       this.selectItemIndex = -1;
-     } else if (this.unstageStatusInfo) {
-       this.selectItemType = "unstage";
-       this.selectItemIndex = -1;
-     } else if (this.stageStatusInfo) {
-       this.selectItemType = "stage";
-       this.selectItemIndex = -1;
-     }
-
-     setTimeout(this.updateDiff, 1000)
-
      this.$root.$on("statusCopyChangeFilesToMirrorRepo", function () {
        window.pyobject.copy_change_files_to_mirror_repo();
-     });
-     
-     this.$root.$on("statusSelectNext", function () {
-       that.statusSelectNext();
-     });
-
-     this.$root.$on("statusSelectPrev", function () {
-       that.statusSelectPrev();
      });
 
      this.$root.$on("statusStageFile", function () {
@@ -218,8 +189,6 @@
    },
    beforeDestroy() {
      this.$root.$off("statusCopyChangeFilesToMirrorRepo");
-     this.$root.$off("statusSelectNext");
-     this.$root.$off("statusSelectPrev");
      this.$root.$off("statusStageFile");
      this.$root.$off("statusDeleteFile");
      this.$root.$off("statusCommitStage");
@@ -230,24 +199,6 @@
      this.$root.$off("statusCheckoutAll");
    },
    methods: {
-     updateSelectInfo(stageStatusInfo, unstageStatusInfo, untrackStatusInfo, selectItemType, selectItemIndex) {
-       this.stageStatusInfo = stageStatusInfo;
-       this.unstageStatusInfo = unstageStatusInfo;
-       this.untrackStatusInfo = untrackStatusInfo;
-       this.selectItemIndex = selectItemIndex;
-       this.selectItemType = selectItemType;
-     },
-
-     updateStatusInfo(stageStatusInfo, unstageStatusInfo, untrackStatusInfo) {
-       this.stageStatusInfo = stageStatusInfo;
-       this.unstageStatusInfo = unstageStatusInfo;
-       this.untrackStatusInfo = untrackStatusInfo;
-     },
-
-     updateUnpushInfo(unpushInfo) {
-       this.unpushInfo = unpushInfo["info"];
-     },
-
      untrackFileNumber() {
        var untrack_files_number = 0;
        if (this.untrackStatusInfo) {
@@ -273,98 +224,6 @@
        }
 
        return stage_files_number;
-     },
-
-     updateDiff() {
-       if (this.selectItemIndex === -1) {
-         this.pyobject.update_diff(this.selectItemType, "");
-       } else {
-         if (this.selectItemType === "untrack") {
-           this.pyobject.update_diff(this.selectItemType, this.untrackStatusInfo[this.selectItemIndex].file);
-         } else if (this.selectItemType === "unstage") {
-           this.pyobject.update_diff(this.selectItemType, this.unstageStatusInfo[this.selectItemIndex].file);
-         } else {
-           this.pyobject.update_diff(this.selectItemType, this.stageStatusInfo[this.selectItemIndex].file);
-         }
-       }
-     },
-
-     updateChangeDiff(diffString) {
-       this.diffs = diffString;
-     },
-
-     statusSelectNext() {
-       var oldSelectItemType = this.selectItemType;
-       var oldSelectItemIndex = this.selectItemIndex;
-
-       if (this.selectItemType == "untrack") {
-         if (this.selectItemIndex < this.untrackStatusInfo.length - 1) {
-           this.selectItemIndex += 1;
-         } else if (this.unstageStatusInfo.length > 0) {
-           this.selectItemType = "unstage";
-           this.selectItemIndex = -1;
-         } else if (this.stageStatusInfo.length > 0) {
-           this.selectItemType = "stage";
-           this.selectItemIndex = -1;
-         }
-       } else if (this.selectItemType == "unstage") {
-         if (this.selectItemIndex < this.unstageStatusInfo.length - 1) {
-           this.selectItemIndex += 1;
-         } else if (this.stageStatusInfo.length > 0) {
-           this.selectItemType = "stage";
-           this.selectItemIndex = -1;
-         }
-       } else if (this.selectItemType == "stage") {
-         if (this.selectItemIndex == -1) {
-           this.selectItemIndex = 0;
-         } else if (this.selectItemIndex < this.stageStatusInfo.length - 1) {
-           this.selectItemIndex += 1;
-         }
-       }
-
-       if (oldSelectItemType != this.selectItemType ||
-           oldSelectItemIndex != this.selectItemIndex) {
-         this.updateDiff();
-       }
-     },
-
-     statusSelectPrev() {
-       var oldSelectItemType = this.selectItemType;
-       var oldSelectItemIndex = this.selectItemIndex;
-
-       if (this.selectItemType == "stage") {
-         if (this.selectItemIndex > 0) {
-           this.selectItemIndex -= 1;
-         } else if (this.selectItemIndex == 0) {
-           this.selectItemIndex = -1;
-         } else if (this.unstageStatusInfo.length > 0) {
-           this.selectItemType = "unstage";
-           this.selectItemIndex = this.unstageStatusInfo.length - 1;
-         } else if (this.untrackStatusInfo.length > 0) {
-           this.selectItemType = "untrack";
-           this.selectItemIndex = this.untrackStatusInfo.length - 1;
-         }
-       } else if (this.selectItemType == "unstage") {
-         if (this.selectItemIndex > 0) {
-           this.selectItemIndex -= 1;
-         } else if (this.selectItemIndex == 0) {
-           this.selectItemIndex = -1;
-         } else if (this.untrackStatusInfo.length > 0) {
-           this.selectItemType = "untrack";
-           this.selectItemIndex = this.untrackStatusInfo.length - 1;
-         }
-       } else if (this.selectItemType == "untrack") {
-         if (this.selectItemIndex > 0) {
-           this.selectItemIndex -= 1;
-         } else if (this.selectItemIndex == 0) {
-           this.selectItemIndex = -1;
-         }
-       }
-
-       if (oldSelectItemType != this.selectItemType ||
-           oldSelectItemIndex != this.selectItemIndex) {
-         this.updateDiff();
-       }
      },
 
      untrackTitleBackground() {
