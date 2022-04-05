@@ -553,6 +553,8 @@ class AppBuffer(BrowserBuffer):
             tree,
             [parent.oid])
         
+        self.fetch_unpush_info()
+
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
@@ -585,6 +587,8 @@ class AppBuffer(BrowserBuffer):
             message,
             tree,
             [parent.oid])
+        
+        self.fetch_unpush_info()
         
         self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
             json.dumps([]), json.dumps([]), json.dumps([]),
@@ -692,9 +696,14 @@ class AppBuffer(BrowserBuffer):
     def status_push(self):
         message_to_emacs("Git push ...")
         thread = GitPushThread(self.repo_root)
-        thread.push_result.connect(message_to_emacs)
+        thread.push_result.connect(self.handle_status_push)
         self.git_push_threads.append(thread)
         thread.start()
+        
+    def handle_status_push(self, message):
+        self.fetch_unpush_info()
+        
+        message_to_emacs(message)
 
     @QtCore.pyqtSlot()
     def status_checkout_all(self):
