@@ -6,8 +6,7 @@
       <div
         v-for="info in logInfo"
         :key="info.index"
-        class="log-item"
-        :style="{ 'height': lineHeight }">
+        class="log-item">
         <div
           class="log-id"
           :style="{ 'color': idColor }">
@@ -45,7 +44,6 @@
    },
    data() {
      return {
-       lineHeight: "30px",
        currentCommitIndex: 0,
        currentCommitId: ""
      }
@@ -169,6 +167,7 @@
    padding-left: 10px;
    padding-right: 10px;
    font-size: 16px;
+   height: 30px;
 
    display: flex;
    flex-direction: row;

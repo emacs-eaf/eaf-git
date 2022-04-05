@@ -250,8 +250,8 @@ class AppBuffer(BrowserBuffer):
         thread.start()
 
     @PostGui()
-    def update_branch_info(self, branch):
-        self.buffer_widget.eval_js('''updateBranchInfo({})'''.format(json.dumps(branch)))
+    def update_branch_info(self, current_branch, branch_list):
+        self.buffer_widget.eval_js('''updateBranchInfo(\"{}\", {})'''.format(current_branch, json.dumps(branch_list)))
 
     @QtCore.pyqtSlot()
     def copy_change_files_to_mirror_repo(self):
@@ -798,7 +798,7 @@ class FetchSubmoduleThread(QThread):
 
 class FetchBranchThread(QThread):
 
-    fetch_result = QtCore.pyqtSignal(list)
+    fetch_result = QtCore.pyqtSignal(str, list)
 
     def __init__(self, repo):
         QThread.__init__(self)
@@ -806,7 +806,7 @@ class FetchBranchThread(QThread):
         self.repo = repo
 
     def run(self):
-        self.fetch_result.emit(self.repo.listall_branches())
+        self.fetch_result.emit(self.repo.head.shorthand, self.repo.listall_branches())
 
 class FetchStatusThread(QThread):
 

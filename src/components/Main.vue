@@ -38,6 +38,10 @@
         :submoduleInfo="submoduleInfo"/>
       <Branch
         v-if="navCurrentItem == 'Branch'"
+        :selectColor="selectColor"
+        :backgroundColor="backgroundColor"
+        :currentColor="dateColor"
+        :currentBranch="currentBranch"
         :branchInfo="branchInfo"
       />
       <Patch v-if="navCurrentItem == 'Patch'"/>
@@ -100,6 +104,7 @@
        repoPath: "",
        logInfo: [],
        submoduleInfo: [],
+       currentBranch: "",
        branchInfo: [],
        keybindingInfo: [],
        keyDescriptionList: [],
@@ -213,7 +218,8 @@
        this.submoduleInfo = submoduleInfo;
      },
 
-     updateBranchInfo(branchInfo) {
+     updateBranchInfo(currentBranch, branchInfo) {
+       this.currentBranch = currentBranch
        this.branchInfo = branchInfo;
      }
    }

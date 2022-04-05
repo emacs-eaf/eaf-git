@@ -121,7 +121,14 @@
             ("r"      ("logSearchBackward" "Search backward"))
             ("J"      ("logSelectLast" "Last"))
             ("K"      ("logSelectFirst" "First"))
-            )))
+            ))
+    ("Branch" (
+               ("j"     ("branchSelectNext" "Next"))
+               ("k"     ("branchSelectPrev" "Prev"))
+               ("Enter" ("branchSwitch" "Switch"))
+               ("J"     ("branchSelectLast" "Last"))
+               ("K"     ("branchSelectFirst" "First"))
+               )))
   "The keybinding of EAF git client."
   :type 'cons)
 
