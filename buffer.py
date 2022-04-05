@@ -203,7 +203,10 @@ class AppBuffer(BrowserBuffer):
             
             for key_value in keybindig_list[1:][0]:
                 print(key_value)
-                module_keybinding_dict[key_value[0]] = key_value[1]
+                module_keybinding_dict[key_value[0]] = {
+                    "command": key_value[1][0],
+                    "description": key_value[1][1]
+                }
                 
             js_keybindig_dict[module_name] = module_keybinding_dict    
 

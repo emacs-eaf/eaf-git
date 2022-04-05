@@ -513,7 +513,7 @@
  }
  
  .preview-code {
-   max-height: calc(100vh - 110px);
+   max-height: calc(100vh - 150px);
    overflow-y: scroll;
  }
 

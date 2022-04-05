@@ -42,6 +42,20 @@
       />
       <Patch v-if="navCurrentItem == 'Patch'"/>
     </div>
+    <div class="help-area">
+      <div
+        class="help-item"
+        :style="{ 'color': idColor }"
+        v-for="(info, index) in keyDescriptionList"
+        :key="index">
+        <div class="help-key">
+          {{ info["description"] }}
+        </div>
+        <div class="help-description">
+          [{{ info["key"] }}]
+        </div> 
+      </div>
+    </div>
   </div>
 </template>
 
@@ -88,6 +102,7 @@
        submoduleInfo: [],
        branchInfo: [],
        keybindingInfo: [],
+       keyDescriptionList: [],
        pyobject: null
      }
    },
@@ -117,7 +132,7 @@
        for (const [module_name, key_dict] of Object.entries(that.keybindingInfo)) {
          if (that.navCurrentItem === module_name) {
            if (event_key in key_dict) {
-             that.$root.$emit(key_dict[event_key])
+             that.$root.$emit(key_dict[event_key]["command"])
            }
          }
        }
@@ -149,6 +164,8 @@
        this.repoLastCommitId = repoLastCommitId;
        this.repoLastCommitMessage = repoLastCommitMessage;
        this.keybindingInfo = keybindingInfo;
+
+       this.updateKeyDescriptionList();
      },
 
      navItemForegroundColor(item) {
@@ -165,6 +182,27 @@
 
      changePage(pageName) {
        this.navCurrentItem = pageName;
+     
+       this.updateKeyDescriptionList();
+     },
+     
+     updateKeyDescriptionList() {
+       for (const [module_name, key_dict] of Object.entries(this.keybindingInfo)) {
+         if (this.navCurrentItem === module_name) {
+           var description_list = [] ;
+           for (const [key, value] of Object.entries(key_dict)) {
+             description_list.push({
+               "key": key,
+               "description": value["description"]
+             });
+           }
+           
+           this.keyDescriptionList = description_list;
+           return;
+         }
+       }
+       
+       this.keyDescriptionList = [];
      },
 
      updateLogInfo(logInfo) {
@@ -220,5 +258,24 @@
    flex: 1;
    position: relative;
    z-index: 99;
+ }
+ 
+ .help-area {
+   display: grid;
+   grid-auto-flow: column;
+   padding-left: 10px;
+   padding-right: 10px;
+   padding-top: 10px;
+   padding-bottom: 20px;
+ }
+ 
+ .help-item {
+   display: flex;
+   flex-direction: row;
+   align-item: center;
+ }
+ 
+ .help-description {
+   padding-left: 5px;
  }
 </style>
