@@ -751,13 +751,17 @@ class FetchLogThread(QThread):
         git_log = []
 
         try:
+            index = 0
             for commit in self.repo.walk(self.repo.head.target):
                 git_log.append({
                     "id": str(commit.id),
+                    "index": index,
                     "time": pretty_date(int(commit.commit_time)),
                     "author": commit.author.name,
                     "message": commit.message.splitlines()[0]
                 })
+                
+                index += 1
         except KeyError:
             import traceback
             traceback.print_exc()

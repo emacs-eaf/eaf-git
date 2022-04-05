@@ -1,16 +1,11 @@
 <template>
   <div class="box">
     <div
-      ref="highlight-line"
-      class="highlight-line"
-      :style="{ 'background': selectColor, 'height': lineHeight, 'top': lineTop }">
-    </div>
-    <div
       class="list"
       ref="logs">
       <div
         v-for="info in logInfo"
-        :key="info.id"
+        :key="info.index"
         class="log-item"
         :style="{ 'height': lineHeight }">
         <div
@@ -51,7 +46,6 @@
    data() {
      return {
        lineHeight: "30px",
-       lineTop: 0,
        currentCommitIndex: 0,
        currentCommitId: ""
      }
@@ -61,22 +55,17 @@
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
          if (this.logInfo.length > 0) {
-           this.currentCommitId = this.logInfo[this.currentCommitIndex].id;
+           this.currentCommitId = this.logInfo[val].id;
+           this.updateItemBackground(oldVal, val);
          }
        }
      },
-   },
-   created () {
-     window.addEventListener('scroll', this.handleScroll);
-   },
-   destroyed () {
-     window.removeEventListener('scroll', this.handleScroll);
    },
    mounted() {
      var that = this;
 
      this.currentCommitIndex = 0;
-     this.updateLineCoordinate();
+     this.updateItemBackground(null, 0);
 
      this.$root.$on("logSelectNext", function () {
        that.logSelectNext();
@@ -109,7 +98,6 @@
      logSelectNext() {
        if (this.logInfo.length > 0 && this.currentCommitIndex < this.logInfo.length - 1) {
          this.currentCommitIndex++;
-         this.updateLineCoordinate();
          this.keepSelectVisible();
        }
      },
@@ -117,7 +105,6 @@
      logSelectLast() {
        if (this.logInfo.length > 0 && this.currentCommitIndex < this.logInfo.length - 1) {
          this.currentCommitIndex = this.logInfo.length - 1;
-         this.updateLineCoordinate();
          this.keepSelectVisible();
        }
      },
@@ -125,7 +112,6 @@
      logSelectPrev() {
        if (this.logInfo.length > 0 && this.currentCommitIndex > 0) {
          this.currentCommitIndex--;
-         this.updateLineCoordinate();
          this.keepSelectVisible();
        }
      },
@@ -133,17 +119,20 @@
      logSelectFirst() {
        if (this.logInfo.length > 0 && this.currentCommitIndex > 0) {
          this.currentCommitIndex = 0;
-         this.updateLineCoordinate();
          this.keepSelectVisible();
        }
      },
 
-     updateLineCoordinate() {
-       this.lineTop = this.$refs.logs.children[this.currentCommitIndex].getBoundingClientRect().top;
-     },
-
-     handleScroll() {
-       this.updateLineCoordinate();
+     updateItemBackground(oldIndex, newIndex) {
+       if (oldIndex !== null) {
+         var oldItem = this.$refs.logs.children[oldIndex];
+         oldItem.style.background = this.backgroundColor;
+       }
+       
+       if (newIndex !== null) {
+         var newItem = this.$refs.logs.children[newIndex];
+         newItem.style.background = this.selectColor;
+       }
      },
 
      keepSelectVisible() {
