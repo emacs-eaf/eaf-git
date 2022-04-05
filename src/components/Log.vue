@@ -86,6 +86,14 @@
      this.$root.$on("logViewDiff", function () {
        that.pyobject.show_commit_diff(that.currentCommitId, that.logInfo[that.currentCommitIndex + 1].id);
      });
+
+     this.$root.$on("logSearchForward", function () {
+       that.pyobject.log_search_forward();
+     });
+
+     this.$root.$on("logSearchBackward", function () {
+       that.pyobject.log_search_backward();
+     });
    },
    beforeDestroy() {
      this.$root.$off("logSelectNext");
@@ -93,6 +101,8 @@
      this.$root.$off("logSelectLast");
      this.$root.$off("logSelectFirst");
      this.$root.$off("logViewDiff");
+     this.$root.$off("logSearchForward");
+     this.$root.$off("logSearchBackward");
    },
    methods: {
      logSelectNext() {

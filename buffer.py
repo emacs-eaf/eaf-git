@@ -202,7 +202,6 @@ class AppBuffer(BrowserBuffer):
             module_keybinding_dict = {}
             
             for key_value in keybindig_list[1:][0]:
-                print(key_value)
                 module_keybinding_dict[key_value[0]] = {
                     "command": key_value[1][0],
                     "description": key_value[1][1]
@@ -286,6 +285,15 @@ class AppBuffer(BrowserBuffer):
             self.handle_commit_and_push(result_content)
         elif callback_tag == "checkout_all_files":
             self.handle_checkout_all_files()
+        elif callback_tag == "search_text_forward":
+            self.buffer_widget._search_text(result_content)
+        elif callback_tag == "search_text_backward":
+            self.buffer_widget._search_text(result_content, True)
+            
+    def cancel_input_response(self, callback_tag):
+        ''' Cancel input message.'''
+        if callback_tag == "search_text_forward" or callback_tag == "search_text_backward":
+            self.buffer_widget.clean_search_and_select()
             
     def handle_copy_changes_file_to_mirror(self, target_repo_dir):
         status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
@@ -737,6 +745,14 @@ class AppBuffer(BrowserBuffer):
             "", -1))
         
         message_to_emacs("Checkout all.")
+        
+    @QtCore.pyqtSlot()
+    def log_search_forward(self):
+        self.search_text_forward()
+
+    @QtCore.pyqtSlot()
+    def log_search_backward(self):
+        self.search_text_backward()
         
 class FetchLogThread(QThread):
 

@@ -114,11 +114,13 @@
                   ("m"  ("statusCopyChangeFilesToMirrorRepo" "Copy to mirror repo"))
                   ))
     ("Log" (
-            ("j"  ("logSelectNext" "Next"))
-            ("k"  ("logSelectPrev" "Prev"))
+            ("j"      ("logSelectNext" "Next"))
+            ("k"      ("logSelectPrev" "Prev"))
             ("Enter"  ("logViewDiff" "View diff"))
-            ("J"  ("logSelectLast" "Last"))
-            ("K"  ("logSelectFirst" "First"))
+            ("s"      ("logSearchForward" "Search forward"))
+            ("r"      ("logSearchBackward" "Search backward"))
+            ("J"      ("logSelectLast" "Last"))
+            ("K"      ("logSelectFirst" "First"))
             )))
   "The keybinding of EAF git client."
   :type 'cons)
