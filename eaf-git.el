@@ -99,6 +99,26 @@
   "The keybinding of EAF git client."
   :type 'cons)
 
+(defcustom eaf-git-js-keybinding
+  '(("Dashboard" (("m"  "statusCopyChangeFilesToMirrorRepo")
+                  ("j"  "statusSelectNext")
+                  ("k"  "statusSelectPrev")
+                  ("s"  "statusStageFile")
+                  ("d"  "statusDeleteFile")
+                  ("c"  "statusCommitStage")
+                  ("C"  "statusCommitAll")
+                  ("u"  "statusPull")
+                  ("U"  "statusPush")
+                  ("y"  "statusCommitAndPush")
+                  ("z"  "statusCheckoutAll")))
+    ("Log" (("j"  "logSelectNext")
+            ("k"  "logSelectPrev")
+            ("J"  "logSelectLast")
+            ("K"  "logSelectFirst")
+            ("Enter"  "logViewDiff"))))
+  "The keybinding of EAF git client."
+  :type 'cons)
+
 (add-to-list 'eaf-app-binding-alist '("git" . eaf-git-keybinding))
 
 (setq eaf-git-module-path (concat (file-name-directory load-file-name) "buffer.py"))

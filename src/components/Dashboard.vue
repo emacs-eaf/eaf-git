@@ -172,6 +172,10 @@
 
      setTimeout(this.updateDiff, 1000)
 
+     this.$root.$on("statusCopyChangeFilesToMirrorRepo", function () {
+       window.pyobject.copy_change_files_to_mirror_repo();
+     });
+     
      this.$root.$on("statusSelectNext", function () {
        that.statusSelectNext();
      });
@@ -213,6 +217,7 @@
      });
    },
    beforeDestroy() {
+     this.$root.$off("statusCopyChangeFilesToMirrorRepo");
      this.$root.$off("statusSelectNext");
      this.$root.$off("statusSelectPrev");
      this.$root.$off("statusStageFile");

@@ -87,6 +87,7 @@
        logInfo: [],
        submoduleInfo: [],
        branchInfo: [],
+       keybindingInfo: [],
        pyobject: null
      }
    },
@@ -113,41 +114,11 @@
          that.changePage("Patch");
        }
 
-       if (that.navCurrentItem === "Dashboard") {
-         if (event_key === "m") {
-           window.pyobject.copy_change_files_to_mirror_repo();
-         } else if (event_key === "j") {
-           that.$root.$emit("statusSelectNext");
-         } else if (event_key === "k") {
-           that.$root.$emit("statusSelectPrev");
-         } else if (event_key === "s") {
-           that.$root.$emit("statusStageFile");
-         } else if (event_key === "d") {
-           that.$root.$emit("statusDeleteFile");
-         } else if (event_key === "c") {
-           that.$root.$emit("statusCommitStage");
-         } else if (event_key === "C") {
-           that.$root.$emit("statusCommitAll");
-         } else if (event_key === "u") {
-           that.$root.$emit("statusPull");
-         } else if (event_key === "U") {
-           that.$root.$emit("statusPush");
-         } else if (event_key === "y") {
-           that.$root.$emit("statusCommitAndPush");
-         } else if (event_key === "z") {
-           that.$root.$emit("statusCheckoutAll");
-         }
-       } else if (that.navCurrentItem === "Log") {
-         if (event_key === "j") {
-           that.$root.$emit("logSelectNext");
-         } else if (event_key === "k") {
-           that.$root.$emit("logSelectPrev");
-         } else if (event_key === "J") {
-           that.$root.$emit("logSelectLast");
-         } else if (event_key === "K") {
-           that.$root.$emit("logSelectFirst");
-         } else if (event_key === "Enter") {
-           that.$root.$emit("logViewDiff");
+       for (const [module_name, key_dict] of Object.entries(that.keybindingInfo)) {
+         if (that.navCurrentItem === module_name) {
+           if (event_key in key_dict) {
+             that.$root.$emit(key_dict[event_key])
+           }
          }
        }
      });
@@ -162,7 +133,7 @@
    methods: {
      init(backgroundColor, foregroundColor, selectColor, panelColor, textColor, navItemActiveColor, infoColor,
           dateColor, idColor, authorColor,
-          repoPath, repoHeadName, repoLastCommitId, repoLastCommitMessage) {
+          repoPath, repoHeadName, repoLastCommitId, repoLastCommitMessage, keybindingInfo) {
        this.backgroundColor = backgroundColor;
        this.foregroundColor = foregroundColor;
        this.selectColor = selectColor;
@@ -177,6 +148,7 @@
        this.repoHeadName = repoHeadName;
        this.repoLastCommitId = repoLastCommitId;
        this.repoLastCommitMessage = repoLastCommitMessage;
+       this.keybindingInfo = keybindingInfo;
      },
 
      navItemForegroundColor(item) {

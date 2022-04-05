@@ -176,11 +176,12 @@ class AppBuffer(BrowserBuffer):
              "font-lock-comment-face",
              "font-lock-string-face"])
 
-        self.buffer_widget.eval_js('''init(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\")'''.format(
+        self.buffer_widget.eval_js('''init(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", {})'''.format(
             self.theme_background_color, self.theme_foreground_color, select_color, QColor(self.theme_background_color).darker(110).name(),
             text_color, nav_item_color, info_color,
             date_color, id_color, author_color,
-            self.repo_path, self.head_name, self.last_commit_id, self.last_commit_message))
+            self.repo_path, self.head_name, self.last_commit_id, self.last_commit_message,
+            self.get_keybinding_info()))
 
     def fetch_status_info(self):
         thread = FetchStatusThread(self.repo)
@@ -192,6 +193,22 @@ class AppBuffer(BrowserBuffer):
     def update_status_info(self, stage_status, unstage_status, untrack_status):
         self.buffer_widget.eval_js('''updateStatusInfo({}, {}, {})'''.format(json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status)))
 
+    def get_keybinding_info(self):
+        js_keybindig = get_emacs_var("eaf-git-js-keybinding")
+        js_keybindig_dict = {}
+        
+        for keybindig_list in js_keybindig:
+            module_name = keybindig_list[0]
+            module_keybinding_dict = {}
+            
+            for key_value in keybindig_list[1:][0]:
+                print(key_value)
+                module_keybinding_dict[key_value[0]] = key_value[1]
+                
+            js_keybindig_dict[module_name] = module_keybinding_dict    
+
+        return js_keybindig_dict
+        
     def fetch_unpush_info(self):
         thread = FetchUnpushThread(self.repo_root)
         thread.fetch_result.connect(self.update_unpush_info)
