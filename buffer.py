@@ -341,6 +341,9 @@ class AppBuffer(BrowserBuffer):
         ref_master = self.repo.lookup_reference('refs/heads/master')
         self.repo.checkout(ref_master, paths=paths, strategy=GIT_CHECKOUT_FORCE)
         
+    def git_unpush_commits(self):
+        print(get_command_result("git log origin/master..HEAD"))
+        
     def stage_untrack_files(self):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
