@@ -830,7 +830,7 @@ class FetchPullThread(QThread):
         self.repo_root = repo_root
         
     def run(self):
-        self.pull_result.emit(get_command_result("cd {}; git pull".format(self.repo_root)))        
+        self.pull_result.emit(get_command_result("cd {}; git pull".format(self.repo_root)).strip())        
 
 class GitPushThread(QThread):
 
@@ -842,7 +842,7 @@ class GitPushThread(QThread):
         self.repo_root = repo_root
 
     def run(self):
-        self.push_result.emit(get_command_result("cd {}; git push".format(self.repo_root)))        
+        self.push_result.emit(get_command_result("cd {}; git push".format(self.repo_root)).strip())        
 
 class FetchUnpushThread(QThread):
 
