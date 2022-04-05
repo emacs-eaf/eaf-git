@@ -34,6 +34,7 @@
       <Log
         v-if="navCurrentItem == 'Log'"
         :pyobject="pyobject"
+        :currentCommitIndex="currentCommitIndex"
         :logInfo="logInfo"
         :idColor="idColor"
         :dateColor="dateColor"
@@ -112,6 +113,7 @@
        repoLastCommitId: "",
        repoLastCommitMessage: "",
        repoPath: "",
+       currentCommitIndex: 0,
        diffs: "",
        selectItemType: "",
        selectItemIndex: -1,
@@ -158,6 +160,23 @@
 
      this.$root.$on("statusSelectPrev", function () {
        that.statusSelectPrev();
+     });
+     
+     this.currentCommitIndex = 0;
+     this.$root.$on("logSelectNext", function () {
+       that.logSelectNext();
+     });
+
+     this.$root.$on("logSelectPrev", function () {
+       that.logSelectPrev();
+     });
+
+     this.$root.$on("logSelectLast", function () {
+       that.logSelectLast();
+     });
+
+     this.$root.$on("logSelectFirst", function () {
+       that.logSelectFirst();
      });
      
      window.addEventListener('keydown', function(event) {
@@ -373,6 +392,30 @@
        if (oldSelectItemType != this.selectItemType ||
            oldSelectItemIndex != this.selectItemIndex) {
          this.updateDiff();
+       }
+     },
+     
+     logSelectNext() {
+       if (this.logInfo.length > 0 && this.currentCommitIndex < this.logInfo.length - 1) {
+         this.currentCommitIndex++;
+       }
+     },
+
+     logSelectLast() {
+       if (this.logInfo.length > 0 && this.currentCommitIndex < this.logInfo.length - 1) {
+         this.currentCommitIndex = this.logInfo.length - 1;
+       }
+     },
+
+     logSelectPrev() {
+       if (this.logInfo.length > 0 && this.currentCommitIndex > 0) {
+         this.currentCommitIndex--;
+       }
+     },
+
+     logSelectFirst() {
+       if (this.logInfo.length > 0 && this.currentCommitIndex > 0) {
+         this.currentCommitIndex = 0;
        }
      },
    }

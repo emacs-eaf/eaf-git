@@ -40,11 +40,11 @@
      authorColor: String,
      backgroundColor: String,
      selectColor: String,
+     currentCommitIndex: Number,
      pyobject: Object
    },
    data() {
      return {
-       currentCommitIndex: 0,
        currentCommitId: ""
      }
    },
@@ -55,6 +55,7 @@
          if (this.logInfo.length > 0) {
            this.currentCommitId = this.logInfo[val].id;
            this.updateItemBackground(oldVal, val);
+           this.keepSelectVisible();
          }
        }
      },
@@ -62,24 +63,7 @@
    mounted() {
      var that = this;
 
-     this.currentCommitIndex = 0;
-     this.updateItemBackground(null, 0);
-
-     this.$root.$on("logSelectNext", function () {
-       that.logSelectNext();
-     });
-
-     this.$root.$on("logSelectPrev", function () {
-       that.logSelectPrev();
-     });
-
-     this.$root.$on("logSelectLast", function () {
-       that.logSelectLast();
-     });
-
-     this.$root.$on("logSelectFirst", function () {
-       that.logSelectFirst();
-     });
+     this.showHighlightLine();
 
      this.$root.$on("logViewDiff", function () {
        that.pyobject.show_commit_diff(that.currentCommitId, that.logInfo[that.currentCommitIndex + 1].id);
@@ -94,50 +78,26 @@
      });
    },
    beforeDestroy() {
-     this.$root.$off("logSelectNext");
-     this.$root.$off("logSelectPrev");
-     this.$root.$off("logSelectLast");
-     this.$root.$off("logSelectFirst");
      this.$root.$off("logViewDiff");
      this.$root.$off("logSearchForward");
      this.$root.$off("logSearchBackward");
    },
    methods: {
-     logSelectNext() {
-       if (this.logInfo.length > 0 && this.currentCommitIndex < this.logInfo.length - 1) {
-         this.currentCommitIndex++;
-         this.keepSelectVisible();
+     showHighlightLine() {
+       if (this.currentCommitIndex !== null && this.currentCommitIndex >= 0) {
+         this.$refs.logs.children[this.currentCommitIndex].style.background = this.selectColor;
        }
-     },
-
-     logSelectLast() {
-       if (this.logInfo.length > 0 && this.currentCommitIndex < this.logInfo.length - 1) {
-         this.currentCommitIndex = this.logInfo.length - 1;
-         this.keepSelectVisible();
-       }
-     },
-
-     logSelectPrev() {
-       if (this.logInfo.length > 0 && this.currentCommitIndex > 0) {
-         this.currentCommitIndex--;
-         this.keepSelectVisible();
-       }
-     },
-
-     logSelectFirst() {
-       if (this.logInfo.length > 0 && this.currentCommitIndex > 0) {
-         this.currentCommitIndex = 0;
-         this.keepSelectVisible();
-       }
+       
+       this.keepSelectVisible();
      },
 
      updateItemBackground(oldIndex, newIndex) {
-       if (oldIndex !== null) {
+       if (oldIndex !== null && oldIndex >= 0) {
          var oldItem = this.$refs.logs.children[oldIndex];
          oldItem.style.background = this.backgroundColor;
        }
-       
-       if (newIndex !== null) {
+
+       if (newIndex !== null && newIndex >= 0) {
          var newItem = this.$refs.logs.children[newIndex];
          newItem.style.background = this.selectColor;
        }
