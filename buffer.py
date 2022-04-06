@@ -769,13 +769,16 @@ class AppBuffer(BrowserBuffer):
         self.send_input_message("Stash push with message: ", "stash_push")
         
     def handle_status_push(self, message):
-        self.repo.stash(self.repo.default_signature, message, include_untracked=True)
-        
-        self.fetch_status_info()
-        self.fetch_stash_info()
-        
-        message_to_emacs("Stash push '{}'".format(message))
-    
+        try:
+            self.repo.stash(self.repo.default_signature, message, include_untracked=True)
+            
+            self.fetch_status_info()
+            self.fetch_stash_info()
+            
+            message_to_emacs("Stash push '{}'".format(message))
+        except:
+            message_to_emacs("There is nothing to stash")
+            
     def handle_checkout_all_files(self):
         self.git_checkout_file()
         
