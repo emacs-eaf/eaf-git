@@ -186,6 +186,10 @@
      this.$root.$on("statusCheckoutAll", function () {
        that.pyobject.status_checkout_all();
      });
+
+     this.$root.$on("statusStashPush", function () {
+       that.pyobject.status_stash_push();
+     });
    },
    beforeDestroy() {
      this.$root.$off("statusCopyChangeFilesToMirrorRepo");
@@ -197,6 +201,7 @@
      this.$root.$off("statusPull");
      this.$root.$off("statusPush");
      this.$root.$off("statusCheckoutAll");
+     this.$root.$off("statusStashPush");
    },
    methods: {
      untrackFileNumber() {

@@ -128,6 +128,7 @@ class AppBuffer(BrowserBuffer):
         
         self.fetch_status_threads = []
         self.fetch_log_threads = []
+        self.fetch_stash_threads = []
         self.fetch_submodule_threads = []
         self.fetch_branch_threads = []
         self.fetch_pull_threads = []
@@ -155,6 +156,7 @@ class AppBuffer(BrowserBuffer):
         self.fetch_unpush_info()
         self.fetch_status_info()
         self.fetch_log_info()
+        self.fetch_stash_info()
         self.fetch_submodule_info()
         self.fetch_branch_info()
 
@@ -236,6 +238,16 @@ class AppBuffer(BrowserBuffer):
     def update_log_info(self, log):
         self.buffer_widget.eval_js('''updateLogInfo({})'''.format(json.dumps(log)))
 
+    def fetch_stash_info(self):
+        thread = FetchStashThread(self.repo)
+        thread.fetch_result.connect(self.update_stash_info)
+        self.fetch_stash_threads.append(thread)
+        thread.start()
+
+    @PostGui()
+    def update_stash_info(self, stash):
+        self.buffer_widget.eval_js('''updateStashInfo({})'''.format(json.dumps(stash)))
+        
     def fetch_submodule_info(self):
         thread = FetchSubmoduleThread(self.repo)
         thread.fetch_result.connect(self.update_submodule_info)
@@ -296,6 +308,8 @@ class AppBuffer(BrowserBuffer):
             self.handle_new_branch(result_content)
         elif callback_tag == "delete_branch":
             self.handle_delete_branch()
+        elif callback_tag == "stash_push":
+            self.handle_status_push(result_content)
             
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
@@ -750,6 +764,18 @@ class AppBuffer(BrowserBuffer):
     def status_checkout_all(self):
         self.send_input_message("Checkout all changes.", "checkout_all_files", "yes-or-no")
         
+    @QtCore.pyqtSlot()
+    def status_stash_push(self):
+        self.send_input_message("Stash push with message: ", "stash_push")
+        
+    def handle_status_push(self, message):
+        self.repo.stash(self.repo.default_signature, message, include_untracked=True)
+        
+        self.fetch_status_info()
+        self.fetch_stash_info()
+        
+        message_to_emacs("Stash push '{}'".format(message))
+    
     def handle_checkout_all_files(self):
         self.git_checkout_file()
         
@@ -765,6 +791,14 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot()
     def log_search_backward(self):
+        self.search_text_backward()
+
+    @QtCore.pyqtSlot()
+    def stash_search_forward(self):
+        self.search_text_forward()
+
+    @QtCore.pyqtSlot()
+    def stash_search_backward(self):
         self.search_text_backward()
         
     @QtCore.pyqtSlot()
@@ -844,6 +878,34 @@ class FetchLogThread(QThread):
 
         self.fetch_result.emit(git_log)
 
+class FetchStashThread(QThread):
+
+    fetch_result = QtCore.pyqtSignal(list)
+
+    def __init__(self, repo):
+        QThread.__init__(self)
+
+        self.repo = repo
+
+    def run(self):
+        git_stash = []
+
+        try:
+            index = 0
+            for stash in self.repo.listall_stashes():
+                git_stash.append({
+                    "id": str(stash.commit_id),
+                    "index": index,
+                    "message": stash.message
+                })
+                
+                index += 1
+        except KeyError:
+            import traceback
+            traceback.print_exc()
+
+        self.fetch_result.emit(git_stash)
+        
 class FetchSubmoduleThread(QThread):
 
     fetch_result = QtCore.pyqtSignal(list)

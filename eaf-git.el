@@ -116,6 +116,7 @@
       ("y"  ("statusCommitAndPush" "Commit and push"))
       ("C"  ("statusCommitAll" "Commit all"))
       ("c"  ("statusCommitStage" "Commit stage"))
+      ("x"  ("statusStashPush" "Stash push"))
       ("z"  ("statusCheckoutAll" "Revoke changes"))
       ("m"  ("statusCopyChangeFilesToMirrorRepo" "Copy to mirror repo"))
       ))
@@ -138,6 +139,16 @@
       ("d"     ("branchDelete" "Delete"))
       ("J"     ("branchSelectLast" "Last"))
       ("K"     ("branchSelectFirst" "First"))
+      ))
+    ("Stash"
+     (
+      ("j"      ("stashSelectNext" "Next"))
+      ("k"      ("stashSelectPrev" "Prev"))
+      ("Enter"  ("stashViewDiff" "View diff"))
+      ("s"      ("stashSearchForward" "Search forward"))
+      ("r"      ("stashSearchBackward" "Search backward"))
+      ("J"      ("stashSelectLast" "Last"))
+      ("K"      ("stashSelectFirst" "First"))
       )))
   "The keybinding of EAF git client."
   :type 'cons)

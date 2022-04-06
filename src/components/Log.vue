@@ -40,7 +40,7 @@
      authorColor: String,
      backgroundColor: String,
      selectColor: String,
-     currentCommitIndex: Number,
+     currentLogIndex: Number,
      pyobject: Object
    },
    data() {
@@ -49,7 +49,7 @@
      }
    },
    watch: {
-     currentCommitIndex: {
+     currentLogIndex: {
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
          if (this.logInfo.length > 0) {
@@ -66,7 +66,7 @@
      this.showHighlightLine();
 
      this.$root.$on("logViewDiff", function () {
-       that.pyobject.show_commit_diff(that.currentCommitId, that.logInfo[that.currentCommitIndex + 1].id);
+       that.pyobject.show_commit_diff(that.currentCommitId, that.logInfo[that.currentLogIndex + 1].id);
      });
 
      this.$root.$on("logSearchForward", function () {
@@ -84,8 +84,8 @@
    },
    methods: {
      showHighlightLine() {
-       if (this.currentCommitIndex !== null && this.currentCommitIndex >= 0) {
-         this.$refs.logs.children[this.currentCommitIndex].style.background = this.selectColor;
+       if (this.currentLogIndex !== null && this.currentLogIndex >= 0) {
+         this.$refs.logs.children[this.currentLogIndex].style.background = this.selectColor;
        }
        
        this.keepSelectVisible();
@@ -106,7 +106,7 @@
      keepSelectVisible() {
        /* Use nextTick wait DOM update, then make sure current file in visible area. */
        this.$nextTick(function() {
-         var selectLog = this.$refs.logs.children[this.currentCommitIndex]
+         var selectLog = this.$refs.logs.children[this.currentLogIndex]
          if (selectLog !== undefined) {
            selectLog.scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
          }

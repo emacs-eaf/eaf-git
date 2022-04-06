@@ -34,7 +34,7 @@
       <Log
         v-if="navCurrentItem == 'Log'"
         :pyobject="pyobject"
-        :currentCommitIndex="currentCommitIndex"
+        :currentLogIndex="currentLogIndex"
         :logInfo="logInfo"
         :idColor="idColor"
         :dateColor="dateColor"
@@ -53,7 +53,16 @@
         :branchInfo="branchInfo"
       />
       <Patch v-if="navCurrentItem == 'Patch'"/>
-      <Stash v-if="navCurrentItem == 'Stash'"/>
+      <Stash
+        v-if="navCurrentItem == 'Stash'"
+        :pyobject="pyobject"
+        :currentStashIndex="currentStashIndex"
+        :stashInfo="stashInfo"
+        :idColor="idColor"
+        :dateColor="dateColor"
+        :authorColor="authorColor"
+        :backgroundColor="backgroundColor"
+        :selectColor="selectColor"/>
     </div>
     <div class="help-area">
       <div
@@ -122,7 +131,8 @@
        repoLastCommitId: "",
        repoLastCommitMessage: "",
        repoPath: "",
-       currentCommitIndex: 0,
+       currentLogIndex: 0,
+       currentStashIndex: 0,
        diffs: "",
        selectItemType: "",
        selectItemIndex: -1,
@@ -131,6 +141,7 @@
        untrackStatusInfo: [],
        unpushInfo: "",
        logInfo: [],
+       stashInfo: [],
        submoduleInfo: [],
        currentBranch: "",
        branchInfo: [],
@@ -143,6 +154,7 @@
      window.init = this.init;
      window.changePage = this.changePage;
      window.updateLogInfo = this.updateLogInfo;
+     window.updateStashInfo = this.updateStashInfo;
      window.updateSubmoduleInfo = this.updateSubmoduleInfo;
      window.updateBranchInfo = this.updateBranchInfo;
      window.updateStatusInfo = this.updateStatusInfo;
@@ -171,7 +183,7 @@
        that.statusSelectPrev();
      });
      
-     this.currentCommitIndex = 0;
+     this.currentLogIndex = 0;
      this.$root.$on("logSelectNext", function () {
        that.logSelectNext();
      });
@@ -186,6 +198,27 @@
 
      this.$root.$on("logSelectFirst", function () {
        that.logSelectFirst();
+     });
+
+     this.$root.$on("pageSelectPrev", function () {
+       that.pageSelectPrev();
+     });
+
+     this.currentStashIndex = 0;
+     this.$root.$on("stashSelectNext", function () {
+       that.stashSelectNext();
+     });
+
+     this.$root.$on("stashSelectPrev", function () {
+       that.stashSelectPrev();
+     });
+
+     this.$root.$on("stashSelectLast", function () {
+       that.stashSelectLast();
+     });
+
+     this.$root.$on("stashSelectFirst", function () {
+       that.stashSelectFirst();
      });
 
      this.$root.$on("pageSelectPrev", function () {
@@ -330,6 +363,10 @@
        this.logInfo = logInfo;
      },
 
+     updateStashInfo(stashInfo) {
+       this.stashInfo = stashInfo;
+     },
+     
      updateSubmoduleInfo(submoduleInfo) {
        this.submoduleInfo = submoduleInfo;
      },
@@ -434,26 +471,50 @@
      },
      
      logSelectNext() {
-       if (this.logInfo.length > 0 && this.currentCommitIndex < this.logInfo.length - 1) {
-         this.currentCommitIndex++;
+       if (this.logInfo.length > 0 && this.currentLogIndex < this.logInfo.length - 1) {
+         this.currentLogIndex++;
        }
      },
 
      logSelectLast() {
-       if (this.logInfo.length > 0 && this.currentCommitIndex < this.logInfo.length - 1) {
-         this.currentCommitIndex = this.logInfo.length - 1;
+       if (this.logInfo.length > 0 && this.currentLogIndex < this.logInfo.length - 1) {
+         this.currentLogIndex = this.logInfo.length - 1;
        }
      },
 
      logSelectPrev() {
-       if (this.logInfo.length > 0 && this.currentCommitIndex > 0) {
-         this.currentCommitIndex--;
+       if (this.logInfo.length > 0 && this.currentLogIndex > 0) {
+         this.currentLogIndex--;
        }
      },
 
      logSelectFirst() {
-       if (this.logInfo.length > 0 && this.currentCommitIndex > 0) {
-         this.currentCommitIndex = 0;
+       if (this.logInfo.length > 0 && this.currentLogIndex > 0) {
+         this.currentLogIndex = 0;
+       }
+     },
+
+     stashSelectNext() {
+       if (this.stashInfo.length > 0 && this.currentStashIndex < this.stashInfo.length - 1) {
+         this.currentStashIndex++;
+       }
+     },
+
+     stashSelectLast() {
+       if (this.stashInfo.length > 0 && this.currentStashIndex < this.stashInfo.length - 1) {
+         this.currentStashIndex = this.stashInfo.length - 1;
+       }
+     },
+
+     stashSelectPrev() {
+       if (this.stashInfo.length > 0 && this.currentStashIndex > 0) {
+         this.currentStashIndex--;
+       }
+     },
+
+     stashSelectFirst() {
+       if (this.stashInfo.length > 0 && this.currentStashIndex > 0) {
+         this.currentStashIndex = 0;
        }
      },
    }
