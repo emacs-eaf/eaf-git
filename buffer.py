@@ -141,7 +141,6 @@ class AppBuffer(BrowserBuffer):
             
         self.repo_path = os.path.sep.join(list(filter(lambda x: x != '', self.repo_root.split(os.path.sep)))[-2:])
 
-        self.head_name = self.repo.head.name.split("/")[-1]
         self.last_commit_id = str(self.repo.head.target)[:7]
         self.last_commit = self.repo.revparse_single(str(self.repo.head.target))
         self.last_commit_message = self.last_commit.message.splitlines()[0]
@@ -150,7 +149,9 @@ class AppBuffer(BrowserBuffer):
         
     def init_app(self):
         self.init_vars()
+        self.update_git_info()
 
+    def update_git_info(self):
         self.fetch_unpush_info()
         self.fetch_status_info()
         self.fetch_log_info()
@@ -178,11 +179,11 @@ class AppBuffer(BrowserBuffer):
              "font-lock-comment-face",
              "font-lock-string-face"])
 
-        self.buffer_widget.eval_js('''init(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", {})'''.format(
+        self.buffer_widget.eval_js('''init(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", {})'''.format(
             self.theme_background_color, self.theme_foreground_color, select_color, QColor(self.theme_background_color).darker(110).name(),
             text_color, nav_item_color, info_color,
             date_color, id_color, author_color,
-            self.repo_path, self.head_name, self.last_commit_id, self.last_commit_message,
+            self.repo_path, self.last_commit_id, self.last_commit_message,
             self.get_keybinding_info()))
 
     def fetch_status_info(self):
@@ -214,7 +215,7 @@ class AppBuffer(BrowserBuffer):
         return js_keybindig_dict
         
     def fetch_unpush_info(self):
-        thread = FetchUnpushThread(self.repo_root)
+        thread = FetchUnpushThread(self.repo, self.repo_root)
         thread.fetch_result.connect(self.update_unpush_info)
         self.fetch_unpush_threads.append(thread)
         thread.start()
@@ -386,8 +387,7 @@ class AppBuffer(BrowserBuffer):
         index.write()
         
     def git_checkout_file(self, paths=[]):
-        ref_master = self.repo.lookup_reference('refs/heads/master')
-        self.repo.checkout(ref_master, paths=paths, strategy=GIT_CHECKOUT_FORCE)
+        self.repo.checkout(self.repo.lookup_reference(self.repo.head.name), paths=paths, strategy=GIT_CHECKOUT_FORCE)
         
     def stage_untrack_files(self):
         untrack_status = self.untrack_status
@@ -588,6 +588,7 @@ class AppBuffer(BrowserBuffer):
             [parent.oid])
         
         self.fetch_unpush_info()
+        self.fetch_log_info()
 
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
@@ -623,6 +624,7 @@ class AppBuffer(BrowserBuffer):
             [parent.oid])
         
         self.fetch_unpush_info()
+        self.fetch_log_info()
         
         self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
             json.dumps([]), json.dumps([]), json.dumps([]),
@@ -740,6 +742,7 @@ class AppBuffer(BrowserBuffer):
         
     def handle_status_push(self, message):
         self.fetch_unpush_info()
+        self.fetch_log_info()
         
         message_to_emacs(message)
 
@@ -803,7 +806,7 @@ class AppBuffer(BrowserBuffer):
         ref = self.repo.lookup_reference(branch.name)
         self.repo.checkout(ref)
         
-        self.update_branch_list(self.branch_status)
+        self.update_git_info()
         
         message_to_emacs("Switch to branch '{}'".format(branch_name))
         
@@ -944,12 +947,13 @@ class FetchUnpushThread(QThread):
 
     fetch_result = QtCore.pyqtSignal(str)
 
-    def __init__(self, repo_root):
+    def __init__(self, repo, repo_root):
         QThread.__init__(self)
 
+        self.repo = repo
         self.repo_root = repo_root
 
     def run(self):
-        result = get_command_result("cd {}; git log origin/master..HEAD".format(self.repo_root))
+        result = get_command_result("cd {}; git log origin/{}..HEAD".format(self.repo_root, self.repo.head.shorthand))
         self.fetch_result.emit(result)         
         

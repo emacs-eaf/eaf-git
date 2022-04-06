@@ -224,7 +224,7 @@
    methods: {
      init(backgroundColor, foregroundColor, selectColor, panelColor, textColor, navItemActiveColor, infoColor,
           dateColor, idColor, authorColor,
-          repoPath, repoHeadName, repoLastCommitId, repoLastCommitMessage, keybindingInfo) {
+          repoPath, repoLastCommitId, repoLastCommitMessage, keybindingInfo) {
        this.backgroundColor = backgroundColor;
        this.foregroundColor = foregroundColor;
        this.selectColor = selectColor;
@@ -236,7 +236,6 @@
        this.idColor = idColor;
        this.authorColor = authorColor;
        this.repoPath = repoPath;
-       this.repoHeadName = repoHeadName;
        this.repoLastCommitId = repoLastCommitId;
        this.repoLastCommitMessage = repoLastCommitMessage;
        this.keybindingInfo = keybindingInfo;
@@ -310,6 +309,8 @@
      updateBranchInfo(currentBranch, branchInfo) {
        this.currentBranch = currentBranch
        this.branchInfo = branchInfo;
+
+       this.repoHeadName = currentBranch
      },
      
      updateChangeDiff(diffString) {
