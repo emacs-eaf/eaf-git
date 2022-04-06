@@ -126,6 +126,8 @@
                ("j"     ("branchSelectNext" "Next"))
                ("k"     ("branchSelectPrev" "Prev"))
                ("Enter" ("branchSwitch" "Switch"))
+               ("n"     ("branchNew" "New"))
+               ("d"     ("branchDelete" "Delete"))
                ("J"     ("branchSelectLast" "Last"))
                ("K"     ("branchSelectFirst" "First"))
                )))

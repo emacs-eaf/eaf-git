@@ -62,6 +62,14 @@
        that.branchSelectFirst();
      });
 
+     this.$root.$on("branchNew", function () {
+       window.pyobject.branch_new();
+     });
+
+     this.$root.$on("branchDelete", function () {
+       window.pyobject.branch_delete(that.selectBranch);
+     });
+     
      this.$root.$on("branchSwitch", function () {
 
      });

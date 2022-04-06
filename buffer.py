@@ -124,6 +124,8 @@ class AppBuffer(BrowserBuffer):
         self.unstage_status = []
         self.untrack_status = []
         
+        self.branch_status = []
+        
         self.fetch_status_threads = []
         self.fetch_log_threads = []
         self.fetch_submodule_threads = []
@@ -250,8 +252,8 @@ class AppBuffer(BrowserBuffer):
         thread.start()
 
     @PostGui()
-    def update_branch_info(self, current_branch, branch_list):
-        self.buffer_widget.eval_js('''updateBranchInfo(\"{}\", {})'''.format(current_branch, json.dumps(branch_list)))
+    def update_branch_info(self, branch_list):
+        self.update_branch_list(branch_list)
 
     @QtCore.pyqtSlot()
     def copy_change_files_to_mirror_repo(self):
@@ -289,6 +291,10 @@ class AppBuffer(BrowserBuffer):
             self.buffer_widget._search_text(result_content)
         elif callback_tag == "search_text_backward":
             self.buffer_widget._search_text(result_content, True)
+        elif callback_tag == "new_branch":
+            self.handle_new_branch(result_content)
+        elif callback_tag == "delete_branch":
+            self.handle_delete_branch()
             
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
@@ -711,6 +717,10 @@ class AppBuffer(BrowserBuffer):
     @QtCore.pyqtSlot(list)
     def vue_update_untrack_status(self, untrack_status):
         self.untrack_status = untrack_status
+
+    @QtCore.pyqtSlot(list)
+    def vue_update_branch_status(self, branch_status):
+        self.branch_status = branch_status
         
     @QtCore.pyqtSlot()
     def status_pull(self):
@@ -753,6 +763,43 @@ class AppBuffer(BrowserBuffer):
     @QtCore.pyqtSlot()
     def log_search_backward(self):
         self.search_text_backward()
+        
+    @QtCore.pyqtSlot()
+    def branch_new(self):
+        self.send_input_message("New branch: ", "new_branch")
+        
+    def handle_new_branch(self, branch_name):
+        if branch_name in self.branch_status:
+            message_to_emacs("Branch '{}' has exists.".format(branch_name))
+        else:
+            branch_list = self.branch_status
+            branch_list.append(branch_name)
+            
+            self.repo.branches.local.create(branch_name, self.repo.revparse_single('HEAD'))
+            self.update_branch_list(branch_list)
+            
+            message_to_emacs("Create branch '{}'.".format(branch_name))
+            
+    @QtCore.pyqtSlot(str)
+    def branch_delete(self, branch_name):
+        self.delete_branch_name = branch_name
+        self.send_input_message("Delete branch '{}': ".format(branch_name), "delete_branch", "yes-or-no")
+        
+    def handle_delete_branch(self):
+        branch_list = self.branch_status
+        branch_list.remove(self.delete_branch_name)
+        self.repo.branches.local.delete(self.delete_branch_name)
+        
+        self.update_branch_list(branch_list)
+        
+        message_to_emacs("Delete branch '{}'".format(self.delete_branch_name))
+        
+    def update_branch_list(self, branch_list):
+        current_branch = self.repo.head.shorthand
+        branch_list.remove(current_branch)
+        branch_list.insert(0, current_branch)
+        
+        self.buffer_widget.eval_js('''updateBranchInfo(\"{}\", {})'''.format(current_branch, json.dumps(branch_list)))
         
 class FetchLogThread(QThread):
 
@@ -798,7 +845,7 @@ class FetchSubmoduleThread(QThread):
 
 class FetchBranchThread(QThread):
 
-    fetch_result = QtCore.pyqtSignal(str, list)
+    fetch_result = QtCore.pyqtSignal(list)
 
     def __init__(self, repo):
         QThread.__init__(self)
@@ -806,7 +853,7 @@ class FetchBranchThread(QThread):
         self.repo = repo
 
     def run(self):
-        self.fetch_result.emit(self.repo.head.shorthand, self.repo.listall_branches())
+        self.fetch_result.emit(self.repo.listall_branches())
 
 class FetchStatusThread(QThread):
 

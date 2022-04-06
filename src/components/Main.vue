@@ -94,6 +94,15 @@
    },
    props: {
    },
+   watch: {
+     branchInfo: {
+       // eslint-disable-next-line no-unused-vars
+       handler: function (val, oldVal) {
+         window.pyobject.vue_update_branch_status(val);
+       },
+       deep: true
+     }
+   },
    data() {
      return {
        navbarHeight: "40px",
