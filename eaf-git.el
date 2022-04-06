@@ -100,37 +100,45 @@
   :type 'cons)
 
 (defcustom eaf-git-js-keybinding
-  '(("Dashboard" (
-                  ("u"  ("statusPull" "Pull"))
-                  ("U"  ("statusPush" "Push"))
-                  ("j"  ("statusSelectNext" "Next"))
-                  ("k"  ("statusSelectPrev" "Prev"))
-                  ("s"  ("statusStageFile" "Stage"))
-                  ("d"  ("statusDeleteFile" "Delete"))
-                  ("y"  ("statusCommitAndPush" "Commit and push"))
-                  ("C"  ("statusCommitAll" "Commit all"))
-                  ("c"  ("statusCommitStage" "Commit stage"))
-                  ("z"  ("statusCheckoutAll" "Revoke changes"))
-                  ("m"  ("statusCopyChangeFilesToMirrorRepo" "Copy to mirror repo"))
-                  ))
-    ("Log" (
-            ("j"      ("logSelectNext" "Next"))
-            ("k"      ("logSelectPrev" "Prev"))
-            ("Enter"  ("logViewDiff" "View diff"))
-            ("s"      ("logSearchForward" "Search forward"))
-            ("r"      ("logSearchBackward" "Search backward"))
-            ("J"      ("logSelectLast" "Last"))
-            ("K"      ("logSelectFirst" "First"))
-            ))
-    ("Branch" (
-               ("j"     ("branchSelectNext" "Next"))
-               ("k"     ("branchSelectPrev" "Prev"))
-               ("Enter" ("branchSwitch" "Switch"))
-               ("n"     ("branchNew" "New"))
-               ("d"     ("branchDelete" "Delete"))
-               ("J"     ("branchSelectLast" "Last"))
-               ("K"     ("branchSelectFirst" "First"))
-               )))
+  '(("Global"
+     (
+      ("h" ("pageSelectPrev" "<-"))
+      ("l" ("pageSelectNext" "->"))
+      ))
+    ("Dashboard"
+     (
+      ("u"  ("statusPull" "Pull"))
+      ("U"  ("statusPush" "Push"))
+      ("j"  ("statusSelectNext" "Next"))
+      ("k"  ("statusSelectPrev" "Prev"))
+      ("s"  ("statusStageFile" "Stage"))
+      ("d"  ("statusDeleteFile" "Delete"))
+      ("y"  ("statusCommitAndPush" "Commit and push"))
+      ("C"  ("statusCommitAll" "Commit all"))
+      ("c"  ("statusCommitStage" "Commit stage"))
+      ("z"  ("statusCheckoutAll" "Revoke changes"))
+      ("m"  ("statusCopyChangeFilesToMirrorRepo" "Copy to mirror repo"))
+      ))
+    ("Log"
+     (
+      ("j"      ("logSelectNext" "Next"))
+      ("k"      ("logSelectPrev" "Prev"))
+      ("Enter"  ("logViewDiff" "View diff"))
+      ("s"      ("logSearchForward" "Search forward"))
+      ("r"      ("logSearchBackward" "Search backward"))
+      ("J"      ("logSelectLast" "Last"))
+      ("K"      ("logSelectFirst" "First"))
+      ))
+    ("Branch"
+     (
+      ("j"     ("branchSelectNext" "Next"))
+      ("k"     ("branchSelectPrev" "Prev"))
+      ("Enter" ("branchSwitch" "Switch"))
+      ("n"     ("branchNew" "New"))
+      ("d"     ("branchDelete" "Delete"))
+      ("J"     ("branchSelectLast" "Last"))
+      ("K"     ("branchSelectFirst" "First"))
+      )))
   "The keybinding of EAF git client."
   :type 'cons)
 

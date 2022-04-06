@@ -187,6 +187,14 @@
      this.$root.$on("logSelectFirst", function () {
        that.logSelectFirst();
      });
+
+     this.$root.$on("pageSelectPrev", function () {
+       that.pageSelectPrev();
+     });
+
+     this.$root.$on("pageSelectNext", function () {
+       that.pageSelectNext();
+     });
      
      window.addEventListener('keydown', function(event) {
        var event_key = event.key;
@@ -203,6 +211,10 @@
          that.changePage("Submodule");
        } else if (event_key === "6") {
          that.changePage("Patch");
+       } else {
+         if (event_key in that.keybindingInfo["Global"]) {
+           that.$root.$emit(that.keybindingInfo["Global"][event_key]["command"])
+         }
        }
 
        for (const [module_name, key_dict] of Object.entries(that.keybindingInfo)) {
@@ -259,6 +271,22 @@
        this.navCurrentItem = pageName;
      
        this.updateKeyDescriptionList();
+     },
+     
+     pageSelectPrev() {
+       var index = this.navItems.indexOf(this.navCurrentItem);
+       
+       if (index > 0) {
+         this.changePage(this.navItems[index - 1]);
+       }
+     },
+     
+     pageSelectNext() {
+       var index = this.navItems.indexOf(this.navCurrentItem);
+       
+       if (index < this.navItems.length - 1) {
+         this.changePage(this.navItems[index + 1]);
+       }
      },
      
      updateSelectInfo(stageStatusInfo, unstageStatusInfo, untrackStatusInfo, selectItemType, selectItemIndex) {
