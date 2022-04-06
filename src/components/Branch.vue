@@ -71,7 +71,7 @@
      });
      
      this.$root.$on("branchSwitch", function () {
-
+       window.pyobject.branch_switch(that.selectBranch);
      });
    },
    beforeDestroy() {

@@ -795,11 +795,17 @@ class AppBuffer(BrowserBuffer):
         message_to_emacs("Delete branch '{}'".format(self.delete_branch_name))
         
     def update_branch_list(self, branch_list):
-        current_branch = self.repo.head.shorthand
-        branch_list.remove(current_branch)
-        branch_list.insert(0, current_branch)
+        self.buffer_widget.eval_js('''updateBranchInfo(\"{}\", {})'''.format(self.repo.head.shorthand, json.dumps(branch_list)))
         
-        self.buffer_widget.eval_js('''updateBranchInfo(\"{}\", {})'''.format(current_branch, json.dumps(branch_list)))
+    @QtCore.pyqtSlot(str)
+    def branch_switch(self, branch_name):
+        branch = self.repo.lookup_branch(branch_name)
+        ref = self.repo.lookup_reference(branch.name)
+        self.repo.checkout(ref)
+        
+        self.update_branch_list(self.branch_status)
+        
+        message_to_emacs("Switch to branch '{}'".format(branch_name))
         
 class FetchLogThread(QThread):
 
