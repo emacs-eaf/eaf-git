@@ -802,6 +802,10 @@ class AppBuffer(BrowserBuffer):
         
     @QtCore.pyqtSlot(str)
     def branch_switch(self, branch_name):
+        # Tips
+        # When switch the branch, the uncommitted changes will be copied over to the new branch. 
+        # However you cannot pull/fetch/rebase, unless you stash or commit. 
+        # Because Git will prevent that to stop from overwriting any uncommitted code.
         branch = self.repo.lookup_branch(branch_name)
         ref = self.repo.lookup_reference(branch.name)
         self.repo.checkout(ref)
