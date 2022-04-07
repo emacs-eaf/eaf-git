@@ -167,7 +167,7 @@
      },
 
      noFileSubmit() {
-       return this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber() === 0 && this.unpushInfo === "" && this.stashInfo === [];
+       return this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber() + this.stashInfo.length === 0 && this.unpushInfo === "";
      }
    },
    mounted() {
