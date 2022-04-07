@@ -325,9 +325,14 @@ class AppBuffer(BrowserBuffer):
             
         message_to_emacs("Copy {} files to {}".format(len(files), os.path.join(target_repo_dir)))    
 
-    @QtCore.pyqtSlot(str, str)
-    def show_commit_diff(self, commit_id, previous_commit_id):
-        eval_in_emacs("eaf-git-show-commit-diff", [self.repo.diff(previous_commit_id, commit_id).patch])
+    @QtCore.pyqtSlot(str)
+    def show_commit_diff(self, commit_id):
+        commit = self.repo.revparse_single(commit_id)
+        parent_commits = commit.parents
+        if len(parent_commits) > 0:
+            eval_in_emacs("eaf-git-show-commit-diff", [self.repo.diff(parent_commits[0], commit).patch])
+        else:
+            message_to_emacs("Commit {} haven't parent commits, can't view diff".format(commit_id))
         
     @QtCore.pyqtSlot(str, str)
     def update_diff(self, type, file):

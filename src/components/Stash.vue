@@ -56,7 +56,7 @@
      this.showHighlightLine();
 
      this.$root.$on("stashViewDiff", function () {
-       that.pyobject.show_commit_diff(that.currentCommitId, that.stashInfo[that.currentStashIndex + 1].id);
+       that.pyobject.show_commit_diff(that.currentCommitId);
      });
 
      this.$root.$on("stashSearchForward", function () {

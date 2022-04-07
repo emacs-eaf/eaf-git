@@ -45,7 +45,6 @@
    },
    data() {
      return {
-       currentCommitId: ""
      }
    },
    watch: {
@@ -53,7 +52,6 @@
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
          if (this.logInfo.length > 0) {
-           this.currentCommitId = this.logInfo[val].id;
            this.updateItemBackground(oldVal, val);
            this.keepSelectVisible();
          }
@@ -66,7 +64,7 @@
      this.showHighlightLine();
 
      this.$root.$on("logViewDiff", function () {
-       that.pyobject.show_commit_diff(that.currentCommitId, that.logInfo[that.currentLogIndex + 1].id);
+       that.logViewDiff();
      });
 
      this.$root.$on("logSearchForward", function () {
@@ -101,6 +99,10 @@
          var newItem = this.$refs.logs.children[newIndex];
          newItem.style.background = this.selectColor;
        }
+     },
+     
+     logViewDiff() {
+       this.pyobject.show_commit_diff(this.logInfo[this.currentLogIndex].id);
      },
 
      keepSelectVisible() {
