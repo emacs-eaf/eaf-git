@@ -336,6 +336,10 @@
        this.stageStatusInfo = stageStatusInfo;
        this.unstageStatusInfo = unstageStatusInfo;
        this.untrackStatusInfo = untrackStatusInfo;
+       
+       if (stageStatusInfo.length == 0 && unstageStatusInfo.length == 0 && untrackStatusInfo.length == 0) {
+         this.diffs = "";
+       }
      },
 
      updateUnpushInfo(unpushInfo) {
