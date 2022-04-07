@@ -1,4 +1,22 @@
 {
+  "pacman": [
+    "git-delta"
+  ],
+  "emerge": [
+    "dev-util/git-delta"
+  ],
+  "dnf": [
+    "git-delta"
+  ],
+  "pkg": [
+    "git-delta"
+  ],
+  "zypper": [
+    "git-delta"
+  ],
+  "brew": [
+    "git-delta"
+  ],
   "pip": {
     "linux": [
       "pygit2"

@@ -80,7 +80,7 @@
 ;;
 
 ;;; Require
-
+(require 'xterm-color)
 
 ;;; Code:
 
@@ -156,10 +156,91 @@
   "The keybinding of EAF git client."
   :type 'cons)
 
+(defcustom eaf-git-delta-executable "delta"
+  "The delta executable on your system to be used by eaf-git."
+  :type 'string)
+
+(defcustom eaf-git-delta-default-light-theme "GitHub"
+  "The default color theme when Emacs has a light background."
+  :type 'string)
+
+(defcustom eaf-git-delta-default-dark-theme "Monokai Extended"
+  "The default color theme when Emacs has a dark background."
+  :type 'string)
+
+(defcustom eaf-git-delta-args
+  `("--max-line-distance" "0.6"
+    "--true-color" ,(if xterm-color--support-truecolor "always" "never")
+    "--color-only")
+  "Delta command line arguments as a list of strings.
+
+If the color theme is not specified using --theme, then it will
+be chosen automatically according to whether the current Emacs
+frame has a light or dark background. See `eaf-git-delta-default-light-theme' and
+`eaf-git-delta-default-dark-theme'.
+
+--color-only is required in order to use delta with magit; it
+will be added if not present."
+  :type '(repeat string))
+
+(defcustom eaf-git-delta-hide-plus-minus-markers t
+  "Whether to hide the +/- markers at the beginning of diff lines."
+  :type '(choice (const :tag "Hide" t)
+                 (const :tag "Show" nil)))
+
 (add-to-list 'eaf-app-binding-alist '("git" . eaf-git-keybinding))
 
 (setq eaf-git-module-path (concat (file-name-directory load-file-name) "buffer.py"))
 (add-to-list 'eaf-app-module-path-alist '("git" . eaf-git-module-path))
+
+(defun eaf-git-list-intersect-p (list1 list2)
+  "Return non-nil if any elements of LIST1 appear in LIST2.
+Comparison is done with `equal'."
+  (while (and list1 (not (member (car list1) list2)))
+    (pop list1))
+  list1)
+
+(defun eaf-git-delta--make-delta-args ()
+  "Make final list of delta command-line arguments."
+  (let ((args eaf-git-delta-args))
+    (unless (eaf-git-list-intersect-p '("--syntax-theme" "--light" "--dark") args)
+      (setq args (nconc
+                  (list "--syntax-theme"
+                        (if (eq (frame-parameter nil 'background-mode) 'dark)
+                            eaf-git-delta-default-dark-theme
+                          eaf-git-delta-default-light-theme))
+                  args)))
+    (unless (member "--color-only" args)
+      (setq args (cons "--color-only" args)))
+    args))
+
+(defun eaf-git-delta-hide-plus-minus-markers ()
+  "Apply text properties to hide the +/- markers at the beginning of lines."
+  (save-excursion
+
+    (goto-char (point-min))
+    ;; Within hunks, hide - or + at the start of a line.
+    (let ((in-hunk nil))
+      (while (re-search-forward "^\\(diff\\|@@\\|+\\|-\\)" nil t)
+        (cond
+         ((string-equal (match-string 0) "diff")
+          (setq in-hunk nil))
+         ((string-equal (match-string 0) "@@")
+          (setq in-hunk t))
+         (in-hunk
+          (add-text-properties (match-beginning 0) (match-end 0)
+                               '(invisible t))))))))
+(defun eaf-git-call-delta-and-convert-ansi-escape-sequences ()
+  "Call delta on buffer contents and convert ANSI escape sequences to overlays.
+
+The input buffer contents are expected to be raw git output."
+  (apply #'call-process-region
+         (point-min) (point-max)
+         eaf-git-delta-executable t t nil (eaf-git-delta--make-delta-args))
+  (let ((buffer-read-only nil))
+    (xterm-color-colorize-buffer 'use-overlays)
+    (if eaf-git-delta-hide-plus-minus-markers
+        (eaf-git-delta-hide-plus-minus-markers))))
 
 (defun eaf-git-show-commit-diff (diff-string)
   (let ((log-buffer (current-buffer))
@@ -179,6 +260,8 @@
     (insert diff-string)
     (diff-mode)
     (goto-char (point-min))
+    (if (executable-find eaf-git-delta-executable)
+        (eaf-git-call-delta-and-convert-ansi-escape-sequences))
     (read-only-mode 1)
 
     ;; Select EAF log window.
