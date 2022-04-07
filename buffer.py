@@ -1028,6 +1028,6 @@ class FetchUnpushThread(QThread):
         self.repo_root = repo_root
 
     def run(self):
-        result = get_command_result("cd {}; git log origin/{}..HEAD".format(self.repo_root, self.repo.head.shorthand))
+        result = get_command_result("cd {}; git log origin/{}..HEAD".format(self.repo_root, self.repo.head.shorthand)).strip()
         self.fetch_result.emit(result)         
         
