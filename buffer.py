@@ -309,7 +309,7 @@ class AppBuffer(BrowserBuffer):
         elif callback_tag == "delete_branch":
             self.handle_delete_branch()
         elif callback_tag == "stash_push":
-            self.handle_status_push(result_content)
+            self.handle_stash_push(result_content)
             
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
@@ -773,7 +773,7 @@ class AppBuffer(BrowserBuffer):
     def status_stash_push(self):
         self.send_input_message("Stash push with message: ", "stash_push")
         
-    def handle_status_push(self, message):
+    def handle_stash_push(self, message):
         try:
             self.repo.stash(self.repo.default_signature, message, include_untracked=True)
             
