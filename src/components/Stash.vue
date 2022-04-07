@@ -66,11 +66,26 @@
      this.$root.$on("stashSearchBackward", function () {
        that.pyobject.stash_search_backward();
      });
+
+     this.$root.$on("stashApply", function () {
+       that.pyobject.stash_apply(this.currentCommitId);
+     });
+
+     this.$root.$on("stashPop", function () {
+       that.pyobject.stash_pop(this.currentCommitId);
+     });
+
+     this.$root.$on("stashDrop", function () {
+       that.pyobject.stash_drop(this.currentCommitId);
+     });
    },
    beforeDestroy() {
      this.$root.$off("stashViewDiff");
      this.$root.$off("stashSearchForward");
      this.$root.$off("stashSearchBackward");
+     this.$root.$off("stashApply");
+     this.$root.$off("stashPop");
+     this.$root.$off("stashDrop");
    },
    methods: {
      showHighlightLine() {

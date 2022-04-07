@@ -144,6 +144,9 @@
      (
       ("j"      ("stashSelectNext" "Next"))
       ("k"      ("stashSelectPrev" "Prev"))
+      ("y"      ("stashApply" "Apply"))
+      ("p"      ("stashPop" "Pop"))
+      ("d"      ("stashDrop" "Drop"))
       ("Enter"  ("stashViewDiff" "View diff"))
       ("s"      ("stashSearchForward" "Search forward"))
       ("r"      ("stashSearchBackward" "Search backward"))

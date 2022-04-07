@@ -77,6 +77,27 @@
         </fieldset>
 
         <fieldset
+          v-if="stashInfo != ''"
+          class="dialog">
+          <legend class="dialog-title">Stash</legend>
+          <div class="stash-info-area">
+            <div 
+              class="stash-item"
+              v-for="info in stashInfo"
+              :key="info.index">
+              <div
+                class="stash-id"
+                :style="{ 'color': idColor }">
+                {{ info.id.slice(0, 7) }}
+              </div>
+              <div class="stash-message">
+                {{ info.message }}
+              </div>
+            </div>
+          </div>
+        </fieldset>
+        
+        <fieldset
           v-if="unpushInfo != ''"
           class="dialog">
           <legend class="dialog-title">Unpush</legend>
@@ -110,9 +131,11 @@
      unstageStatusInfo: Array,
      untrackStatusInfo: Array,
      unpushInfo: String,
+     stashInfo: Array,
      diffs: String,
      backgroundColor: String,
      selectColor: String,
+     idColor: String,
      pyobject: Object
    },
    watch: {
@@ -144,7 +167,7 @@
      },
 
      noFileSubmit() {
-       return this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber() === 0 && this.unpushInfo === "";
+       return this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber() === 0 && this.unpushInfo === "" && this.stashInfo === [];
      }
    },
    mounted() {
@@ -366,6 +389,21 @@
    padding: 20px;
  }
 
+ .stash-info-area {
+   padding: 20px;
+   padding: 20px;
+ }
+
+ .stash-item {
+   display: flex;
+   flex-direction: row;
+   align-items: center;
+ }
+ 
+ .stash-message {
+   padding-left: 10px;
+ }
+ 
  .status-preview-area {
    width: 70%;
    height: 100%;

@@ -29,6 +29,8 @@
         :untrackStatusInfo="untrackStatusInfo"
         :pyobject="pyobject"
         :unpushInfo="unpushInfo"
+        :stashInfo="stashInfo"
+        :idColor="idColor"
         :backgroundColor="backgroundColor"
         :selectColor="selectColor"/>
       <Log
