@@ -90,6 +90,11 @@
                 :style="{ 'color': idColor }">
                 {{ info.id.slice(0, 7) }}
               </div>
+              <div
+                class="stash-index"
+                :style="{ 'color': indexColor }">
+                stash@[{{ info.index }}]
+              </div>
               <div class="stash-message">
                 {{ info.message }}
               </div>
@@ -135,6 +140,7 @@
      diffs: String,
      backgroundColor: String,
      selectColor: String,
+     indexColor: String,
      idColor: String,
      pyobject: Object
    },
@@ -398,6 +404,10 @@
    display: flex;
    flex-direction: row;
    align-items: center;
+ }
+ 
+ .stash-index {
+   padding-left: 10px;
  }
  
  .stash-message {

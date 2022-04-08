@@ -334,6 +334,11 @@ class AppBuffer(BrowserBuffer):
         else:
             message_to_emacs("Commit {} haven't parent commits, can't view diff".format(commit_id))
         
+    @QtCore.pyqtSlot(int)
+    def show_stash_diff(self, stash_index):
+        diff_string = get_command_result("cd {}; git stash show -p stash@".format(self.repo_root) + "{" + str(stash_index) + "} --color")
+        eval_in_emacs("eaf-git-show-commit-diff", [diff_string])
+        
     @QtCore.pyqtSlot(str, str)
     def update_diff(self, type, file):
         

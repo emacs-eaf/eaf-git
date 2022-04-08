@@ -12,6 +12,11 @@
           :style="{ 'color': idColor }">
           {{ info.id.slice(0, 7) }}
         </div>
+        <div
+          class="stash-index"
+          :style="{ 'color': indexColor }">
+          stash@[{{ info.index }}]
+        </div>
         <div class="stash-message">
           {{ info.message }}
         </div>
@@ -26,8 +31,8 @@
    props: {
      stashInfo: Array,
      idColor: String,
+     indexColor: String,
      dateColor: String,
-     authorColor: String,
      backgroundColor: String,
      selectColor: String,
      currentStashIndex: Number,
@@ -56,7 +61,7 @@
      this.showHighlightLine();
 
      this.$root.$on("stashViewDiff", function () {
-       that.pyobject.show_commit_diff(that.currentCommitId);
+       that.pyobject.show_stash_diff(that.stashInfo[that.currentStashIndex].index);
      });
 
      this.$root.$on("stashSearchForward", function () {

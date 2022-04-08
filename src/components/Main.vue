@@ -31,6 +31,7 @@
         :unpushInfo="unpushInfo"
         :stashInfo="stashInfo"
         :idColor="idColor"
+        :indexColor="authorColor"
         :backgroundColor="backgroundColor"
         :selectColor="selectColor"/>
       <Log
@@ -62,7 +63,7 @@
         :stashInfo="stashInfo"
         :idColor="idColor"
         :dateColor="dateColor"
-        :authorColor="authorColor"
+        :indexColor="authorColor"
         :backgroundColor="backgroundColor"
         :selectColor="selectColor"/>
     </div>
