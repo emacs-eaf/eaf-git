@@ -80,7 +80,6 @@
 ;;
 
 ;;; Require
-(require 'xterm-color)
 
 ;;; Code:
 
@@ -170,7 +169,8 @@
 
 (defcustom eaf-git-delta-args
   `("--max-line-distance" "0.6"
-    "--true-color" ,(if xterm-color--support-truecolor "always" "never")
+    "--true-color" 
+    "always"
     "--color-only")
   "Delta command line arguments as a list of strings.
 
@@ -238,7 +238,8 @@ The input buffer contents are expected to be raw git output."
          (point-min) (point-max)
          eaf-git-delta-executable t t nil (eaf-git-delta--make-delta-args))
   (let ((buffer-read-only nil))
-    (xterm-color-colorize-buffer 'use-overlays)
+    (when (ignore-errors (require 'xterm-color))
+      (xterm-color-colorize-buffer 'use-overlays))
     (if eaf-git-delta-hide-plus-minus-markers
         (eaf-git-delta-hide-plus-minus-markers))))
 
