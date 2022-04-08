@@ -169,7 +169,7 @@
 
 (defcustom eaf-git-delta-args
   `("--max-line-distance" "0.6"
-    "--true-color" 
+    "--true-color"
     "always"
     "--color-only")
   "Delta command line arguments as a list of strings.
@@ -238,8 +238,7 @@ The input buffer contents are expected to be raw git output."
          (point-min) (point-max)
          eaf-git-delta-executable t t nil (eaf-git-delta--make-delta-args))
   (let ((buffer-read-only nil))
-    (when (ignore-errors (require 'xterm-color))
-      (xterm-color-colorize-buffer 'use-overlays))
+    (xterm-color-colorize-buffer 'use-overlays)
     (if eaf-git-delta-hide-plus-minus-markers
         (eaf-git-delta-hide-plus-minus-markers))))
 
@@ -261,8 +260,12 @@ The input buffer contents are expected to be raw git output."
     (insert diff-string)
     (diff-mode)
     (goto-char (point-min))
-    (if (executable-find eaf-git-delta-executable)
+
+    (if (and
+         (ignore-errors (require 'xterm-color))
+         (executable-find eaf-git-delta-executable))
         (eaf-git-call-delta-and-convert-ansi-escape-sequences))
+
     (read-only-mode 1)
 
     ;; Select EAF log window.
