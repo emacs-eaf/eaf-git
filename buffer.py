@@ -745,7 +745,7 @@ class AppBuffer(BrowserBuffer):
         
     @QtCore.pyqtSlot()
     def status_pull(self):
-        message_to_emacs("Git pull...")
+        message_to_emacs("Git pull {}...".format(self.repo.head.name))
         thread = GitPullThread(self.repo_root)
         thread.pull_result.connect(message_to_emacs)
         self.fetch_pull_threads.append(thread)
@@ -753,8 +753,8 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot()
     def status_push(self):
-        message_to_emacs("Git push...")
-        thread = GitPushThread(self.repo_root)
+        message_to_emacs("Git push {}...".format(self.repo.head.name))
+        thread = GitPushThread(self.repo, self.repo_root)
         thread.push_result.connect(self.handle_status_push)
         self.git_push_threads.append(thread)
         thread.start()
@@ -1006,15 +1006,16 @@ class GitPushThread(QThread):
 
     push_result = QtCore.pyqtSignal(str)
 
-    def __init__(self, repo_root):
+    def __init__(self, repo, repo_root):
         QThread.__init__(self)
 
+        self.repo = repo
         self.repo_root = repo_root
 
     def run(self):
         result = get_command_result("cd {}; git push".format(self.repo_root)).strip()
         if result == "":
-            result = "Git push successfully."
+            result = "Git push {} successfully.".format(self.repo.head.name)
         self.push_result.emit(result)
 
 class FetchUnpushThread(QThread):
