@@ -1164,7 +1164,7 @@ class GitPullThread(QThread):
         self.repo_root = repo_root
         
     def run(self):
-        self.pull_result.emit(get_command_result("cd {}; git pull".format(self.repo_root)).strip())        
+        self.pull_result.emit(get_command_result("cd {}; git pull --rebase".format(self.repo_root)).strip())        
 
 class GitPushThread(QThread):
 
