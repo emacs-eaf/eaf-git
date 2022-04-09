@@ -73,15 +73,15 @@
      });
 
      this.$root.$on("stashApply", function () {
-       that.pyobject.stash_apply(this.currentCommitId);
+       that.pyobject.stash_apply(that.stashInfo[that.currentStashIndex].index, that.stashInfo[that.currentStashIndex].message);
      });
 
      this.$root.$on("stashPop", function () {
-       that.pyobject.stash_pop(this.currentCommitId);
+       that.pyobject.stash_pop(that.stashInfo[that.currentStashIndex].index, that.stashInfo[that.currentStashIndex].message);
      });
 
      this.$root.$on("stashDrop", function () {
-       that.pyobject.stash_drop(this.currentCommitId);
+       that.pyobject.stash_drop(that.stashInfo[that.currentStashIndex].index, that.stashInfo[that.currentStashIndex].message);
      });
    },
    beforeDestroy() {

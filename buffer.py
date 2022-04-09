@@ -25,6 +25,7 @@ from PyQt6.QtCore import QThread
 from core.webengine import BrowserBuffer
 from core.utils import get_emacs_func_result, get_emacs_var, PostGui, message_to_emacs, eval_in_emacs
 from pygit2 import (Repository, IndexEntry,
+                    GIT_CHECKOUT_ALLOW_CONFLICTS,
                     GIT_SORT_TOPOLOGICAL,
                     GIT_STATUS_CURRENT,
                     GIT_STATUS_INDEX_NEW,
@@ -310,6 +311,12 @@ class AppBuffer(BrowserBuffer):
             self.handle_delete_branch()
         elif callback_tag == "stash_push":
             self.handle_stash_push(result_content)
+        elif callback_tag == "stash_apply":
+            self.handle_stash_apply()
+        elif callback_tag == "stash_drop":
+            self.handle_stash_drop()
+        elif callback_tag == "stash_pop":
+            self.handle_stash_pop()
             
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
@@ -338,6 +345,45 @@ class AppBuffer(BrowserBuffer):
     def show_stash_diff(self, stash_index):
         diff_string = get_command_result("cd {}; git stash show -p stash@".format(self.repo_root) + "{" + str(stash_index) + "} --color")
         eval_in_emacs("eaf-git-show-commit-diff", [diff_string])
+        
+    @QtCore.pyqtSlot(int, str)
+    def stash_apply(self, index, message):
+        self.stash_apply_index = index
+        self.stash_apply_message = message
+        self.send_input_message("Stash apply '{}'".format(message), "stash_apply", "yes-or-no")
+        
+    @QtCore.pyqtSlot(int, str)
+    def stash_drop(self, index, message):
+        self.stash_drop_index = index
+        self.stash_drop_message = message
+        self.send_input_message("Stash drop '{}'".format(message), "stash_drop", "yes-or-no")
+        
+    @QtCore.pyqtSlot(int, str)
+    def stash_pop(self, index, message):
+        self.stash_pop_index = index
+        self.stash_pop_message = message
+        self.send_input_message("Stash pop '{}'".format(message), "stash_pop", "yes-or-no")
+        
+    def handle_stash_apply(self):
+        self.repo.stash_apply(index=self.stash_apply_index)
+        message_to_emacs("Stash apply '{}'".format(self.stash_apply_message))
+        
+        self.fetch_stash_info()
+        self.fetch_status_info()
+    
+    def handle_stash_drop(self):
+        self.repo.stash_drop(index=self.stash_drop_index)
+        message_to_emacs("Stash drop '{}'".format(self.stash_drop_message))
+        
+        self.fetch_stash_info()
+        self.fetch_status_info()
+        
+    def handle_stash_pop(self):
+        self.repo.stash_pop(index=self.stash_pop_index)
+        message_to_emacs("Stash pop '{}'".format(self.stash_pop_message))
+        
+        self.fetch_stash_info()
+        self.fetch_status_info()
         
     @QtCore.pyqtSlot(str, str)
     def update_diff(self, type, file):
