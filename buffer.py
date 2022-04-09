@@ -339,6 +339,10 @@ class AppBuffer(BrowserBuffer):
             self.handle_log_hide_compare_branch(result_content)
         elif callback_tag == "log_revert_commit":
             self.handle_log_revert_commit()
+        elif callback_tag == "log_reset_commit_mode":
+            self.handle_log_reset_commit_mode(result_content)
+        elif callback_tag == "log_reset_commit":
+            self.handle_log_reset_commit()
         elif callback_tag == "log_cherry_pick":
             self.handle_log_cherry_pick(result_content)
             
@@ -383,6 +387,29 @@ class AppBuffer(BrowserBuffer):
             [parent.oid])
         self.fetch_log_info()
         message_to_emacs("Revert commit: {} {} ".format(self.commit_to_revert.id, self.commit_to_revert.message))
+
+    @QtCore.pyqtSlot(str)
+    def log_reset_commit(self, commit_id):
+        self.commit_to_reset = self.repo.revparse_single(commit_id)
+        self.send_input_message("Reset HEAD to commit '{}' with mode: ".format(commit_id),
+                                "log_reset_commit_mode", "list", completion_list=["soft", "mixed", "hard"])
+
+    def handle_log_reset_commit_mode(self, mode):
+        self.commit_reset_mode = mode
+        self.send_input_message("Reset HEAD to commit '{}' with {} mode: ".format(self.commit_to_reset.id, mode),
+                                "log_reset_commit", "yes-or-no")
+
+    def handle_log_reset_commit(self):
+        reset_type = pygit2.GIT_RESET_SOFT
+        if self.commit_reset_mode == "mixed":
+            reset_type = pygit2.GIT_RESET_MIXED
+        elif self.commit_reset_mode == "hard":
+            reset_type = pygit2.GIT_RESET_HARD
+        self.repo.reset(self.commit_to_reset.id, reset_type)
+        self.fetch_status_info()
+        self.fetch_log_info()
+        self.fetch_stash_info()
+        message_to_emacs("Current HEAD is: {}".format(self.commit_to_reset.id, self.commit_to_reset.message))
         
     @QtCore.pyqtSlot(int)
     def show_stash_diff(self, stash_index):

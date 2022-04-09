@@ -142,6 +142,10 @@
        that.logRevertCommit();
      });
 
+     this.$root.$on("logResetCommit", function () {
+       that.logResetCommit();
+     });
+
      this.$root.$on("logCherryPick", function () {
        that.logCherryPick();
      });
@@ -151,6 +155,7 @@
      this.$root.$off("logSearchForward");
      this.$root.$off("logSearchBackward");
      this.$root.$off("logRevertCommit");
+     this.$root.$off("logResetCommit");
    },
    methods: {
      showHighlightLine() {
@@ -179,6 +184,10 @@
 
      logRevertCommit() {
        this.pyobject.log_revert_commit(this.logInfo[this.currentLogIndex].id);
+     },
+
+     logResetCommit() {
+       this.pyobject.log_reset_commit(this.logInfo[this.currentLogIndex].id);
      },
      
      logIdColor(item) {
