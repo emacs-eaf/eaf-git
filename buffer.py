@@ -238,7 +238,7 @@ class AppBuffer(BrowserBuffer):
 
     @PostGui()
     def update_log_info(self, branch_name, log):
-        self.buffer_widget.eval_js('''updateLogInfo("\{}\", {})'''.format(branch_name, json.dumps(log)))
+        self.buffer_widget.eval_js('''updateLogInfo(\"{}\", {})'''.format(branch_name, json.dumps(log)))
 
     def fetch_compare_log_info(self, branch_name):
         branch = self.repo.branches.get(branch_name)
@@ -250,7 +250,7 @@ class AppBuffer(BrowserBuffer):
 
     @PostGui()
     def update_compare_log_info(self, branch_name, log):
-        self.buffer_widget.eval_js('''updateCompareLogInfo("\{}\", {})'''.format(branch_name, json.dumps(log)))
+        self.buffer_widget.eval_js('''updateCompareLogInfo(\"{}\", {})'''.format(branch_name, json.dumps(log)))
         
     def fetch_stash_info(self):
         thread = FetchStashThread(self.repo)
