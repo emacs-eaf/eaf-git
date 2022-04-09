@@ -2,7 +2,7 @@
   <div class="log-box">
     <Dialog 
       class="flex-expand"
-      :title="logBranch"
+      :title="logTitle"
       hasScrollChild="true">
       <div
         class="list"
@@ -35,7 +35,7 @@
     
     <Dialog 
       v-if="compareLogInfo.length > 0"
-      :title="compareLogBranch"
+      :title="compareLogTitle"
       hasScrollChild="true">
       <div class="list">
         <div
@@ -89,6 +89,23 @@
            this.updateItemBackground(oldVal, val);
            this.keepSelectVisible();
          }
+       }
+     },
+   },
+   computed: {
+     logTitle() {
+       if (this.logBranch && this.logInfo) {
+         return this.logBranch + "(" + this.logInfo.length + ")";
+       } else {
+         return "";
+       }
+     },
+     
+     compareLogTitle() {
+       if (this.compareLogBranch && this.compareLogInfo) {
+         return this.compareLogBranch + "(" + this.compareLogInfo.length + ")";
+       } else {
+         return "";
        }
      },
    },
@@ -215,6 +232,8 @@
    overflow: hidden;
    white-space: nowrap;
    text-overflow: ellipsis;
+   
+   width: 100px;
  }
 
  .highlight-line {
