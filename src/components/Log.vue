@@ -1,7 +1,9 @@
 <template>
-  <div class="box">
+  <div class="log-box">
     <Dialog 
-      :title="logBranch">
+      class="flex-expand"
+      :title="logBranch"
+      hasScrollChild="true">
       <div
         class="list"
         ref="logs">
@@ -30,6 +32,27 @@
         </div>
       </div>
     </Dialog>
+    
+    <Dialog 
+      v-if="compareLogInfo.length > 0"
+      :title="compareLogBranch"
+      hasScrollChild="true">
+      <div class="list">
+        <div
+          v-for="info in compareLogInfo"
+          :key="info.index"
+          class="log-item">
+          <div
+            class="log-id"
+            :style="{ 'color': idColor }">
+            {{ info.id.slice(0, 7) }}
+          </div>
+          <div class="log-message">
+            {{ info.message }}
+          </div>
+        </div>
+      </div>
+    </Dialog>
   </div>
 </template>
 
@@ -44,6 +67,8 @@
    props: {
      logBranch: String,
      logInfo: Array,
+     compareLogBranch: String,
+     compareLogInfo: Array,
      idColor: String,
      dateColor: String,
      authorColor: String,
@@ -137,9 +162,12 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
- .box {
+ .log-box {
    width: 100%;
    height: 100%;
+   
+   display: flex;
+   flex-direction: row;
  }
 
  .log-item {
@@ -186,6 +214,10 @@
    position: fixed;
  }
 
+ .flex-expand {
+   flex: 1;
+ }
+ 
  .list {
    z-index: 100;
    max-height: calc(100vh - 150px);

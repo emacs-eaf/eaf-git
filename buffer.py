@@ -129,6 +129,7 @@ class AppBuffer(BrowserBuffer):
         
         self.fetch_status_threads = []
         self.fetch_log_threads = []
+        self.fetch_compare_log_threads = []
         self.fetch_stash_threads = []
         self.fetch_submodule_threads = []
         self.fetch_branch_threads = []
@@ -239,6 +240,18 @@ class AppBuffer(BrowserBuffer):
     def update_log_info(self, branch_name, log):
         self.buffer_widget.eval_js('''updateLogInfo("\{}\", {})'''.format(branch_name, json.dumps(log)))
 
+    def fetch_compare_log_info(self, branch_name):
+        branch = self.repo.branches.get(branch_name)
+        
+        thread = FetchLogThread(self.repo, branch)
+        thread.fetch_result.connect(self.update_compare_log_info)
+        self.fetch_compare_log_threads.append(thread)
+        thread.start()
+
+    @PostGui()
+    def update_compare_log_info(self, branch_name, log):
+        self.buffer_widget.eval_js('''updateCompareLogInfo("\{}\", {})'''.format(branch_name, json.dumps(log)))
+        
     def fetch_stash_info(self):
         thread = FetchStashThread(self.repo)
         thread.fetch_result.connect(self.update_stash_info)
@@ -319,8 +332,6 @@ class AppBuffer(BrowserBuffer):
             self.handle_stash_pop()
         elif callback_tag == "log_show_compare_branch":
             self.handle_log_show_compare_branch(result_content)
-        elif callback_tag == "log_hide_compare_branch":
-            self.handle_log_hide_compare_branch(result_content)
             
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
@@ -863,15 +874,13 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot()
     def log_hide_compare_branch(self):
-        branches = self.repo.listall_branches()
-        self.send_input_message("Hide compare branch: ", "log_hide_compare_branch", "list", completion_list=branches)
+        self.buffer_widget.eval_js('''updateCompareLogInfo(\"{}\", {})'''.format("", json.dumps([])))
+        message_to_emacs("Hide compare branch.")
         
     def handle_log_show_compare_branch(self, branch):
-        message_to_emacs("**** {}".format(branch))
+        self.fetch_compare_log_info(branch)
+        message_to_emacs("Show compare branch {}".format(branch))
 
-    def handle_log_hide_compare_branch(self, branch):
-        message_to_emacs("#### {}".format(branch))
-        
     @QtCore.pyqtSlot()
     def stash_search_forward(self):
         self.search_text_forward()
@@ -956,7 +965,7 @@ class FetchLogThread(QThread):
             import traceback
             traceback.print_exc()
 
-        self.fetch_result.emit(self.repo.head.shorthand, git_log)
+        self.fetch_result.emit(self.branch.shorthand, git_log)
 
 class FetchStashThread(QThread):
 

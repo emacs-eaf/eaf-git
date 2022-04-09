@@ -40,6 +40,8 @@
         :currentLogIndex="currentLogIndex"
         :logBranch="logBranch"
         :logInfo="logInfo"
+        :compareLogBranch="compareLogBranch"
+        :compareLogInfo="compareLogInfo"
         :idColor="idColor"
         :dateColor="dateColor"
         :authorColor="authorColor"
@@ -173,6 +175,8 @@
        unpushInfo: "",
        logBranch: "",
        logInfo: [],
+       compareLogBranch: "",
+       compareLogInfo: [],
        stashInfo: [],
        submoduleInfo: [],
        currentBranch: "",
@@ -186,6 +190,7 @@
      window.init = this.init;
      window.changePage = this.changePage;
      window.updateLogInfo = this.updateLogInfo;
+     window.updateCompareLogInfo = this.updateCompareLogInfo;
      window.updateStashInfo = this.updateStashInfo;
      window.updateSubmoduleInfo = this.updateSubmoduleInfo;
      window.updateBranchInfo = this.updateBranchInfo;
@@ -392,6 +397,11 @@
        this.logInfo = logInfo;
      },
 
+     updateCompareLogInfo(compareLogBranch, compareLogInfo) {
+       this.compareLogBranch = compareLogBranch;
+       this.compareLogInfo = compareLogInfo;
+     },
+     
      updateStashInfo(stashInfo) {
        this.stashInfo = stashInfo;
      },
