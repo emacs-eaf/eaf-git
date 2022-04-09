@@ -24,7 +24,7 @@ from PyQt6.QtGui import QColor
 from PyQt6.QtCore import QThread
 from core.webengine import BrowserBuffer
 from core.utils import get_emacs_func_result, get_emacs_var, PostGui, message_to_emacs, eval_in_emacs
-from pygit2 import (Repository, IndexEntry,
+from pygit2 import (Repository, IndexEntry, Oid,
                     GIT_CHECKOUT_ALLOW_CONFLICTS,
                     GIT_SORT_TOPOLOGICAL,
                     GIT_STATUS_CURRENT,
@@ -137,6 +137,8 @@ class AppBuffer(BrowserBuffer):
         self.fetch_unpush_threads = []
         
         self.git_push_threads = []
+        
+        self.log_compare_branch = ""
 
         self.url = os.path.expanduser(self.url)
         self.repo = Repository(self.url)
@@ -335,9 +337,10 @@ class AppBuffer(BrowserBuffer):
             self.handle_log_show_compare_branch(result_content)
         elif callback_tag == "log_hide_compare_branch":
             self.handle_log_hide_compare_branch(result_content)
-        elif callback_tag == "revert_commit":
-            self.handle_revert_commit()
-
+        elif callback_tag == "log_revert_commit":
+            self.handle_log_revert_commit()
+        elif callback_tag == "log_cherry_pick":
+            self.handle_log_cherry_pick(result_content)
             
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
@@ -363,11 +366,11 @@ class AppBuffer(BrowserBuffer):
             message_to_emacs("Commit {} haven't parent commits, can't view diff".format(commit_id))
 
     @QtCore.pyqtSlot(str)
-    def revert_commit(self, commit_id):
+    def log_revert_commit(self, commit_id):
         self.commit_to_revert = self.repo.revparse_single(commit_id)
-        self.send_input_message("Revert commit '{}' {}".format(commit_id, self.commit_to_revert.message), "revert_commit", "yes-or-no")
+        self.send_input_message("Revert commit '{}' {}".format(commit_id, self.commit_to_revert.message), "log_revert_commit", "yes-or-no")
 
-    def handle_revert_commit(self):
+    def handle_log_revert_commit(self):
         head = self.repo.head.peel()
         revert_index = self.repo.revert_commit(self.commit_to_revert, head)
         parent, ref = self.repo.resolve_refish(refish=self.repo.head.name)
@@ -498,6 +501,11 @@ class AppBuffer(BrowserBuffer):
         
     def git_checkout_file(self, paths=[]):
         self.repo.checkout(self.repo.lookup_reference(self.repo.head.name), paths=paths, strategy=GIT_CHECKOUT_FORCE)
+        
+    def git_checkout_branch(self, branch_name):
+        branch = self.repo.lookup_branch(branch_name)
+        ref = self.repo.lookup_reference(branch.name)
+        self.repo.checkout(ref)
         
     def stage_untrack_files(self):
         untrack_status = self.untrack_status
@@ -899,10 +907,57 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot()
     def log_hide_compare_branch(self):
+        self.log_compare_branch = ""
         self.buffer_widget.eval_js('''updateCompareLogInfo(\"{}\", {})'''.format("", json.dumps([])))
         message_to_emacs("Hide compare branch.")
         
+    @QtCore.pyqtSlot(list)
+    def log_cherry_pick(self, commits):
+        self.log_cherry_pick_commits = commits
+        branches = self.repo.listall_branches()
+        self.send_input_message("Copy commit to branch: ", "log_cherry_pick", "list", completion_list=branches)
+        
+    def handle_log_cherry_pick(self, new_branch):
+        if new_branch == self.repo.head.shorthand:
+            message_to_emacs("You can't copy commit to current branch.")
+        else:
+            current_branch_name = self.repo.head.shorthand
+            
+            self.git_checkout_branch(new_branch)
+            
+            for commit in self.log_cherry_pick_commits:
+                cherry_id = Oid(hex=commit["id"])
+                self.repo.cherrypick(cherry_id)
+            
+                if self.repo.index.conflicts is None:
+                    tree_id = self.repo.index.write_tree()
+                
+                    cherry = self.repo.get(cherry_id)
+                    
+                    parent, ref = self.repo.resolve_refish(refish=self.repo.head.name)
+                    self.repo.create_commit(
+                        ref.name,
+                        self.repo.default_signature,
+                        self.repo.default_signature,
+                        cherry.message,
+                        tree_id,
+                        [ref.target])
+                    
+                    self.repo.state_cleanup()
+            
+            self.git_checkout_branch(current_branch_name)
+            
+            self.fetch_log_info()
+            if self.log_compare_branch != "":
+                self.handle_log_show_compare_branch(new_branch)
+                
+            if len(self.log_cherry_pick_commits) == 1:
+                message_to_emacs("Copy '{}' to branch {}".format(self.log_cherry_pick_commits[0]["message"], new_branch))
+            else:
+                message_to_emacs("Copy {} commints to branch {}".format(len(self.log_cherry_pick_commits), new_branch))
+        
     def handle_log_show_compare_branch(self, branch):
+        self.log_compare_branch = branch
         self.fetch_compare_log_info(branch)
         message_to_emacs("Show compare branch {}".format(branch))
 
@@ -953,9 +1008,7 @@ class AppBuffer(BrowserBuffer):
         # When switch the branch, the uncommitted changes will be copied over to the new branch. 
         # However you cannot pull/fetch/rebase, unless you stash or commit. 
         # Because Git will prevent that to stop from overwriting any uncommitted code.
-        branch = self.repo.lookup_branch(branch_name)
-        ref = self.repo.lookup_reference(branch.name)
-        self.repo.checkout(ref)
+        self.git_checkout_branch(branch_name)
         
         self.update_git_info()
         

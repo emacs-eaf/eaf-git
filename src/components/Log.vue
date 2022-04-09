@@ -37,6 +37,7 @@
     
     <Dialog 
       v-if="compareLogInfo.length > 0"
+      class="compare-log-list"
       :title="compareLogTitle"
       hasScrollChild="true">
       <div class="list">
@@ -141,6 +142,9 @@
        that.logRevertCommit();
      });
 
+     this.$root.$on("logCherryPick", function () {
+       that.logCherryPick();
+     });
    },
    beforeDestroy() {
      this.$root.$off("logViewDiff");
@@ -174,7 +178,7 @@
      },
 
      logRevertCommit() {
-       this.pyobject.revert_commit(this.logInfo[this.currentLogIndex].id);
+       this.pyobject.log_revert_commit(this.logInfo[this.currentLogIndex].id);
      },
      
      logIdColor(item) {
@@ -207,6 +211,15 @@
        } else {
          return "";
        }
+     },
+     
+     logCherryPick() {
+       var pickList = this.logInfo.filter(info => { return info.marked == "marked" });
+       if (pickList.length == 0) {
+         pickList.push(this.logInfo[this.currentLogIndex]);
+       }
+       
+       this.pyobject.log_cherry_pick(pickList);
      },
      
      keepSelectVisible() {
@@ -286,5 +299,9 @@
    z-index: 100;
    max-height: calc(100vh - 150px);
    overflow-y: scroll;
+ }
+ 
+ .compare-log-list {
+   width: 30%;
  }
 </style>
