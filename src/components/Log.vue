@@ -187,7 +187,7 @@
      },
 
      logResetCommit() {
-       this.pyobject.log_reset_commit(this.logInfo[this.currentLogIndex].id);
+       this.pyobject.log_reset_commit(this.logInfo[this.currentLogIndex].id, this.logInfo[this.currentLogIndex].message);
      },
      
      logIdColor(item) {

@@ -136,7 +136,7 @@
       ("J"      ("logSelectLast" "Hide: Last"))
       ("K"      ("logSelectFirst" "Hide: First"))
       ("R"      ("logRevertCommit" "Revert"))
-      ("X"      ("logResetCommit" "Reset"))
+      ("z"      ("logResetCommit" "Reset"))
       ))
     ("Branch"
      (
