@@ -638,7 +638,7 @@
 
  .help-area {
    display: grid;
-   grid-auto-flow: column;
+   grid-auto-flow: column dense;
    padding-left: 10px;
    padding-right: 10px;
    padding-top: 10px;
