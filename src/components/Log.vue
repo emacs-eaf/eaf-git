@@ -91,11 +91,16 @@
      this.$root.$on("logHideCompareBranch", function () {
        that.pyobject.log_hide_compare_branch();
      });
+
+     this.$root.$on("logRevertCommit", function () {
+       that.logRevertCommit();
+     });
    },
    beforeDestroy() {
      this.$root.$off("logViewDiff");
      this.$root.$off("logSearchForward");
      this.$root.$off("logSearchBackward");
+     this.$root.$off("logRevertCommit");
    },
    methods: {
      showHighlightLine() {
@@ -120,6 +125,10 @@
 
      logViewDiff() {
        this.pyobject.show_commit_diff(this.logInfo[this.currentLogIndex].id);
+     },
+
+     logRevertCommit() {
+       this.pyobject.revert_commit(this.logInfo[this.currentLogIndex].id);
      },
 
      keepSelectVisible() {
