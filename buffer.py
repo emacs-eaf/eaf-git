@@ -846,9 +846,13 @@ class AppBuffer(BrowserBuffer):
     def status_pull(self):
         message_to_emacs("Git pull {}...".format(self.repo.head.name))
         thread = GitPullThread(self.repo_root)
-        thread.pull_result.connect(message_to_emacs)
+        thread.pull_result.connect(self.handle_stash_pull)
         self.fetch_pull_threads.append(thread)
         thread.start()
+        
+    def handle_stash_pull(self, message):
+        self.fetch_log_info()
+        message_to_emacs(message)
 
     @QtCore.pyqtSlot()
     def status_push(self):
