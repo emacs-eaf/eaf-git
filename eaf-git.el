@@ -134,6 +134,7 @@
       ("r"      ("logSearchBackward" "Search backward"))
       ("J"      ("logSelectLast" "Last"))
       ("K"      ("logSelectFirst" "First"))
+      ("R"      ("logRevertCommit" "Revert"))
       ))
     ("Branch"
      (

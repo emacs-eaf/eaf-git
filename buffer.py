@@ -332,6 +332,11 @@ class AppBuffer(BrowserBuffer):
             self.handle_stash_pop()
         elif callback_tag == "log_show_compare_branch":
             self.handle_log_show_compare_branch(result_content)
+        elif callback_tag == "log_hide_compare_branch":
+            self.handle_log_hide_compare_branch(result_content)
+        elif callback_tag == "revert_commit":
+            self.handle_revert_commit()
+
             
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
@@ -355,6 +360,25 @@ class AppBuffer(BrowserBuffer):
             eval_in_emacs("eaf-git-show-commit-diff", [self.repo.diff(parent_commits[0], commit).patch])
         else:
             message_to_emacs("Commit {} haven't parent commits, can't view diff".format(commit_id))
+
+    @QtCore.pyqtSlot(str)
+    def revert_commit(self, commit_id):
+        self.commit_to_revert = self.repo.revparse_single(commit_id)
+        self.send_input_message("Revert commit '{}' {}".format(commit_id, self.commit_to_revert.message), "revert_commit", "yes-or-no")
+
+    def handle_revert_commit(self):
+        head = self.repo.head.peel()
+        revert_index = self.repo.revert_commit(self.commit_to_revert, head)
+        parent, ref = self.repo.resolve_refish(refish=self.repo.head.name)
+        self.repo.create_commit(
+            ref.name,
+            self.repo.default_signature,
+            self.repo.default_signature,
+            "Revert {}".format(self.commit_to_revert.message),
+            revert_index.write_tree(),
+            [parent.oid])
+        self.fetch_log_info()
+        message_to_emacs("Revert commit: {} {} ".format(self.commit_to_revert.id, self.commit_to_revert.message))
         
     @QtCore.pyqtSlot(int)
     def show_stash_diff(self, stash_index):
