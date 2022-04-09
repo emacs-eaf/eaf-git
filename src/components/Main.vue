@@ -378,10 +378,12 @@
          if (this.navCurrentItem === module_name) {
            var description_list = [] ;
            for (const [key, value] of Object.entries(key_dict)) {
-             description_list.push({
-               "key": key,
-               "description": value["description"]
-             });
+             if (!value["description"].startsWith("Hide: ")) {
+               description_list.push({
+                 "key": key,
+                 "description": value["description"]
+               });
+             }
            }
 
            this.keyDescriptionList = description_list;
@@ -401,7 +403,7 @@
        this.compareLogBranch = compareLogBranch;
        this.compareLogInfo = compareLogInfo;
      },
-     
+
      updateStashInfo(stashInfo) {
        this.stashInfo = stashInfo;
      },
