@@ -1,23 +1,30 @@
 <template>
   <div class="box">
-    <div
-      v-for="info in branchInfo"
-      :key="info"
-      :style="{ 'color': itemForegroundColor(info), 'background': itemBacakgroundColor(info) }"
-      class="item">
-      <div class="branch-flag">
-        {{ currentBranchText(info) }}
+    <Dialog title="Branch">
+      <div
+        v-for="info in branchInfo"
+        :key="info"
+        :style="{ 'color': itemForegroundColor(info), 'background': itemBacakgroundColor(info) }"
+        class="item">
+        <div class="branch-flag">
+          {{ currentBranchText(info) }}
+        </div>
+        <div>
+          {{ info }}
+        </div>
       </div>
-      <div>
-        {{ info }}
-      </div>
-    </div>
+    </Dialog>
   </div>
 </template>
 
 <script>
+ import Dialog from "./Dialog.vue"
+
  export default {
    name: 'Branch',
+   components: {
+     Dialog
+   },
    props: {
      currentColor: String,
      backgroundColor: String,

@@ -1,38 +1,46 @@
 <template>
   <div class="box">
-    <div
-      class="list"
-      ref="logs">
+    <Dialog 
+      title="Commits">
       <div
-        v-for="info in logInfo"
-        :key="info.index"
-        class="log-item">
+        class="list"
+        ref="logs">
         <div
-          class="log-id"
-          :style="{ 'color': idColor }">
-          {{ info.id.slice(0, 7) }}
-        </div>
-        <div
-          class="log-date"
-          :style="{ 'color': dateColor }">
-          {{ info.time }}
-        </div>
-        <div
-          class="log-author"
-          :style="{ 'color': authorColor }">
-          {{ info.author }}
-        </div>
-        <div class="log-message">
-          {{ info.message }}
+          v-for="info in logInfo"
+          :key="info.index"
+          class="log-item">
+          <div
+            class="log-id"
+            :style="{ 'color': idColor }">
+            {{ info.id.slice(0, 7) }}
+          </div>
+          <div
+            class="log-date"
+            :style="{ 'color': dateColor }">
+            {{ info.time }}
+          </div>
+          <div
+            class="log-author"
+            :style="{ 'color': authorColor }">
+            {{ info.author }}
+          </div>
+          <div class="log-message">
+            {{ info.message }}
+          </div>
         </div>
       </div>
-    </div>
+    </Dialog>
   </div>
 </template>
 
 <script>
+ import Dialog from "./Dialog.vue"
+
  export default {
    name: 'Log',
+   components: {
+     Dialog
+   },
    props: {
      logInfo: Array,
      idColor: String,
@@ -85,7 +93,7 @@
        if (this.currentLogIndex !== null && this.currentLogIndex >= 0) {
          this.$refs.logs.children[this.currentLogIndex].style.background = this.selectColor;
        }
-       
+
        this.keepSelectVisible();
      },
 
@@ -100,7 +108,7 @@
          newItem.style.background = this.selectColor;
        }
      },
-     
+
      logViewDiff() {
        this.pyobject.show_commit_diff(this.logInfo[this.currentLogIndex].id);
      },
@@ -171,7 +179,7 @@
 
  .list {
    z-index: 100;
-   max-height: calc(100vh - 100px);
+   max-height: calc(100vh - 150px);
    overflow-y: scroll;
  }
 </style>

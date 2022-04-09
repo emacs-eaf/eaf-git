@@ -1,13 +1,15 @@
 <template>
   <div class="box">
-    <div v-if="submoduleInfo.length > 0">
-      <div
-        v-for="info in submoduleInfo"
-        :key="info"
-        class="item">
-        {{ info }}
+    <Dialog title="Submodule">
+      <div v-if="submoduleInfo.length > 0">
+        <div
+          v-for="info in submoduleInfo"
+          :key="info"
+          class="item">
+          {{ info }}
+        </div>
       </div>
-    </div>
+    </Dialog>
     <div
       v-else
       class="notify">
@@ -17,8 +19,13 @@
 </template>
 
 <script>
+ import Dialog from "./Dialog.vue"
+
  export default {
    name: 'Submodule',
+   components: {
+     Dialog
+   },
    props: {
      submoduleInfo: Array
    }

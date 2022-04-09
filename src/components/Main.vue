@@ -230,10 +230,6 @@
        that.logSelectFirst();
      });
 
-     this.$root.$on("pageSelectPrev", function () {
-       that.pageSelectPrev();
-     });
-
      this.currentStashIndex = 0;
      this.$root.$on("stashSelectNext", function () {
        that.stashSelectNext();

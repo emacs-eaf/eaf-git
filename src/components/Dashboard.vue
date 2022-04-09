@@ -428,16 +428,16 @@
 
    white-space: pre-wrap;
    font-size: 16px;
-   
+
    max-height: calc(100vh - 150px);
-   
+
    overflow-y: scroll;
  }
 
  .split-line {
    height: 20px;
  }
- 
+
  .stash-dialog {
    max-height: 30%;
  }

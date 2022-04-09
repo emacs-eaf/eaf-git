@@ -1,33 +1,40 @@
 <template>
   <div class="box">
-    <div
-      class="list"
-      ref="stashs">
+    <Dialog title="Stash">
       <div
-        v-for="info in stashInfo"
-        :key="info.index"
-        class="stash-item">
+        class="list"
+        ref="stashs">
         <div
-          class="stash-id"
-          :style="{ 'color': idColor }">
-          {{ info.id.slice(0, 7) }}
-        </div>
-        <div
-          class="stash-index"
-          :style="{ 'color': indexColor }">
-          stash@[{{ info.index }}]
-        </div>
-        <div class="stash-message">
-          {{ info.message }}
+          v-for="info in stashInfo"
+          :key="info.index"
+          class="stash-item">
+          <div
+            class="stash-id"
+            :style="{ 'color': idColor }">
+            {{ info.id.slice(0, 7) }}
+          </div>
+          <div
+            class="stash-index"
+            :style="{ 'color': indexColor }">
+            stash@[{{ info.index }}]
+          </div>
+          <div class="stash-message">
+            {{ info.message }}
+          </div>
         </div>
       </div>
-    </div>
+    </Dialog>
   </div>
 </template>
 
 <script>
+ import Dialog from "./Dialog.vue"
+
  export default {
    name: 'Stash',
+   components: {
+     Dialog
+   },
    props: {
      stashInfo: Array,
      idColor: String,
@@ -97,7 +104,7 @@
        if (this.currentStashIndex !== null && this.currentStashIndex >= 0) {
          this.$refs.stashs.children[this.currentStashIndex].style.background = this.selectColor;
        }
-       
+
        this.keepSelectVisible();
      },
 
