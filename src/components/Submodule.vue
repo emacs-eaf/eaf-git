@@ -9,12 +9,12 @@
           {{ info }}
         </div>
       </div>
+      <div
+        v-else
+        class="notify">
+        No submodule found in current repository.
+      </div>
     </Dialog>
-    <div
-      v-else
-      class="notify">
-      No submodule found in current repository.
-    </div>
   </div>
 </template>
 

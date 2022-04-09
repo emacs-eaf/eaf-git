@@ -1,7 +1,7 @@
 <template>
   <div class="box">
     <Dialog 
-      title="Commits">
+      :title="logBranch">
       <div
         class="list"
         ref="logs">
@@ -42,6 +42,7 @@
      Dialog
    },
    props: {
+     logBranch: String,
      logInfo: Array,
      idColor: String,
      dateColor: String,
@@ -150,12 +151,12 @@
 
  .log-date {
    padding-left: 20px;
-   width: 200px;
+   width: 150px;
  }
 
  .log-author {
    padding-left: 20px;
-   width: 15%;
+   width: 150px;
 
    overflow: hidden;
    white-space: nowrap;

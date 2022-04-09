@@ -38,6 +38,7 @@
         v-if="navCurrentItem == 'Log'"
         :pyobject="pyobject"
         :currentLogIndex="currentLogIndex"
+        :logBranch="logBranch"
         :logInfo="logInfo"
         :idColor="idColor"
         :dateColor="dateColor"
@@ -170,6 +171,7 @@
        unstageStatusInfo: [],
        untrackStatusInfo: [],
        unpushInfo: "",
+       logBranch: "",
        logInfo: [],
        stashInfo: [],
        submoduleInfo: [],
@@ -385,7 +387,8 @@
        this.keyDescriptionList = [];
      },
 
-     updateLogInfo(logInfo) {
+     updateLogInfo(logBranch, logInfo) {
+       this.logBranch = logBranch;
        this.logInfo = logInfo;
      },
 
@@ -600,6 +603,8 @@
    display: flex;
    flex-direction: row;
    align-item: center;
+   padding-left: 20px;
+   padding-right: 20px;
  }
 
  .help-description {

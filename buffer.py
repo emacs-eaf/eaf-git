@@ -230,14 +230,14 @@ class AppBuffer(BrowserBuffer):
         )))
 
     def fetch_log_info(self):
-        thread = FetchLogThread(self.repo)
+        thread = FetchLogThread(self.repo, self.repo.head)
         thread.fetch_result.connect(self.update_log_info)
         self.fetch_log_threads.append(thread)
         thread.start()
 
     @PostGui()
-    def update_log_info(self, log):
-        self.buffer_widget.eval_js('''updateLogInfo({})'''.format(json.dumps(log)))
+    def update_log_info(self, branch_name, log):
+        self.buffer_widget.eval_js('''updateLogInfo("\{}\", {})'''.format(branch_name, json.dumps(log)))
 
     def fetch_stash_info(self):
         thread = FetchStashThread(self.repo)
@@ -909,19 +909,20 @@ class AppBuffer(BrowserBuffer):
         
 class FetchLogThread(QThread):
 
-    fetch_result = QtCore.pyqtSignal(list)
+    fetch_result = QtCore.pyqtSignal(str, list)
 
-    def __init__(self, repo):
+    def __init__(self, repo, branch):
         QThread.__init__(self)
 
         self.repo = repo
+        self.branch = branch
 
     def run(self):
         git_log = []
 
         try:
             index = 0
-            for commit in self.repo.walk(self.repo.head.target):
+            for commit in self.repo.walk(self.branch.target):
                 git_log.append({
                     "id": str(commit.id),
                     "index": index,
@@ -935,7 +936,7 @@ class FetchLogThread(QThread):
             import traceback
             traceback.print_exc()
 
-        self.fetch_result.emit(git_log)
+        self.fetch_result.emit(self.repo.head.shorthand, git_log)
 
 class FetchStashThread(QThread):
 
