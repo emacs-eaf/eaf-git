@@ -101,7 +101,7 @@
    },
    methods: {
      showHighlightLine() {
-       if (this.currentStashIndex !== null && this.currentStashIndex >= 0) {
+       if (this.currentStashIndex !== null && this.currentStashIndex >= 0 && this.$refs.stashs.children.length > 0) {
          this.$refs.stashs.children[this.currentStashIndex].style.background = this.selectColor;
        }
 
