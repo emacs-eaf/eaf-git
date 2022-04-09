@@ -83,6 +83,14 @@
      this.$root.$on("logSearchBackward", function () {
        that.pyobject.log_search_backward();
      });
+
+     this.$root.$on("logShowCompareBranch", function () {
+       that.pyobject.log_show_compare_branch();
+     });
+
+     this.$root.$on("logHideCompareBranch", function () {
+       that.pyobject.log_hide_compare_branch();
+     });
    },
    beforeDestroy() {
      this.$root.$off("logViewDiff");

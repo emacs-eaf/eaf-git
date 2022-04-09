@@ -317,6 +317,10 @@ class AppBuffer(BrowserBuffer):
             self.handle_stash_drop()
         elif callback_tag == "stash_pop":
             self.handle_stash_pop()
+        elif callback_tag == "log_show_compare_branch":
+            self.handle_log_show_compare_branch(result_content)
+        elif callback_tag == "log_hide_compare_branch":
+            self.handle_log_hide_compare_branch(result_content)
             
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
@@ -852,6 +856,22 @@ class AppBuffer(BrowserBuffer):
     def log_search_backward(self):
         self.search_text_backward()
 
+    @QtCore.pyqtSlot()
+    def log_show_compare_branch(self):
+        branches = self.repo.listall_branches()
+        self.send_input_message("Show compare branch: ", "log_show_compare_branch", "list", completion_list=branches)
+
+    @QtCore.pyqtSlot()
+    def log_hide_compare_branch(self):
+        branches = self.repo.listall_branches()
+        self.send_input_message("Hide compare branch: ", "log_hide_compare_branch", "list", completion_list=branches)
+        
+    def handle_log_show_compare_branch(self, branch):
+        message_to_emacs("**** {}".format(branch))
+
+    def handle_log_hide_compare_branch(self, branch):
+        message_to_emacs("#### {}".format(branch))
+        
     @QtCore.pyqtSlot()
     def stash_search_forward(self):
         self.search_text_forward()
