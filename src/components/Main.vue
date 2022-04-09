@@ -44,6 +44,7 @@
         :compareLogInfo="compareLogInfo"
         :idColor="idColor"
         :dateColor="dateColor"
+        :markColor="navItemActiveColor"
         :authorColor="authorColor"
         :backgroundColor="backgroundColor"
         :selectColor="selectColor"/>
@@ -262,6 +263,18 @@
        that.pageSelectNext();
      });
 
+     this.$root.$on("logMarkFile", function () {
+       that.logMarkFile();
+     });
+
+     this.$root.$on("logUnmarkFile", function () {
+       that.logUnmarkFile();
+     });
+
+     this.$root.$on("logUnmarkAll", function () {
+       that.logUnmarkAll();
+     });
+     
      window.addEventListener('keydown', function(event) {
        var event_key = event.key;
 
@@ -556,6 +569,22 @@
      stashSelectFirst() {
        if (this.stashInfo.length > 0 && this.currentStashIndex > 0) {
          this.currentStashIndex = 0;
+       }
+     },
+     
+     logMarkFile() {
+       this.logInfo[this.currentLogIndex].marked = "marked";
+       this.logSelectNext();
+     },
+
+     logUnmarkFile() {
+       this.logInfo[this.currentLogIndex].marked = "";
+       this.logSelectNext();
+     },
+
+     logUnmarkAll() {
+       for (var i=0; i < this.logInfo.length; i++) {
+         this.logInfo[i].marked = "";
        }
      },
    }

@@ -982,7 +982,8 @@ class FetchLogThread(QThread):
                     "index": index,
                     "time": pretty_date(int(commit.commit_time)),
                     "author": commit.author.name,
-                    "message": commit.message.splitlines()[0]
+                    "message": commit.message.splitlines()[0],
+                    "marked": ""
                 })
                 
                 index += 1

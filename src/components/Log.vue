@@ -13,20 +13,22 @@
           class="log-item">
           <div
             class="log-id"
-            :style="{ 'color': idColor }">
+            :style="{ 'color': logIdColor(info) }">
             {{ info.id.slice(0, 7) }}
           </div>
           <div
             class="log-date"
-            :style="{ 'color': dateColor }">
+            :style="{ 'color': logDateColor(info) }">
             {{ info.time }}
           </div>
           <div
             class="log-author"
-            :style="{ 'color': authorColor }">
+            :style="{ 'color': logAuthorColor(info) }">
             {{ info.author }}
           </div>
-          <div class="log-message">
+          <div
+            class="log-message"
+            :style="{ 'color': logMessageColor(info) }">
             {{ info.message }}
           </div>
         </div>
@@ -74,6 +76,7 @@
      authorColor: String,
      backgroundColor: String,
      selectColor: String,
+     markColor: String,
      currentLogIndex: Number,
      pyobject: Object
    },
@@ -137,6 +140,7 @@
      this.$root.$on("logRevertCommit", function () {
        that.logRevertCommit();
      });
+
    },
    beforeDestroy() {
      this.$root.$off("logViewDiff");
@@ -172,7 +176,39 @@
      logRevertCommit() {
        this.pyobject.revert_commit(this.logInfo[this.currentLogIndex].id);
      },
+     
+     logIdColor(item) {
+       if (item.marked === "marked") {
+         return this.markColor;
+       } else {
+         return this.idColor;
+       }
+     },
 
+     logDateColor(item) {
+       if (item.marked === "marked") {
+         return this.markColor;
+       } else {
+         return this.dateColor;
+       }
+     },
+
+     logAuthorColor(item) {
+       if (item.marked === "marked") {
+         return this.markColor;
+       } else {
+         return this.authorColor;
+       }
+     },
+
+     logMessageColor(item) {
+       if (item.marked === "marked") {
+         return this.markColor;
+       } else {
+         return "";
+       }
+     },
+     
      keepSelectVisible() {
        /* Use nextTick wait DOM update, then make sure current file in visible area. */
        this.$nextTick(function() {
