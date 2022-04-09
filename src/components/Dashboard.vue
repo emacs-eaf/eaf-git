@@ -1,18 +1,19 @@
 <template>
   <div class="box">
-    <div
+    <Dialog
       v-if="noFileSubmit"
-      class="clean-workspace">
-      <div>
+      title="Welcome">
+      <div class="clean-workspace">
         No file need submitted, clean workspace.
       </div>
-    </div>
+    </Dialog>
     <div
       v-else
       class="status-area">
       <div class="status-left-panel">
-        <fieldset class="dialog flex-expand">
-          <legend class="dialog-title">Commit</legend>
+        <Dialog
+          class="flex-expand"
+          title="Commit">
           <div v-if="untrackFileNumber() > 0">
             <div
               class="untrack-title"
@@ -74,14 +75,14 @@
               </div>
             </div>
           </div>
-        </fieldset>
+        </Dialog>
 
-        <fieldset
+        <Dialog
           v-if="stashInfo != ''"
-          class="dialog">
-          <legend class="dialog-title">Stash</legend>
+          title="Stash"
+          class="stash-dialog">
           <div class="stash-info-area">
-            <div 
+            <div
               class="stash-item"
               v-for="info in stashInfo"
               :key="info.index">
@@ -100,35 +101,42 @@
               </div>
             </div>
           </div>
-        </fieldset>
-        
-        <fieldset
+        </Dialog>
+
+        <Dialog
           v-if="unpushInfo != ''"
-          class="dialog">
-          <legend class="dialog-title">Unpush</legend>
+          title="Unpush"
+          class="unpush-dialog">
           <div class="unpush-info-area">
             {{ unpushInfo }}
           </div>
-        </fieldset>
+        </Dialog>
       </div>
-      <fieldset class="dialog flex-expand">
-        <legend class="dialog-title">Preview</legend>
-        <div class="status-preview-area">
-          <div
-            class="preview-code"
-            v-html="prettyHtml"/>
+
+      <Dialog
+        class="flex-expand"
+        title="Preview"
+        hasScrollChild="true">
+        <div
+          class="status-preview-area"
+          v-html="prettyHtml">
         </div>
-      </fieldset>
+      </Dialog>
     </div>
   </div>
 </template>
 
 <script>
+ import Dialog from "./Dialog.vue"
+
  var AU = require('ansi_up');
  var ansiUp = new AU.default;
 
  export default {
    name: 'Dashboard',
+   components: {
+     Dialog
+   },
    props: {
      selectItemType: String,
      selectItemIndex: Number,
@@ -341,7 +349,6 @@
    justify-content: center;
    font-size: 20px;
    height: 100%;
-   width: 100%;
  }
 
  .untrack-title {
@@ -405,42 +412,37 @@
    flex-direction: row;
    align-items: center;
  }
- 
+
  .stash-index {
    padding-left: 10px;
  }
- 
+
  .stash-message {
    padding-left: 10px;
  }
- 
+
  .status-preview-area {
-   width: 70%;
    height: 100%;
    padding-left: 10px;
    padding-right: 10px;
 
    white-space: pre-wrap;
    font-size: 16px;
- }
- 
- .preview-code {
+   
    max-height: calc(100vh - 150px);
+   
    overflow-y: scroll;
  }
 
  .split-line {
    height: 20px;
  }
-
- .dialog {
-   border: 1px solid;
-   border-radius: 5px;
-   margin: 10px;
+ 
+ .stash-dialog {
+   max-height: 30%;
  }
 
- .dialog-title {
-   margin-left: 1em;
-   padding: 0.2em 0.8em
+ .unpush-dialog {
+   max-height: 30%;
  }
 </style>
