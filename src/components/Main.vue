@@ -315,7 +315,7 @@
        this.authorColor = authorColor;
        this.repoPath = repoPath;
        this.repoLastCommitId = repoLastCommitId;
-       this.repoLastCommitMessage = repoLastCommitMessage;
+       this.repoLastCommitMessage = repoLastCommitMessage["lastCommit"];
        this.keybindingInfo = keybindingInfo;
 
        this.updateKeyDescriptionList();
@@ -592,8 +592,13 @@
 
  .repo-info {
    text-align: right;
+   padding-left: 50px;
    padding-right: 10px;
    flex: 1;
+   
+   overflow: hidden;
+   white-space: nowrap;
+   text-overflow: ellipsis;
  }
 
  .page {

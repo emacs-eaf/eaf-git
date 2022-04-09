@@ -183,11 +183,12 @@ class AppBuffer(BrowserBuffer):
              "font-lock-comment-face",
              "font-lock-string-face"])
 
-        self.buffer_widget.eval_js('''init(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", {})'''.format(
+        self.buffer_widget.eval_js('''init(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", {}, {})'''.format(
             self.theme_background_color, self.theme_foreground_color, select_color, QColor(self.theme_background_color).darker(110).name(),
             text_color, nav_item_color, info_color,
             date_color, id_color, author_color,
-            self.repo_path, self.last_commit_id, self.last_commit_message,
+            self.repo_path, self.last_commit_id, 
+            json.dumps({"lastCommit": self.last_commit_message}),
             self.get_keybinding_info()))
 
     def fetch_status_info(self):
