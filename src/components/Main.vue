@@ -78,7 +78,7 @@
         </div>
         <div class="help-description">
           [{{ info["key"] }}]
-        </div> 
+        </div>
       </div>
     </div>
   </div>
@@ -111,6 +111,33 @@
        // eslint-disable-next-line no-unused-vars
        handler: function (val, oldVal) {
          window.pyobject.vue_update_branch_status(val);
+       },
+       deep: true
+     },
+     stageStatusInfo: {
+       // eslint-disable-next-line no-unused-vars
+       handler: function (val, oldVal) {
+         if (this.stageStatusInfo.length == 0 && this.unstageStatusInfo.length == 0 && this.untrackStatusInfo.length == 0) {
+           this.diffs = "";
+         }
+       },
+       deep: true
+     },
+     unstageStatusInfo: {
+       // eslint-disable-next-line no-unused-vars
+       handler: function (val, oldVal) {
+         if (this.stageStatusInfo.length == 0 && this.unstageStatusInfo.length == 0 && this.untrackStatusInfo.length == 0) {
+           this.diffs = "";
+         }
+       },
+       deep: true
+     },
+     untrackStatusInfo: {
+       // eslint-disable-next-line no-unused-vars
+       handler: function (val, oldVal) {
+         if (this.stageStatusInfo.length == 0 && this.unstageStatusInfo.length == 0 && this.untrackStatusInfo.length == 0) {
+           this.diffs = "";
+         }
        },
        deep: true
      }
@@ -164,7 +191,7 @@
      window.updateUnpushInfo = this.updateUnpushInfo;
      window.updateSelectInfo = this.updateSelectInfo;
      window.updateChangeDiff = this.updateChangeDiff;
-     
+
      if (this.untrackStatusInfo) {
        this.selectItemType = "untrack";
        this.selectItemIndex = -1;
@@ -177,7 +204,7 @@
      }
 
      let that = this;
-     
+
      this.$root.$on("statusSelectNext", function () {
        that.statusSelectNext();
      });
@@ -185,7 +212,7 @@
      this.$root.$on("statusSelectPrev", function () {
        that.statusSelectPrev();
      });
-     
+
      this.currentLogIndex = 0;
      this.$root.$on("logSelectNext", function () {
        that.logSelectNext();
@@ -231,7 +258,7 @@
      this.$root.$on("pageSelectNext", function () {
        that.pageSelectNext();
      });
-     
+
      window.addEventListener('keydown', function(event) {
        var event_key = event.key;
 
@@ -305,26 +332,26 @@
 
      changePage(pageName) {
        this.navCurrentItem = pageName;
-     
+
        this.updateKeyDescriptionList();
      },
-     
+
      pageSelectPrev() {
        var index = this.navItems.indexOf(this.navCurrentItem);
-       
+
        if (index > 0) {
          this.changePage(this.navItems[index - 1]);
        }
      },
-     
+
      pageSelectNext() {
        var index = this.navItems.indexOf(this.navCurrentItem);
-       
+
        if (index < this.navItems.length - 1) {
          this.changePage(this.navItems[index + 1]);
        }
      },
-     
+
      updateSelectInfo(stageStatusInfo, unstageStatusInfo, untrackStatusInfo, selectItemType, selectItemIndex) {
        this.stageStatusInfo = stageStatusInfo;
        this.unstageStatusInfo = unstageStatusInfo;
@@ -337,10 +364,6 @@
        this.stageStatusInfo = stageStatusInfo;
        this.unstageStatusInfo = unstageStatusInfo;
        this.untrackStatusInfo = untrackStatusInfo;
-       
-       if (stageStatusInfo.length == 0 && unstageStatusInfo.length == 0 && untrackStatusInfo.length == 0) {
-         this.diffs = "";
-       }
      },
 
      updateUnpushInfo(unpushInfo) {
@@ -357,12 +380,12 @@
                "description": value["description"]
              });
            }
-           
+
            this.keyDescriptionList = description_list;
            return;
          }
        }
-       
+
        this.keyDescriptionList = [];
      },
 
@@ -373,7 +396,7 @@
      updateStashInfo(stashInfo) {
        this.stashInfo = stashInfo;
      },
-     
+
      updateSubmoduleInfo(submoduleInfo) {
        this.submoduleInfo = submoduleInfo;
      },
@@ -384,7 +407,7 @@
 
        this.repoHeadName = currentBranch
      },
-     
+
      updateChangeDiff(diffString) {
        this.diffs = diffString;
      },
@@ -476,7 +499,7 @@
          this.updateDiff();
        }
      },
-     
+
      logSelectNext() {
        if (this.logInfo.length > 0 && this.currentLogIndex < this.logInfo.length - 1) {
          this.currentLogIndex++;
@@ -567,7 +590,7 @@
    position: relative;
    z-index: 99;
  }
- 
+
  .help-area {
    display: grid;
    grid-auto-flow: column;
@@ -576,13 +599,13 @@
    padding-top: 10px;
    padding-bottom: 20px;
  }
- 
+
  .help-item {
    display: flex;
    flex-direction: row;
    align-item: center;
  }
- 
+
  .help-description {
    padding-left: 5px;
  }
