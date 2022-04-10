@@ -345,6 +345,8 @@ class AppBuffer(BrowserBuffer):
             self.handle_log_reset_to(result_content)
         elif callback_tag == "log_cherry_pick":
             self.handle_log_cherry_pick(result_content)
+        elif callback_tag == "log_rebase_branch":
+            self.handle_log_rebase_branch(result_content)
             
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
@@ -436,46 +438,81 @@ class AppBuffer(BrowserBuffer):
         self.fetch_stash_info()
         
         message_to_emacs("Current HEAD is: {}".format(self.log_commit_reset_to_message))
+        
+    @QtCore.pyqtSlot()
+    def log_rebase_branch(self):
+        branches = self.repo.listall_branches()
+        self.send_input_message("Rebase from Branch: ", "log_rebase_branch", "list", completion_list=branches)
+        
+    def handle_log_rebase_branch(self, branch_name):
+        if branch_name == self.repo.head.shorthand:
+            message_to_emacs("Can't rebase branch self.")
+        else:
+            merge_branch = self.repo.lookup_branch(branch_name)
+            current_branch = self.repo.lookup_branch(self.repo.head.shorthand)
+
+            merge_base = self.repo.merge_base(current_branch.target, merge_branch.target)
+            current_branch_tree = self.repo.get(current_branch.target).tree
+            merge_branch_tree = self.repo.get(merge_branch.target).tree
+            merge_base_tree = self.repo.get(merge_base).tree
             
+            self.repo.checkout(current_branch)                       
+
+            merge_index = self.repo.merge_trees(merge_base_tree, current_branch_tree, merge_branch_tree)
+            tree_id = merge_index.write_tree(self.repo)
+            merge_message = self.repo.revparse_single(str(merge_branch.target)).message
+
+            self.repo.create_commit(
+                current_branch.name, 
+                self.repo.default_signature,
+                self.repo.default_signature,
+                merge_message,
+                tree_id, 
+                [current_branch.target])
+            
+            self.fetch_log_info()
+            
+            message_to_emacs("Rebase commints from branch {} to {}".format(merge_branch.name, current_branch.name))
+    
     @QtCore.pyqtSlot(int)
     def show_stash_diff(self, stash_index):
         diff_string = get_command_result("cd {}; git stash show -p stash@".format(self.repo_root) + "{" + str(stash_index) + "} --color")
         eval_in_emacs("eaf-git-show-commit-diff", [diff_string])
         
     @QtCore.pyqtSlot(int, str)
-    def stash_apply(self, index, message):
-        self.stash_apply_index = index
+    def stash_apply(self, merge_index, message):
+        self.stash_apply_index = merge_index
         self.stash_apply_message = message
         self.send_input_message("Stash apply '{}'".format(message), "stash_apply", "yes-or-no")
         
     @QtCore.pyqtSlot(int, str)
-    def stash_drop(self, index, message):
-        self.stash_drop_index = index
+    def stash_drop(self, merge_index, message):
+        self.stash_drop_index = merge_index
         self.stash_drop_message = message
         self.send_input_message("Stash drop '{}'".format(message), "stash_drop", "yes-or-no")
         
     @QtCore.pyqtSlot(int, str)
-    def stash_pop(self, index, message):
-        self.stash_pop_index = index
+    def stash_pop(self, merge_index, message):
+        self.stash_pop_index = merge_index
         self.stash_pop_message = message
         self.send_input_message("Stash pop '{}'".format(message), "stash_pop", "yes-or-no")
         
     def handle_stash_apply(self):
-        self.repo.stash_apply(index=self.stash_apply_index)
+        self.repo.stash_apply(merge_index=self.stash_apply_index)
         message_to_emacs("Stash apply '{}'".format(self.stash_apply_message))
         
         self.fetch_stash_info()
         self.fetch_status_info()
     
     def handle_stash_drop(self):
-        self.repo.stash_drop(index=self.stash_drop_index)
+        self.repo.stash_drop(merge_index=self.stash_drop_index)
         message_to_emacs("Stash drop '{}'".format(self.stash_drop_message))
         
         self.fetch_stash_info()
         self.fetch_status_info()
         
     def handle_stash_pop(self):
-        self.repo.stash_pop(index=self.stash_pop_index)
+        self.repo.stash_pop(merge_index=self.stash_pop_index)
         message_to_emacs("Stash pop '{}'".format(self.stash_pop_message))
         
         self.fetch_stash_info()
@@ -606,7 +643,7 @@ class AppBuffer(BrowserBuffer):
         self.git_add_file(file_info["file"])
         
         stage_status.append(file_info)
-        untrack_file_index = untrack_status.index(file_info)
+        untrack_file_index = untrack_status.merge_index(file_info)
         untrack_status.remove(file_info)
         
         select_item_type = ""
@@ -631,7 +668,7 @@ class AppBuffer(BrowserBuffer):
         self.git_add_file(file_info["file"])
         
         stage_status.append(file_info)
-        unstage_file_index = unstage_status.index(file_info)
+        unstage_file_index = unstage_status.merge_index(file_info)
         unstage_status.remove(file_info)
         
         select_item_type = ""
@@ -812,7 +849,7 @@ class AppBuffer(BrowserBuffer):
         unstage_status = self.unstage_status
         stage_status = self.stage_status
         
-        untrack_file_index = untrack_status.index(self.delete_untrack_mark_file)
+        untrack_file_index = untrack_status.merge_index(self.delete_untrack_mark_file)
         untrack_status.remove(self.delete_untrack_mark_file)
         os.remove(os.path.join(self.repo_root, self.delete_untrack_mark_file["file"]))
         
@@ -839,7 +876,7 @@ class AppBuffer(BrowserBuffer):
         
         self.git_checkout_file([self.delete_unstage_mark_file["file"]])
         
-        unstage_file_index = unstage_status.index(self.delete_unstage_mark_file)
+        unstage_file_index = unstage_status.merge_index(self.delete_unstage_mark_file)
         unstage_status.remove(self.delete_unstage_mark_file)
         
         select_item_type = ""
@@ -862,7 +899,7 @@ class AppBuffer(BrowserBuffer):
         self.git_reset_file(self.delete_stage_mark_file["file"])
         self.git_checkout_file([self.delete_stage_mark_file["file"]])
         
-        stage_file_index = stage_status.index(self.delete_stage_mark_file)
+        stage_file_index = stage_status.merge_index(self.delete_stage_mark_file)
         stage_status.remove(self.delete_stage_mark_file)
         
         select_item_type = ""
@@ -1085,18 +1122,18 @@ class FetchLogThread(QThread):
         git_log = []
 
         try:
-            index = 0
+            merge_index = 0
             for commit in self.repo.walk(self.branch.target):
                 git_log.append({
                     "id": str(commit.id),
-                    "index": index,
+                    "merge_index": merge_index,
                     "time": pretty_date(int(commit.commit_time)),
                     "author": commit.author.name,
                     "message": commit.message.splitlines()[0],
                     "marked": ""
                 })
                 
-                index += 1
+                merge_index += 1
         except KeyError:
             import traceback
             traceback.print_exc()
@@ -1116,15 +1153,15 @@ class FetchStashThread(QThread):
         git_stash = []
 
         try:
-            index = 0
+            merge_index = 0
             for stash in self.repo.listall_stashes():
                 git_stash.append({
                     "id": str(stash.commit_id),
-                    "index": index,
+                    "merge_index": merge_index,
                     "message": stash.message
                 })
                 
-                index += 1
+                merge_index += 1
         except KeyError:
             import traceback
             traceback.print_exc()

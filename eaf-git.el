@@ -128,7 +128,7 @@
       ("u"      ("logUnmarkFile" "Unmark"))
       ("U"      ("logUnmarkAll" "Unmark all"))
       ("c"      ("logCherryPick" "Copyto branch"))
-      ("b"      ("logRebaseBranch" "Rebase branch"))
+      ("b"      ("logRebaseBranch" "Rebase and merge"))
       ("s"      ("logSearchForward" "Search forward"))
       ("r"      ("logSearchBackward" "Search backward"))
       ("R"      ("logRevertCommit" "Revert"))

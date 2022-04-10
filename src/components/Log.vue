@@ -153,6 +153,10 @@
      this.$root.$on("logCherryPick", function () {
        that.logCherryPick();
      });
+     
+     this.$root.$on("logRebaseBranch", function () {
+       that.logRebaseBranch();
+     });
    },
    beforeDestroy() {
      this.$root.$off("logViewDiff");
@@ -161,6 +165,7 @@
      this.$root.$off("logRevertCommit");
      this.$root.$off("logResetLast");
      this.$root.$off("logResetTo");
+     this.$root.$off("logRebaseBranch");
    },
    methods: {
      showHighlightLine() {
@@ -197,6 +202,10 @@
      
      logResetTo() {
        this.pyobject.log_reset_last(this.logInfo[this.currentLogIndex].id, this.logInfo[this.currentLogIndex].message);
+     },
+
+     logRebaseBranch() {
+       this.pyobject.log_rebase_branch();
      },
      
      logIdColor(item) {

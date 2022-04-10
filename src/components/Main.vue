@@ -299,7 +299,7 @@
        for (const [module_name, key_dict] of Object.entries(that.keybindingInfo)) {
          if (that.navCurrentItem === module_name) {
            if (event_key in key_dict) {
-             that.$root.$emit(key_dict[event_key]["command"])
+             that.$root.$emit(key_dict[event_key]["command"]);
            }
          }
        }
