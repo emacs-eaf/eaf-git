@@ -132,7 +132,7 @@
       ("s"      ("logSearchForward" "Search forward"))
       ("r"      ("logSearchBackward" "Search backward"))
       ("R"      ("logRevertCommit" "Revert"))
-      ("z"      ("logResetCommit" "Reset"))
+      ("z"      ("logResetLast" "Reset Last"))
       ("j"      ("logSelectNext" "Next"))
       ("k"      ("logSelectPrev" "Prev"))
       ("J"      ("logSelectLast" "Last"))
