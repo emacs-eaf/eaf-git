@@ -341,6 +341,8 @@ class AppBuffer(BrowserBuffer):
             self.handle_log_revert_commit()
         elif callback_tag == "log_reset_last":
             self.handle_log_reset_last(result_content)
+        elif callback_tag == "log_reset_to":
+            self.handle_log_reset_to(result_content)
         elif callback_tag == "log_cherry_pick":
             self.handle_log_cherry_pick(result_content)
             
@@ -388,7 +390,7 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot(str, str)
     def log_reset_last(self, commit_id, commit_message):
-        self.log_commit_reset_id = commit_id
+        self.log_commit_reset_last_id = commit_id
         self.send_input_message("Reset last commit '{}' with mode: ".format(commit_message), "log_reset_last", "list", completion_list=["mixed", "soft", "hard"])
 
     def handle_log_reset_last(self, mode):
@@ -399,7 +401,7 @@ class AppBuffer(BrowserBuffer):
         elif mode == "hard":
             reset_type = pygit2.GIT_RESET_HARD
         
-        commit = self.repo.revparse_single(self.log_commit_reset_id)
+        commit = self.repo.revparse_single(self.log_commit_reset_last_id)
         parent_commits = commit.parents
         if len(parent_commits) > 0:
             self.repo.reset(parent_commits[0].id, reset_type)
@@ -411,7 +413,30 @@ class AppBuffer(BrowserBuffer):
             
             last_commit = self.repo.revparse_single(str(self.repo.head.target))
             message_to_emacs("Current HEAD is: {}".format(last_commit.message.splitlines()[0]))
+
+    @QtCore.pyqtSlot(str, str)
+    def log_reset_to(self, commit_id, commit_message):
+        self.log_commit_reset_to_id = commit_id
+        self.log_commit_reset_to_message = commit_message
+        self.send_input_message("Reset to commit '{}' with mode: ".format(commit_message), "log_reset_last", "list", completion_list=["mixed", "soft", "hard"])
+
+    def handle_log_reset_to(self, mode):
+        reset_type = pygit2.GIT_RESET_MIXED
         
+        if mode == "soft":
+            reset_type = pygit2.GIT_RESET_SOFT
+        elif mode == "hard":
+            reset_type = pygit2.GIT_RESET_HARD
+        
+        self.repo.reset(self.log_commit_reset_to_id, reset_type)
+        
+        self.fetch_log_info()
+        self.fetch_status_info()
+        self.fetch_unpush_info()
+        self.fetch_stash_info()
+        
+        message_to_emacs("Current HEAD is: {}".format(self.log_commit_reset_to_message))
+            
     @QtCore.pyqtSlot(int)
     def show_stash_diff(self, stash_index):
         diff_string = get_command_result("cd {}; git stash show -p stash@".format(self.repo_root) + "{" + str(stash_index) + "} --color")
