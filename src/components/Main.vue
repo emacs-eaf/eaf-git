@@ -274,7 +274,7 @@
      this.$root.$on("logUnmarkAll", function () {
        that.logUnmarkAll();
      });
-     
+
      window.addEventListener('keydown', function(event) {
        var event_key = event.key;
 
@@ -391,12 +391,10 @@
          if (this.navCurrentItem === module_name) {
            var description_list = [] ;
            for (const [key, value] of Object.entries(key_dict)) {
-             if (!value["description"].startsWith("Hide: ")) {
-               description_list.push({
-                 "key": key,
-                 "description": value["description"]
-               });
-             }
+             description_list.push({
+               "key": key,
+               "description": value["description"]
+             });
            }
 
            this.keyDescriptionList = description_list;
@@ -571,7 +569,7 @@
          this.currentStashIndex = 0;
        }
      },
-     
+
      logMarkFile() {
        this.logInfo[this.currentLogIndex].marked = "marked";
        this.logSelectNext();
@@ -624,7 +622,7 @@
    padding-left: 50px;
    padding-right: 10px;
    flex: 1;
-   
+
    overflow: hidden;
    white-space: nowrap;
    text-overflow: ellipsis;
@@ -634,11 +632,17 @@
    flex: 1;
    position: relative;
    z-index: 99;
+   width: 100%;
  }
 
  .help-area {
-   display: grid;
-   grid-auto-flow: column dense;
+   display: flex;
+   flex-direction: row;
+   align-items: center;
+   
+   width: 100%;
+   overflow-x: scroll;
+   
    padding-left: 10px;
    padding-right: 10px;
    padding-top: 10px;
@@ -649,8 +653,10 @@
    display: flex;
    flex-direction: row;
    align-item: center;
-   padding-left: 20px;
-   padding-right: 20px;
+   padding-left: 10px;
+   padding-right: 10px;
+   
+   white-space: nowrap;
  }
 
  .help-description {
