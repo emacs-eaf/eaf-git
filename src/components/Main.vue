@@ -45,8 +45,8 @@
         :idColor="idColor"
         :dateColor="dateColor"
         :markColor="navItemActiveColor"
-        :matchColor="authorColor"
-        :authorColor="infoColor"
+        :matchColor="matchColor"
+        :authorColor="authorColor"
         :backgroundColor="backgroundColor"
         :selectColor="selectColor"
         v-on:updateLogIndex="updateLogIndex"/>
@@ -184,6 +184,7 @@
        dateColor: "",
        idColor: "",
        authorColor: "",
+       matchColor: "",
        repoHeadName: "",
        repoLastCommitId: "",
        repoLastCommitMessage: "",
@@ -339,7 +340,7 @@
    },
    methods: {
      init(backgroundColor, foregroundColor, selectColor, panelColor, textColor, navItemActiveColor, infoColor,
-          dateColor, idColor, authorColor,
+          dateColor, idColor, authorColor, matchColor,
           repoPath, repoLastCommitId, repoLastCommitMessage, keybindingInfo) {
        this.backgroundColor = backgroundColor;
        this.foregroundColor = foregroundColor;
@@ -351,6 +352,7 @@
        this.dateColor = dateColor;
        this.idColor = idColor;
        this.authorColor = authorColor;
+       this.matchColor = matchColor;
        this.repoPath = repoPath;
        this.repoLastCommitId = repoLastCommitId;
        this.repoLastCommitMessage = repoLastCommitMessage["lastCommit"];
