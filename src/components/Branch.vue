@@ -1,16 +1,19 @@
 <template>
   <div class="box">
     <Dialog title="Branch">
-      <div
-        v-for="info in branchInfo"
-        :key="info"
-        :style="{ 'color': itemForegroundColor(info), 'background': itemBacakgroundColor(info) }"
-        class="item">
-        <div class="branch-flag">
-          {{ currentBranchText(info) }}
-        </div>
-        <div>
-          {{ info }}
+      <div class="list" ref="branches">
+        <div
+          v-for="info in branchInfo"
+          :key="info"
+          :style="{ 'color': itemForegroundColor(info), 'background': itemBacakgroundColor(info) }"
+          class="item"
+         >
+          <div class="branch-flag">
+            {{ currentBranchText(info) }}
+          </div>
+          <div>
+            {{ info }}
+          </div>
         </div>
       </div>
     </Dialog>
@@ -37,6 +40,7 @@
        // eslint-disable-next-line no-unused-vars
        handler: function (val, oldVal) {
          this.selectBranch = this.branchInfo[this.selectIndex];
+         this.keepSelectVisible();
        },
        deep: true
      }
@@ -131,7 +135,17 @@
 
      branchSelectFirst() {
        this.selectIndex = 0;
-     }
+     },
+
+     keepSelectVisible() {
+       /* Use nextTick wait DOM update, then make sure current file in visible area. */
+       this.$nextTick(() => {
+         let selectBranch = this.$refs.branches.children[this.selectIndex]
+         if (selectBranch !== undefined) {
+           selectBranch.scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
+         }
+       });
+     },
    }
  }
 </script>
@@ -160,5 +174,11 @@
    width: 100px;
    padding-left: 10px;
    padding-right: 10px;
+ }
+
+ .list {
+   z-index: 100;
+   max-height: calc(100vh - 150px);
+   overflow-y: scroll;
  }
 </style>
