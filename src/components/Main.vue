@@ -52,7 +52,11 @@
         v-on:updateLogIndex="updateLogIndex"/>
       <Submodule
         v-if="navCurrentItem == 'Submodule'"
-        :submoduleInfo="submoduleInfo"/>
+        :submoduleInfo="submoduleInfo"
+        :currentSubmoduleIndex="currentSubmoduleIndex"
+        :backgroundColor="backgroundColor"
+        :selectColor="selectColor"
+        v-on:updateSubmoduleIndex="updateSubmoduleIndex"/>
       <Branch
         v-if="navCurrentItem == 'Branch'"
         :selectColor="selectColor"
@@ -204,6 +208,7 @@
        compareLogInfo: [],
        stashInfo: [],
        submoduleInfo: [],
+       currentSubmoduleIndex: 0,
        currentBranch: "",
        branchInfo: [],
        keybindingInfo: [],
@@ -262,6 +267,23 @@
 
      this.$root.$on("logSelectFirst", function () {
        that.logSelectFirst();
+     });
+
+     this.currentSubmoduleIndex = 0;
+     this.$root.$on("submoduleSelectNext", function () {
+       that.submoduleSelectNext();
+     });
+
+     this.$root.$on("submoduleSelectPrev", function () {
+       that.submoduleSelectPrev();
+     });
+
+     this.$root.$on("submoduleSelectLast", function () {
+       that.submoduleSelectLast();
+     });
+
+     this.$root.$on("submoduleSelectFirst", function () {
+       that.submoduleSelectFirst();
      });
 
      this.currentStashIndex = 0;
@@ -589,6 +611,30 @@
        }
      },
 
+     submoduleSelectNext() {
+       if (this.submoduleInfo.length > 0 && this.currentSubmoduleIndex < this.submoduleInfo.length - 1) {
+         this.currentSubmoduleIndex++;
+       }
+     },
+
+     submoduleSelectLast() {
+       if (this.submoduleInfo.length > 0 && this.currentSubmoduleIndex < this.submoduleInfo.length - 1) {
+         this.currentSubmoduleIndex = this.submoduleInfo.length - 1;
+       }
+     },
+
+     submoduleSelectPrev() {
+       if (this.submoduleInfo.length > 0 && this.currentSubmoduleIndex > 0) {
+         this.currentSubmoduleIndex--;
+       }
+     },
+
+     submoduleSelectFirst() {
+       if (this.submoduleInfo.length > 0 && this.currentSubmoduleIndex > 0) {
+         this.currentSubmoduleIndex = 0;
+       }
+     },
+
      updateLogIndex(index) {
        if (index >= this.logInfo.length) {
          this.currentLogIndex = this.logInfo.length - 1;
@@ -599,6 +645,16 @@
        }
      },
 
+     updateSubmoduleIndex(index) {
+       if (index >= this.submoduleInfo.length) {
+         this.currentSubmoduleIndex = this.submoduleInfo.length - 1;
+       } else if (index <= 0) {
+         this.currentSubmoduleIndex = 0;
+       } else {
+         this.currentSubmoduleIndex = index;
+       }
+     },
+     
      stashSelectNext() {
        if (this.stashInfo.length > 0 && this.currentStashIndex < this.stashInfo.length - 1) {
          this.currentStashIndex++;

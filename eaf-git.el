@@ -160,6 +160,20 @@
       ("k"      ("stashSelectPrev" "Prev"))
       ("J"      ("stashSelectLast" "Last"))
       ("K"      ("stashSelectFirst" "First"))
+      ))
+    ("Submodule"
+     (
+      ("Enter"  ("submoduleView" "View"))
+      ("a"      ("submoduleAdd" "Add"))
+      ("d"      ("submoduleRemove" "Remove"))
+      ("u"      ("submoduleUpdate" "Update"))
+      ("r"      ("submoduleRollback" "Rollback"))
+      ("j"      ("submoduleSelectNext" "Next"))
+      ("k"      ("submoduleSelectPrev" "Prev"))
+      ("J"      ("submoduleSelectLast" "Last"))
+      ("K"      ("submoduleSelectFirst" "First"))
+      ("p"      ("submoduleSelectPgUp" "Previous Page"))
+      ("n"      ("submoduleSelectPgDn" "Next Page"))
       )))
   "The keybinding of EAF git client."
   :type 'cons)
