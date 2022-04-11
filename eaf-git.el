@@ -138,6 +138,8 @@
       ("k"      ("logSelectPrev" "Prev"))
       ("J"      ("logSelectLast" "Last"))
       ("K"      ("logSelectFirst" "First"))
+      ("p"      ("logSelectPgUp" "Previous Page"))
+      ("n"      ("logSelectPgDn" "Next Page"))
       ))
     ("Branch"
      (

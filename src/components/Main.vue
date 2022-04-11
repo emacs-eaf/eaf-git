@@ -47,7 +47,8 @@
         :markColor="navItemActiveColor"
         :authorColor="authorColor"
         :backgroundColor="backgroundColor"
-        :selectColor="selectColor"/>
+        :selectColor="selectColor"
+        v-on:updateLogIndex="updateLogIndex"/>
       <Submodule
         v-if="navCurrentItem == 'Submodule'"
         :submoduleInfo="submoduleInfo"/>
@@ -543,6 +544,16 @@
      logSelectFirst() {
        if (this.logInfo.length > 0 && this.currentLogIndex > 0) {
          this.currentLogIndex = 0;
+       }
+     },
+
+     updateLogIndex(index) {
+       if (index >= this.logInfo.length) {
+         this.currentLogIndex = this.logInfo.length - 1;
+       } else if (index <= 0) {
+         this.currentLogIndex = 0;
+       } else {
+         this.currentLogIndex = index;
        }
      },
 

@@ -83,6 +83,7 @@
    },
    data() {
      return {
+       currentPageElementNum: 0
      }
    },
    watch: {
@@ -117,6 +118,7 @@
      var that = this;
 
      this.showHighlightLine();
+     this.refreshSceenElementNumber();
 
      this.$root.$on("logViewDiff", function () {
        that.logViewDiff();
@@ -157,6 +159,14 @@
      this.$root.$on("logRebaseBranch", function () {
        that.logRebaseBranch();
      });
+
+     this.$root.$on("logSelectPgUp", function () {
+       that.logSelectPgUp();
+     });
+
+     this.$root.$on("logSelectPgDn", function () {
+       that.logSelectPgDn();
+     });
    },
    beforeDestroy() {
      this.$root.$off("logViewDiff");
@@ -166,6 +176,8 @@
      this.$root.$off("logResetLast");
      this.$root.$off("logResetTo");
      this.$root.$off("logRebaseBranch");
+     this.$root.$off("logSelectPgUp");
+     this.$root.$off("logSelectPgDn");
    },
    methods: {
      showHighlightLine() {
@@ -206,6 +218,26 @@
 
      logRebaseBranch() {
        this.pyobject.log_rebase_branch();
+     },
+
+     logSelectPgUp() {
+       this.refreshSceenElementNumber()
+       this.$emit("updateLogIndex", this.currentLogIndex - this.currentPageElementNum);
+     },
+
+     logSelectPgDn() {
+       this.refreshSceenElementNumber()
+       this.$emit("updateLogIndex", this.currentLogIndex + this.currentPageElementNum);
+     },
+
+     refreshSceenElementNumber() {
+       this.$nextTick(() => {
+         var logList = this.$refs.logs
+         var selectLog = this.$refs.logs.children[this.currentLogIndex]
+         if (logList !== undefined && selectLog !== undefined) {
+           this.currentPageElementNum = Math.floor(logList.clientHeight / selectLog.clientHeight);
+         }
+       });
      },
      
      logIdColor(item) {
