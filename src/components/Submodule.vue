@@ -48,10 +48,16 @@
  }
 
  .notify {
+   display: flex;
+   flex-direction: column;
+   justify-content: center;
+   
+   height: 100%;
+   
    font-size: 16px;
    text-align: center;
    justify-self: center;
    margin: auto;
-   font-size: 18px;
+   font-size: 20px;
  }
 </style>
