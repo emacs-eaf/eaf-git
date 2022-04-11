@@ -50,6 +50,9 @@
         :authorColor="authorColor"
         :backgroundColor="backgroundColor"
         :selectColor="selectColor"
+        :searchLogKeyword="searchLogKeyword"
+        :searchLogMatchNumber="searchLogMatchNumber"
+        :searchLogIndex="searchLogIndex"
         v-on:updateLogIndex="updateLogIndex"/>
       <Submodule
         v-if="navCurrentItem == 'Submodule'"
@@ -192,6 +195,7 @@
        logBranch: "",
        logInfo: [],
        searchLogMatchIndexes: [],
+       searchLogMatchNumber: 0,
        searchLogStartIndex: -1,
        searchLogIndex: 0,
        searchLogMatchIndex: null,
@@ -221,7 +225,7 @@
      window.updateUnpushInfo = this.updateUnpushInfo;
      window.updateSelectInfo = this.updateSelectInfo;
      window.updateChangeDiff = this.updateChangeDiff;
-     window.searchLogsUpdate = this.searchLogsUpdate;
+     window.searchLogsStart = this.searchLogsStart;
      window.searchLogsFinish = this.searchLogsFinish;
      window.searchLogsCancel = this.searchLogsCancel;
      window.searchLogsJumpNext = this.searchLogsJumpNext;
@@ -493,40 +497,23 @@
        }
      },
 
-     searchLogsUpdate(keyword, matchIndexes) {
+     searchLogsStart(keyword, matchIndexes) {
        if (this.searchLogStartIndex == -1) {
          this.searchLogStartIndex = this.currentLogIndex;
        }
 
-       this.searchLogKeyword = keyword.toLowerCase();
+       this.searchLogKeyword = keyword;
        this.searchLogIndex = 0;
 
        this.searchLogMatchIndexes = matchIndexes;
+       this.searchLogMatchNumber = this.searchLogMatchIndexes.length;
        
        this.currentLogIndex = this.searchLogMatchIndexes[0];
        this.searchLogMatchIndex = this.currentLogIndex;
      },
 
-     searchLogsFinish() {
-       this.searchLogStartIndex = -1;
-       this.searchLogKeyword = "";
-       this.searchLogIndex = 0;
-       this.searchLogMatchIndexes = [];
-       this.searchLogMatchIndex = null;
-     },
-
-     searchLogsCancel() {
-       this.currentLogIndex = this.searchLogStartIndex;
-
-       this.searchLogStartIndex = -1;
-       this.searchLogKeyword = "";
-       this.searchLogIndex = 0;
-       this.searchLogMatchIndexes = [];
-       this.searchLogMatchIndex = null;
-     },
-
      searchLogsJumpNext() {
-       if (this.searchLogIndex >= this.searchLogMatchIndexes.length - 1) {
+       if (this.searchLogIndex >= this.searchLogMatchNumber - 1) {
          this.searchLogIndex = 0;
        } else {
          this.searchLogIndex++;
@@ -538,13 +525,33 @@
 
      searchLogsJumpPrev() {
        if (this.searchLogIndex <= 0) {
-         this.searchLogIndex = this.searchLogMatchIndexes.length - 1;
+         this.searchLogIndex = this.searchLogMatchNumber - 1;
        } else {
          this.searchLogIndex--;
        }
 
        this.currentLogIndex = this.searchLogMatchIndexes[this.searchLogIndex];
        this.searchLogMatchIndex = this.currentLogIndex;
+     },
+
+     searchLogsFinish() {
+       this.searchLogStartIndex = -1;
+       this.searchLogKeyword = "";
+       this.searchLogIndex = 0;
+       this.searchLogMatchIndexes = [];
+       this.searchLogMatchNumber = 0;
+       this.searchLogMatchIndex = null;
+     },
+
+     searchLogsCancel() {
+       this.currentLogIndex = this.searchLogStartIndex;
+
+       this.searchLogStartIndex = -1;
+       this.searchLogKeyword = "";
+       this.searchLogIndex = 0;
+       this.searchLogMatchIndexes = [];
+       this.searchLogMatchNumber = 0;
+       this.searchLogMatchIndex = null;
      },
 
      statusSelectNext() {

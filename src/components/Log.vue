@@ -71,6 +71,9 @@
      matchColor: String,
      currentLogIndex: Number,
      searchLogMatchIndex: Number,
+     searchLogKeyword: String,
+     searchLogMatchNumber: Number,
+     searchLogIndex: Number,
      pyobject: Object
    },
    data() {
@@ -100,7 +103,11 @@
    computed: {
      logTitle() {
        if (this.logBranch && this.logInfo) {
-         return this.logBranch + "(" + this.logInfo.length + ")";
+         if (this.searchLogKeyword != "") {
+           return this.logBranch + "(" + this.logInfo.length + ") [ Search '" + this.searchLogKeyword + "' " + (this.searchLogIndex + 1) + "/" + this.searchLogMatchNumber + " ]";
+         } else {
+           return this.logBranch + "(" + this.logInfo.length + ")";
+         }
        } else {
          return "";
        }

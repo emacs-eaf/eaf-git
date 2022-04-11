@@ -319,7 +319,7 @@ class AppBuffer(BrowserBuffer):
         
                 match_lines = list(map(lambda x: int(x[:-1]) - 1, result.stdout.split()))
                 
-                self.buffer_widget.eval_js('''searchLogsUpdate(\"{}\", {});'''.format(search_string, json.dumps(match_lines)))
+                self.buffer_widget.eval_js('''searchLogsStart(\"{}\", {});'''.format(search_string, json.dumps(match_lines)))
         
     def handle_search_forward(self, callback_tag):
         if callback_tag == "search_log":
