@@ -640,11 +640,8 @@
    flex-direction: row;
    align-items: center;
    
-   width: 100%;
    overflow-x: scroll;
    
-   padding-left: 10px;
-   padding-right: 10px;
    padding-top: 10px;
    padding-bottom: 20px;
  }
@@ -653,6 +650,7 @@
    display: flex;
    flex-direction: row;
    align-item: center;
+
    padding-left: 10px;
    padding-right: 10px;
    

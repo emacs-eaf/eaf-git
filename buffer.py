@@ -354,13 +354,21 @@ class AppBuffer(BrowserBuffer):
             self.buffer_widget.clean_search_and_select()
             
     def handle_copy_changes_file_to_mirror(self, target_repo_dir):
-        status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
-        files = list(map(lambda info: info[0], status))
+        current_repo_last_commint_id = str(self.repo.head.target)
+        target_repo_last_commint_id = str(Repository(target_repo_dir).head.target)
         
-        for file in files:
-            shutil.copy(os.path.join(self.repo_root, file), os.path.join(target_repo_dir, file))
+        print(current_repo_last_commint_id, target_repo_last_commint_id)
+        
+        if target_repo_last_commint_id == current_repo_last_commint_id:
+            status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
+            files = list(map(lambda info: info[0], status))
             
-        message_to_emacs("Copy {} files to {}".format(len(files), os.path.join(target_repo_dir)))    
+            for file in files:
+                shutil.copy(os.path.join(self.repo_root, file), os.path.join(target_repo_dir, file))
+                
+            message_to_emacs("Copy {} files to {}".format(len(files), os.path.join(target_repo_dir)))    
+        else:
+            message_to_emacs("{} last commit is not same as current repo, stop copy files.".format(target_repo_dir))
 
     @QtCore.pyqtSlot(str)
     def show_commit_diff(self, commit_id):
