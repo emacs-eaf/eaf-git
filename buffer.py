@@ -377,7 +377,7 @@ class AppBuffer(BrowserBuffer):
         if len(parent_commits) > 0:
             eval_in_emacs("eaf-git-show-commit-diff", [self.repo.diff(parent_commits[0], commit).patch])
         else:
-            message_to_emacs("Commit {} haven't parent commits, can't view diff".format(commit_id))
+            eval_in_emacs("eaf-git-show-commit-diff", [commit.tree.diff_to_tree(swap=True).patch])
 
     @QtCore.pyqtSlot(str)
     def log_revert_commit(self, commit_id):
