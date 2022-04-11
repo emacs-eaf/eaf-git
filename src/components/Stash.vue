@@ -2,6 +2,7 @@
   <div class="box">
     <Dialog title="Stash">
       <div
+        v-if="stashInfo.length > 0"
         class="list"
         ref="stashs">
         <div
@@ -22,6 +23,11 @@
             {{ info.message }}
           </div>
         </div>
+      </div>
+      <div
+        v-else
+        class="notify">
+        No stash found in current repository.
       </div>
     </Dialog>
   </div>
@@ -174,5 +180,19 @@
    z-index: 100;
    max-height: calc(100vh - 100px);
    overflow-y: scroll;
+ }
+ 
+ .notify {
+   display: flex;
+   flex-direction: column;
+   justify-content: center;
+   
+   height: 100%;
+   
+   font-size: 16px;
+   text-align: center;
+   justify-self: center;
+   margin: auto;
+   font-size: 20px;
  }
 </style>
