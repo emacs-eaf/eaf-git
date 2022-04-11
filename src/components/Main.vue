@@ -38,6 +38,7 @@
         v-if="navCurrentItem == 'Log'"
         :pyobject="pyobject"
         :currentLogIndex="currentLogIndex"
+        :searchLogMatchIndex="searchLogMatchIndex"
         :logBranch="logBranch"
         :logInfo="logInfo"
         :compareLogBranch="compareLogBranch"
@@ -193,6 +194,7 @@
        searchLogMatchIndexes: [],
        searchLogStartIndex: -1,
        searchLogIndex: 0,
+       searchLogMatchIndex: null,
        searchLogKeyword: "",
        searchLogNotify: "",
        compareLogBranch: "",
@@ -219,7 +221,7 @@
      window.updateUnpushInfo = this.updateUnpushInfo;
      window.updateSelectInfo = this.updateSelectInfo;
      window.updateChangeDiff = this.updateChangeDiff;
-     window.searchLogsStart = this.searchLogsStart;
+     window.searchLogsUpdate = this.searchLogsUpdate;
      window.searchLogsFinish = this.searchLogsFinish;
      window.searchLogsCancel = this.searchLogsCancel;
      window.searchLogsJumpNext = this.searchLogsJumpNext;
@@ -491,59 +493,38 @@
        }
      },
 
-     searchLogsStart(keyword) {
+     searchLogsUpdate(keyword, matchIndexes) {
        if (this.searchLogStartIndex == -1) {
          this.searchLogStartIndex = this.currentLogIndex;
        }
+
+       this.searchLogKeyword = keyword.toLowerCase();
+       this.searchLogIndex = 0;
+
+       this.searchLogMatchIndexes = matchIndexes;
        
-       if (this.searchLogKeyword != keyword) {
-         this.searchLogKeyword = keyword.toLowerCase();
-         this.searchLogIndex = 0;
-
-         this.searchLogMatchIndexes = [];
-         
-         this.logInfo.map(log => {
-           if (keyword == "") {
-             log.match = "";
-           } else if (log.message.toLowerCase().includes(this.searchLogKeyword)
-                      || log.author.toLowerCase().includes(this.searchLogKeyword)
-                      || log.id.slice(0, 7).toLowerCase().includes(this.searchLogKeyword)) {
-             log.match = "match";
-
-             this.searchLogMatchIndexes.push(log.index);
-           } else {
-             log.match = "";
-           }
-         });
-         
-         this.currentLogIndex = this.searchLogMatchIndexes[0];
-       }
+       this.currentLogIndex = this.searchLogMatchIndexes[0];
+       this.searchLogMatchIndex = this.currentLogIndex;
      },
-     
+
      searchLogsFinish() {
-       this.logInfo.map(log => {
-         log.match = "";
-       });
-       
        this.searchLogStartIndex = -1;
        this.searchLogKeyword = "";
        this.searchLogIndex = 0;
        this.searchLogMatchIndexes = [];
+       this.searchLogMatchIndex = null;
      },
 
      searchLogsCancel() {
-       this.logInfo.map(log => {
-         log.match = "";
-       });
-       
        this.currentLogIndex = this.searchLogStartIndex;
-       
+
        this.searchLogStartIndex = -1;
        this.searchLogKeyword = "";
        this.searchLogIndex = 0;
        this.searchLogMatchIndexes = [];
+       this.searchLogMatchIndex = null;
      },
-     
+
      searchLogsJumpNext() {
        if (this.searchLogIndex >= this.searchLogMatchIndexes.length - 1) {
          this.searchLogIndex = 0;
@@ -552,6 +533,7 @@
        }
        
        this.currentLogIndex = this.searchLogMatchIndexes[this.searchLogIndex];
+       this.searchLogMatchIndex = this.currentLogIndex;
      },
 
      searchLogsJumpPrev() {
@@ -560,8 +542,9 @@
        } else {
          this.searchLogIndex--;
        }
-       
+
        this.currentLogIndex = this.searchLogMatchIndexes[this.searchLogIndex];
+       this.searchLogMatchIndex = this.currentLogIndex;
      },
 
      statusSelectNext() {
@@ -731,16 +714,20 @@
      },
 
      logMarkFile() {
+       this.$root.$emit("logMarkItem", this.currentLogIndex);
        this.logInfo[this.currentLogIndex].marked = "marked";
        this.logSelectNext();
      },
 
      logUnmarkFile() {
+       this.$root.$emit("logUnmarkItem", this.currentLogIndex);
        this.logInfo[this.currentLogIndex].marked = "";
        this.logSelectNext();
      },
 
      logUnmarkAll() {
+       this.$root.$emit("logUnmarkAllItem");
+       
        for (var i=0; i < this.logInfo.length; i++) {
          this.logInfo[i].marked = "";
        }

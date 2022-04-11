@@ -128,6 +128,8 @@ class AppBuffer(BrowserBuffer):
         
         self.nav_current_item = "Dashboard"
         
+        self.search_log_cache_path = ""
+        
         self.fetch_status_threads = []
         self.fetch_log_threads = []
         self.fetch_compare_log_threads = []
@@ -236,13 +238,17 @@ class AppBuffer(BrowserBuffer):
         )))
 
     def fetch_log_info(self):
-        thread = FetchLogThread(self.repo, self.repo.head)
+        thread = FetchLogThread(self.repo, self.repo.head, True)
         thread.fetch_result.connect(self.update_log_info)
         self.fetch_log_threads.append(thread)
         thread.start()
 
     @PostGui()
-    def update_log_info(self, branch_name, log):
+    def update_log_info(self, branch_name, log, search_cache_path):
+        if self.search_log_cache_path != "" and os.path.exists(self.search_log_cache_path):
+            os.remove(self.search_log_cache_path)
+            
+        self.search_log_cache_path = search_cache_path
         self.buffer_widget.eval_js('''updateLogInfo(\"{}\", {})'''.format(branch_name, json.dumps(log)))
 
     def fetch_compare_log_info(self, branch_name):
@@ -254,7 +260,7 @@ class AppBuffer(BrowserBuffer):
         thread.start()
 
     @PostGui()
-    def update_compare_log_info(self, branch_name, log):
+    def update_compare_log_info(self, branch_name, log, search_cache_path):
         self.buffer_widget.eval_js('''updateCompareLogInfo(\"{}\", {})'''.format(branch_name, json.dumps(log)))
         
     def fetch_stash_info(self):
@@ -304,8 +310,16 @@ class AppBuffer(BrowserBuffer):
             self.buffer_widget.eval_js('''searchLogsFinish()''')
         
     def try_search_log(self, count, search_string):
-        if count == self.search_log_count:
-            self.buffer_widget.eval_js('''searchLogsStart(\"{}\");'''.format(search_string))
+        if count == self.search_log_count and search_string.strip() != "":
+            if self.search_log_cache_path and os.path.exists(self.search_log_cache_path):
+                import subprocess
+                
+                command = "rg '{}' {} --color='never' --line-number --smart-case -o --replace=''".format(search_string, self.search_log_cache_path)
+                result = subprocess.run(command, shell=True, text=True, stdout=subprocess.PIPE)
+        
+                match_lines = list(map(lambda x: int(x[:-1]) - 1, result.stdout.split()))
+                
+                self.buffer_widget.eval_js('''searchLogsUpdate(\"{}\", {});'''.format(search_string, json.dumps(match_lines)))
         
     def handle_search_forward(self, callback_tag):
         if callback_tag == "search_log":
@@ -388,8 +402,6 @@ class AppBuffer(BrowserBuffer):
     def handle_copy_changes_file_to_mirror(self, target_repo_dir):
         current_repo_last_commint_id = str(self.repo.head.target)
         target_repo_last_commint_id = str(Repository(target_repo_dir).head.target)
-        
-        print(current_repo_last_commint_id, target_repo_last_commint_id)
         
         if target_repo_last_commint_id == current_repo_last_commint_id:
             status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
@@ -1137,40 +1149,61 @@ class AppBuffer(BrowserBuffer):
         
 class FetchLogThread(QThread):
 
-    fetch_result = QtCore.pyqtSignal(str, list)
+    fetch_result = QtCore.pyqtSignal(str, list, str)
 
-    def __init__(self, repo, branch):
+    def __init__(self, repo, branch, search_cache=False):
         QThread.__init__(self)
 
         self.repo = repo
         self.branch = branch
+        self.search_cache = search_cache
+        self.cache_file_path = ""
 
     def run(self):
         git_log = []
 
+        if self.search_cache:
+            import tempfile
+            self.cache_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
+            self.cache_file_path = self.cache_file.name
+        
         try:
             index = 0
+            cache_lines = []
+            
             for commit in self.repo.walk(self.branch.target):
+                id = str(commit.id)
+                author = commit.author.name
+                message = commit.message.splitlines()[0]
+                
                 git_log.append({
-                    "id": str(commit.id),
+                    "id": id,
                     "index": index,
                     "time": pretty_date(int(commit.commit_time)),
-                    "author": commit.author.name,
-                    "message": commit.message.splitlines()[0],
+                    "author": author,
+                    "message": message,
                     "marked": "",
                     "match": ""
                 })
                 
+                if self.search_cache:
+                    cache_lines.append("{} {} {}\n".format(id, author, message))
+                
                 index += 1
+            
         except KeyError:
             import traceback
             traceback.print_exc()
             
-        # Note:
-        # Below code use for test log search performance. 
+        # NOTE:
+        # Uncomment below code to test log search performance. 
         # git_log = git_log * 50
+        # cache_lines = cache_lines * 50
+        
+        if self.search_cache:    
+            self.cache_file.writelines(cache_lines)
 
-        self.fetch_result.emit(self.branch.shorthand, git_log)
+        self.fetch_result.emit(self.branch.shorthand, git_log, self.cache_file_path)
 
 class FetchStashThread(QThread):
 

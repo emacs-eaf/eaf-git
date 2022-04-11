@@ -11,24 +11,16 @@
           v-for="info in logInfo"
           :key="info.index"
           class="log-item">
-          <div
-            class="log-id"
-            :style="{ 'color': logIdColor(info) }">
+          <div class="log-id">
             {{ info.id.slice(0, 7) }}
           </div>
-          <div
-            class="log-date"
-            :style="{ 'color': logDateColor(info) }">
+          <div class="log-date">
             {{ info.time }}
           </div>
-          <div
-            class="log-author"
-            :style="{ 'color': logAuthorColor(info) }">
+          <div class="log-author">
             {{ info.author }}
           </div>
-          <div
-            class="log-message"
-            :style="{ 'color': logMessageColor(info) }">
+          <div class="log-message">
             {{ info.message }}
           </div>
         </div>
@@ -45,9 +37,7 @@
           v-for="info in compareLogInfo"
           :key="info.index"
           class="log-item">
-          <div
-            class="log-id"
-            :style="{ 'color': idColor }">
+          <div class="log-id">
             {{ info.id.slice(0, 7) }}
           </div>
           <div class="log-message">
@@ -80,6 +70,7 @@
      markColor: String,
      matchColor: String,
      currentLogIndex: Number,
+     searchLogMatchIndex: Number,
      pyobject: Object
    },
    data() {
@@ -94,6 +85,14 @@
          if (this.logInfo.length > 0) {
            this.updateItemBackground(oldVal, val);
            this.keepSelectVisible();
+         }
+       }
+     },
+     searchLogMatchIndex: {
+       // eslint-disable-next-line no-unused-vars
+       handler: function(val, oldVal) {
+         if (this.logInfo.length > 0) {
+           this.updateItemMatchColor(oldVal, val);
          }
        }
      },
@@ -160,6 +159,18 @@
      this.$root.$on("logSelectPgDn", function () {
        that.logSelectPgDn();
      });
+
+     this.$root.$on("logMarkItem", function (index) {
+       that.logMarkItem(index);
+     });
+
+     this.$root.$on("logUnmarkItem", function (index) {
+       that.logUnmarkItem(index);
+     });
+
+     this.$root.$on("logUnmarkAllItem", function () {
+       that.logUnmarkAllItem();
+     });
    },
    beforeDestroy() {
      this.$root.$off("logViewDiff");
@@ -169,6 +180,9 @@
      this.$root.$off("logRebaseBranch");
      this.$root.$off("logSelectPgUp");
      this.$root.$off("logSelectPgDn");
+     this.$root.$off("logMarkItem");
+     this.$root.$off("logUnmarkItem");
+     this.$root.$off("logUnmarkAllItem");
    },
    methods: {
      showHighlightLine() {
@@ -191,6 +205,32 @@
        }
      },
 
+     updateItemMatchColor(oldIndex, newIndex) {
+       if (oldIndex !== null && oldIndex >= 0) {
+         var oldItem = this.$refs.logs.children[oldIndex];
+         oldItem.style.color = "";
+       }
+
+       if (newIndex !== null && newIndex >= 0) {
+         var newItem = this.$refs.logs.children[newIndex];
+         newItem.style.color = this.matchColor;
+       }
+     },
+     
+     logMarkItem(index) {
+       this.$refs.logs.children[index].style.color = this.markColor;
+     },
+
+     logUnmarkItem(index) {
+       this.$refs.logs.children[index].style.color = "";
+     },
+
+     logUnmarkAllItem() {
+       for (var i=0; i < this.$refs.logs.children.length; i++) {
+         this.$refs.logs.children[i].style.color = "";
+       }
+     },
+     
      logViewDiff() {
        this.pyobject.show_commit_diff(this.logInfo[this.currentLogIndex].id);
      },
@@ -229,46 +269,6 @@
            this.currentPageElementNum = Math.floor(logList.clientHeight / selectLog.clientHeight);
          }
        });
-     },
-     
-     logIdColor(item) {
-       if (item.match == "match") {
-         return this.matchColor;
-       } else if (item.marked === "marked") {
-         return this.markColor;
-       } else {
-         return this.idColor;
-       }
-     },
-
-     logDateColor(item) {
-       if (item.match == "match") {
-         return this.matchColor;
-       } else if (item.marked === "marked") {
-         return this.markColor;
-       } else {
-         return this.dateColor;
-       }
-     },
-
-     logAuthorColor(item) {
-       if (item.match == "match") {
-         return this.matchColor;
-       } else if (item.marked === "marked") {
-         return this.markColor;
-       } else {
-         return this.authorColor;
-       }
-     },
-
-     logMessageColor(item) {
-       if (item.match == "match") {
-         return this.matchColor;
-       } else if (item.marked === "marked") {
-         return this.markColor;
-       } else {
-         return "";
-       }
      },
      
      logCherryPick() {
