@@ -151,20 +151,6 @@
        },
        deep: true
      },
-     currentLogIndex: {
-       // eslint-disable-next-line no-unused-vars
-       handler: function (val, oldVal) {
-         window.pyobject.vue_update_log_current_index(val);
-       },
-       deep: true
-     },
-     logInfo: {
-       // eslint-disable-next-line no-unused-vars
-       handler: function (val, oldVal) {
-         window.pyobject.vue_update_log_list(val);
-       },
-       deep: true
-     },
      navCurrentItem: {
        // eslint-disable-next-line no-unused-vars
        handler: function (val, oldVal) {
@@ -204,6 +190,11 @@
        unpushInfo: "",
        logBranch: "",
        logInfo: [],
+       searchLogMatchIndexes: [],
+       searchLogStartIndex: -1,
+       searchLogIndex: 0,
+       searchLogKeyword: "",
+       searchLogNotify: "",
        compareLogBranch: "",
        compareLogInfo: [],
        stashInfo: [],
@@ -228,8 +219,11 @@
      window.updateUnpushInfo = this.updateUnpushInfo;
      window.updateSelectInfo = this.updateSelectInfo;
      window.updateChangeDiff = this.updateChangeDiff;
-     window.setSearchMatchLogs = this.setSearchMatchLogs;
-     window.selectLogByIndex = this.selectLogByIndex;
+     window.searchLogsStart = this.searchLogsStart;
+     window.searchLogsFinish = this.searchLogsFinish;
+     window.searchLogsCancel = this.searchLogsCancel;
+     window.searchLogsJumpNext = this.searchLogsJumpNext;
+     window.searchLogsJumpPrev = this.searchLogsJumpPrev;
 
      if (this.untrackStatusInfo) {
        this.selectItemType = "untrack";
@@ -496,21 +490,78 @@
          }
        }
      },
-     
-     setSearchMatchLogs(logIndexes) {
-       this.logInfo.map(log => { log.match = "" });
+
+     searchLogsStart(keyword) {
+       if (this.searchLogStartIndex == -1) {
+         this.searchLogStartIndex = this.currentLogIndex;
+       }
        
-       logIndexes.map(logIndex => {this.logInfo[logIndex].match = "match"});
+       if (this.searchLogKeyword != keyword) {
+         this.searchLogKeyword = keyword.toLowerCase();
+         this.searchLogIndex = 0;
+
+         this.searchLogMatchIndexes = [];
+         
+         this.logInfo.map(log => {
+           if (keyword == "") {
+             log.match = "";
+           } else if (log.message.toLowerCase().includes(this.searchLogKeyword)
+                      || log.author.toLowerCase().includes(this.searchLogKeyword)
+                      || log.id.slice(0, 7).toLowerCase().includes(this.searchLogKeyword)) {
+             log.match = "match";
+
+             this.searchLogMatchIndexes.push(log.index);
+           } else {
+             log.match = "";
+           }
+         });
+         
+         this.currentLogIndex = this.searchLogMatchIndexes[0];
+       }
+     },
+     
+     searchLogsFinish() {
+       this.logInfo.map(log => {
+         log.match = "";
+       });
+       
+       this.searchLogStartIndex = -1;
+       this.searchLogKeyword = "";
+       this.searchLogIndex = 0;
+       this.searchLogMatchIndexes = [];
      },
 
-     selectLogByIndex(index) {
-       if (index >= this.logInfo.length) {
-         this.currentLogIndex = this.logInfo.length - 1;
-       } else if (index <= 0) {
-         this.currentLogIndex = 0;
+     searchLogsCancel() {
+       this.logInfo.map(log => {
+         log.match = "";
+       });
+       
+       this.currentLogIndex = this.searchLogStartIndex;
+       
+       this.searchLogStartIndex = -1;
+       this.searchLogKeyword = "";
+       this.searchLogIndex = 0;
+       this.searchLogMatchIndexes = [];
+     },
+     
+     searchLogsJumpNext() {
+       if (this.searchLogIndex >= this.searchLogMatchIndexes.length - 1) {
+         this.searchLogIndex = 0;
        } else {
-         this.currentLogIndex = index;
+         this.searchLogIndex++;
        }
+       
+       this.currentLogIndex = this.searchLogMatchIndexes[this.searchLogIndex];
+     },
+
+     searchLogsJumpPrev() {
+       if (this.searchLogIndex <= 0) {
+         this.searchLogIndex = this.searchLogMatchIndexes.length - 1;
+       } else {
+         this.searchLogIndex--;
+       }
+       
+       this.currentLogIndex = this.searchLogMatchIndexes[this.searchLogIndex];
      },
 
      statusSelectNext() {
@@ -654,7 +705,7 @@
          this.currentSubmoduleIndex = index;
        }
      },
-     
+
      stashSelectNext() {
        if (this.stashInfo.length > 0 && this.currentStashIndex < this.stashInfo.length - 1) {
          this.currentStashIndex++;
@@ -748,9 +799,9 @@
    display: flex;
    flex-direction: row;
    align-items: center;
-   
+
    overflow-x: scroll;
-   
+
    padding-top: 10px;
    padding-bottom: 20px;
  }
@@ -762,7 +813,7 @@
 
    padding-left: 10px;
    padding-right: 10px;
-   
+
    white-space: nowrap;
  }
 

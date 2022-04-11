@@ -21,7 +21,7 @@
 
 from PyQt6 import QtCore
 from PyQt6.QtGui import QColor
-from PyQt6.QtCore import QThread
+from PyQt6.QtCore import QThread, QTimer
 from core.webengine import BrowserBuffer
 from core.utils import get_emacs_func_result, get_emacs_var, PostGui, message_to_emacs, eval_in_emacs, interactive
 from pygit2 import (Repository, IndexEntry, Oid,
@@ -127,8 +127,6 @@ class AppBuffer(BrowserBuffer):
         self.branch_status = []
         
         self.nav_current_item = "Dashboard"
-        self.log_list = []
-        self.log_current_index = 0
         
         self.fetch_status_threads = []
         self.fetch_log_threads = []
@@ -292,54 +290,34 @@ class AppBuffer(BrowserBuffer):
     @interactive
     def search(self):
         if self.nav_current_item == "Log":
-            self.search_log_start_index = self.log_current_index
+            self.search_log_count = 0
             self.send_input_message("Search log: ", "search_log", "search")
             
     def handle_search_log(self, search_string):
         in_minibuffer = get_emacs_func_result("minibufferp", [])
 
         if in_minibuffer:
-            self.search_logs = list(filter(
-                lambda commit: search_string.strip() != "" and (search_string in commit["id"] 
-                                                                or search_string in commit["author"].lower() 
-                                                                or search_string in commit["message"].lower()),
-                self.log_list))
-            self.search_logs_index = 0
-            
-            self.buffer_widget.eval_js('''setSearchMatchLogs({})'''.format(json.dumps(list(map(lambda log: log["index"], self.search_logs)))))
-
-            if len(self.search_logs) > 0:
-                return self.buffer_widget.eval_js('''selectLogByIndex({})'''.format(self.search_logs[self.search_logs_index]["index"]))
-
-            # Notify user if no match file found.
-            eval_in_emacs("message", ["Did not find a matching log"])
+            self.search_log_count += 1
+            count = self.search_log_count
+            QTimer().singleShot(300, lambda : self.try_search_log(count, search_string))
         else:
-            message_to_emacs("Select log: {}".format(self.log_list[self.log_current_index]["message"]))
-            self.buffer_widget.eval_js('''setSearchMatchLogs({})'''.format(json.dumps([])))
+            self.buffer_widget.eval_js('''searchLogsFinish()''')
+        
+    def try_search_log(self, count, search_string):
+        if count == self.search_log_count:
+            self.buffer_widget.eval_js('''searchLogsStart(\"{}\");'''.format(search_string))
         
     def handle_search_forward(self, callback_tag):
         if callback_tag == "search_log":
-            if len(self.search_logs) > 0:
-                if self.search_logs_index >= len(self.search_logs) - 1:
-                    self.search_logs_index = 0
-                else:
-                    self.search_logs_index += 1
-
-                self.buffer_widget.eval_js('''selectLogByIndex({})'''.format(self.search_logs[self.search_logs_index]["index"]))
+            self.buffer_widget.eval_js('''searchLogsJumpNext();''')
 
     def handle_search_backward(self, callback_tag):
         if callback_tag == "search_log":
-            if len(self.search_logs) > 0:
-                if self.search_logs_index <= 0:
-                    self.search_logs_index = len(self.search_logs) - 1
-                else:
-                    self.search_logs_index -= 1
-
-                self.buffer_widget.eval_js('''selectLogByIndex({})'''.format(self.search_logs[self.search_logs_index]["index"]))
+            self.buffer_widget.eval_js('''searchLogsJumpPrev();''')
 
     def handle_search_finish(self, callback_tag):
         if callback_tag == "search_log":
-            self.buffer_widget.eval_js('''setSearchMatchLogs({})'''.format(json.dumps([])))
+            self.buffer_widget.eval_js('''searchLogsFinish()''')
 
     @QtCore.pyqtSlot()
     def copy_change_files_to_mirror_repo(self):
@@ -405,8 +383,7 @@ class AppBuffer(BrowserBuffer):
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
         if callback_tag == "search_log":
-            self.buffer_widget.eval_js('''selectLogByIndex({})'''.format(self.search_log_start_index))
-            self.buffer_widget.eval_js('''setSearchMatchLogs({})'''.format(json.dumps([])))
+            self.buffer_widget.eval_js('''searchLogsCancel()''')
             
     def handle_copy_changes_file_to_mirror(self, target_repo_dir):
         current_repo_last_commint_id = str(self.repo.head.target)
@@ -998,14 +975,6 @@ class AppBuffer(BrowserBuffer):
     def vue_update_nav_current_item(self, nav_current_item):
         self.nav_current_item = nav_current_item
         
-    @QtCore.pyqtSlot(list)
-    def vue_update_log_list(self, log_list):
-        self.log_list = log_list
-
-    @QtCore.pyqtSlot(int)
-    def vue_update_log_current_index(self, index):
-        self.log_current_index = index
-        
     @QtCore.pyqtSlot()
     def status_pull(self):
         message_to_emacs("Git pull {}...".format(self.repo.head.name))
@@ -1196,6 +1165,10 @@ class FetchLogThread(QThread):
         except KeyError:
             import traceback
             traceback.print_exc()
+            
+        # Note:
+        # Below code use for test log search performance. 
+        # git_log = git_log * 50
 
         self.fetch_result.emit(self.branch.shorthand, git_log)
 
