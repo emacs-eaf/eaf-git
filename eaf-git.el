@@ -94,7 +94,8 @@
     (message "%s is not a git repository." default-directory)))
 
 (defcustom eaf-git-keybinding
-  '(("<f12>" . "open_devtools"))
+  '(("<f12>" . "open_devtools")
+    ("C-s"   . "search"))
   "The keybinding of EAF git client."
   :type 'cons)
 
@@ -129,8 +130,6 @@
       ("U"      ("logUnmarkAll" "Unmark all"))
       ("c"      ("logCherryPick" "Copyto branch"))
       ("b"      ("logRebaseBranch" "Rebase and merge"))
-      ("s"      ("logSearchForward" "Search forward"))
-      ("r"      ("logSearchBackward" "Search backward"))
       ("R"      ("logRevertCommit" "Revert"))
       ("z"      ("logResetLast" "Reset last"))
       ("Z"      ("logResetTo" "Reset to"))
@@ -157,8 +156,6 @@
       ("p"      ("stashPop" "Pop"))
       ("d"      ("stashDrop" "Drop"))
       ("Enter"  ("stashViewDiff" "View diff"))
-      ("s"      ("stashSearchForward" "Search forward"))
-      ("r"      ("stashSearchBackward" "Search backward"))
       ("j"      ("stashSelectNext" "Next"))
       ("k"      ("stashSelectPrev" "Prev"))
       ("J"      ("stashSelectLast" "Last"))

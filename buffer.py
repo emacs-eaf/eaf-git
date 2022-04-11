@@ -23,7 +23,7 @@ from PyQt6 import QtCore
 from PyQt6.QtGui import QColor
 from PyQt6.QtCore import QThread
 from core.webengine import BrowserBuffer
-from core.utils import get_emacs_func_result, get_emacs_var, PostGui, message_to_emacs, eval_in_emacs
+from core.utils import get_emacs_func_result, get_emacs_var, PostGui, message_to_emacs, eval_in_emacs, interactive
 from pygit2 import (Repository, IndexEntry, Oid,
                     GIT_CHECKOUT_ALLOW_CONFLICTS,
                     GIT_SORT_TOPOLOGICAL,
@@ -124,8 +124,11 @@ class AppBuffer(BrowserBuffer):
         self.stage_status = []
         self.unstage_status = []
         self.untrack_status = []
-        
         self.branch_status = []
+        
+        self.nav_current_item = "Dashboard"
+        self.log_list = []
+        self.log_current_index = 0
         
         self.fetch_status_threads = []
         self.fetch_log_threads = []
@@ -285,6 +288,58 @@ class AppBuffer(BrowserBuffer):
     def update_branch_info(self, branch_list):
         self.update_branch_list(branch_list)
 
+    @interactive
+    def search(self):
+        if self.nav_current_item == "Log":
+            self.search_log_start_index = self.log_current_index
+            self.send_input_message("Search log: ", "search_log", "search")
+            
+    def handle_search_log(self, search_string):
+        in_minibuffer = get_emacs_func_result("minibufferp", [])
+
+        if in_minibuffer:
+            self.search_logs = list(filter(
+                lambda commit: search_string.strip() != "" and (search_string in commit["id"] 
+                                                                or search_string in commit["author"].lower() 
+                                                                or search_string in commit["message"].lower()),
+                self.log_list))
+            self.search_logs_index = 0
+            
+            self.buffer_widget.eval_js('''setSearchMatchLogs({})'''.format(json.dumps(list(map(lambda log: log["index"], self.search_logs)))))
+
+            if len(self.search_logs) > 0:
+                return self.buffer_widget.eval_js('''selectLogByIndex({})'''.format(self.search_logs[self.search_logs_index]["index"]))
+
+            # Notify user if no match file found.
+            eval_in_emacs("message", ["Did not find a matching log"])
+        else:
+            message_to_emacs("Select log: {}".format(self.log_list[self.log_current_index]["message"]))
+            self.buffer_widget.eval_js('''setSearchMatchLogs({})'''.format(json.dumps([])))
+        
+    def handle_search_forward(self, callback_tag):
+        if callback_tag == "search_log":
+            if len(self.search_logs) > 0:
+                if self.search_logs_index >= len(self.search_logs) - 1:
+                    self.search_logs_index = 0
+                else:
+                    self.search_logs_index += 1
+
+                self.buffer_widget.eval_js('''selectLogByIndex({})'''.format(self.search_logs[self.search_logs_index]["index"]))
+
+    def handle_search_backward(self, callback_tag):
+        if callback_tag == "search_log":
+            if len(self.search_logs) > 0:
+                if self.search_logs_index <= 0:
+                    self.search_logs_index = len(self.search_logs) - 1
+                else:
+                    self.search_logs_index -= 1
+
+                self.buffer_widget.eval_js('''selectLogByIndex({})'''.format(self.search_logs[self.search_logs_index]["index"]))
+
+    def handle_search_finish(self, callback_tag):
+        if callback_tag == "search_log":
+            self.buffer_widget.eval_js('''setSearchMatchLogs({})'''.format(json.dumps([])))
+
     @QtCore.pyqtSlot()
     def copy_change_files_to_mirror_repo(self):
         status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
@@ -317,10 +372,6 @@ class AppBuffer(BrowserBuffer):
             self.handle_commit_and_push(result_content)
         elif callback_tag == "checkout_all_files":
             self.handle_checkout_all_files()
-        elif callback_tag == "search_text_forward":
-            self.buffer_widget._search_text(result_content)
-        elif callback_tag == "search_text_backward":
-            self.buffer_widget._search_text(result_content, True)
         elif callback_tag == "new_branch":
             self.handle_new_branch(result_content)
         elif callback_tag == "delete_branch":
@@ -347,11 +398,14 @@ class AppBuffer(BrowserBuffer):
             self.handle_log_cherry_pick(result_content)
         elif callback_tag == "log_rebase_branch":
             self.handle_log_rebase_branch(result_content)
+        elif callback_tag == "search_log":
+            self.handle_search_log(result_content)
             
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
-        if callback_tag == "search_text_forward" or callback_tag == "search_text_backward":
-            self.buffer_widget.clean_search_and_select()
+        if callback_tag == "search_log":
+            self.buffer_widget.eval_js('''selectLogByIndex({})'''.format(self.search_log_start_index))
+            self.buffer_widget.eval_js('''setSearchMatchLogs({})'''.format(json.dumps([])))
             
     def handle_copy_changes_file_to_mirror(self, target_repo_dir):
         current_repo_last_commint_id = str(self.repo.head.target)
@@ -466,8 +520,7 @@ class AppBuffer(BrowserBuffer):
             
             self.repo.checkout(current_branch)                       
 
-            merge_index = self.repo.merge_trees(merge_base_tree, current_branch_tree, merge_branch_tree)
-            tree_id = merge_index.write_tree(self.repo)
+            tree_id = self.repo.merge_trees(merge_base_tree, current_branch_tree, merge_branch_tree).write_tree(self.repo)
             merge_message = self.repo.revparse_single(str(merge_branch.target)).message
 
             self.repo.create_commit(
@@ -488,39 +541,39 @@ class AppBuffer(BrowserBuffer):
         eval_in_emacs("eaf-git-show-commit-diff", [diff_string])
         
     @QtCore.pyqtSlot(int, str)
-    def stash_apply(self, merge_index, message):
-        self.stash_apply_index = merge_index
+    def stash_apply(self, index, message):
+        self.stash_apply_index = index
         self.stash_apply_message = message
         self.send_input_message("Stash apply '{}'".format(message), "stash_apply", "yes-or-no")
         
     @QtCore.pyqtSlot(int, str)
-    def stash_drop(self, merge_index, message):
-        self.stash_drop_index = merge_index
+    def stash_drop(self, index, message):
+        self.stash_drop_index = index
         self.stash_drop_message = message
         self.send_input_message("Stash drop '{}'".format(message), "stash_drop", "yes-or-no")
         
     @QtCore.pyqtSlot(int, str)
-    def stash_pop(self, merge_index, message):
-        self.stash_pop_index = merge_index
+    def stash_pop(self, index, message):
+        self.stash_pop_index = index
         self.stash_pop_message = message
         self.send_input_message("Stash pop '{}'".format(message), "stash_pop", "yes-or-no")
         
     def handle_stash_apply(self):
-        self.repo.stash_apply(merge_index=self.stash_apply_index)
+        self.repo.stash_apply(index=self.stash_apply_index)
         message_to_emacs("Stash apply '{}'".format(self.stash_apply_message))
         
         self.fetch_stash_info()
         self.fetch_status_info()
     
     def handle_stash_drop(self):
-        self.repo.stash_drop(merge_index=self.stash_drop_index)
+        self.repo.stash_drop(index=self.stash_drop_index)
         message_to_emacs("Stash drop '{}'".format(self.stash_drop_message))
         
         self.fetch_stash_info()
         self.fetch_status_info()
         
     def handle_stash_pop(self):
-        self.repo.stash_pop(merge_index=self.stash_pop_index)
+        self.repo.stash_pop(index=self.stash_pop_index)
         message_to_emacs("Stash pop '{}'".format(self.stash_pop_message))
         
         self.fetch_stash_info()
@@ -651,7 +704,7 @@ class AppBuffer(BrowserBuffer):
         self.git_add_file(file_info["file"])
         
         stage_status.append(file_info)
-        untrack_file_index = untrack_status.merge_index(file_info)
+        untrack_file_index = untrack_status.index(file_info)
         untrack_status.remove(file_info)
         
         select_item_type = ""
@@ -676,7 +729,7 @@ class AppBuffer(BrowserBuffer):
         self.git_add_file(file_info["file"])
         
         stage_status.append(file_info)
-        unstage_file_index = unstage_status.merge_index(file_info)
+        unstage_file_index = unstage_status.index(file_info)
         unstage_status.remove(file_info)
         
         select_item_type = ""
@@ -857,7 +910,7 @@ class AppBuffer(BrowserBuffer):
         unstage_status = self.unstage_status
         stage_status = self.stage_status
         
-        untrack_file_index = untrack_status.merge_index(self.delete_untrack_mark_file)
+        untrack_file_index = untrack_status.index(self.delete_untrack_mark_file)
         untrack_status.remove(self.delete_untrack_mark_file)
         os.remove(os.path.join(self.repo_root, self.delete_untrack_mark_file["file"]))
         
@@ -884,7 +937,7 @@ class AppBuffer(BrowserBuffer):
         
         self.git_checkout_file([self.delete_unstage_mark_file["file"]])
         
-        unstage_file_index = unstage_status.merge_index(self.delete_unstage_mark_file)
+        unstage_file_index = unstage_status.index(self.delete_unstage_mark_file)
         unstage_status.remove(self.delete_unstage_mark_file)
         
         select_item_type = ""
@@ -907,7 +960,7 @@ class AppBuffer(BrowserBuffer):
         self.git_reset_file(self.delete_stage_mark_file["file"])
         self.git_checkout_file([self.delete_stage_mark_file["file"]])
         
-        stage_file_index = stage_status.merge_index(self.delete_stage_mark_file)
+        stage_file_index = stage_status.index(self.delete_stage_mark_file)
         stage_status.remove(self.delete_stage_mark_file)
         
         select_item_type = ""
@@ -939,6 +992,18 @@ class AppBuffer(BrowserBuffer):
     @QtCore.pyqtSlot(list)
     def vue_update_branch_status(self, branch_status):
         self.branch_status = branch_status
+        
+    @QtCore.pyqtSlot(str)
+    def vue_update_nav_current_item(self, nav_current_item):
+        self.nav_current_item = nav_current_item
+        
+    @QtCore.pyqtSlot(list)
+    def vue_update_log_list(self, log_list):
+        self.log_list = log_list
+
+    @QtCore.pyqtSlot(int)
+    def vue_update_log_current_index(self, index):
+        self.log_current_index = index
         
     @QtCore.pyqtSlot()
     def status_pull(self):
@@ -994,14 +1059,6 @@ class AppBuffer(BrowserBuffer):
         
         message_to_emacs("Checkout all.")
         
-    @QtCore.pyqtSlot()
-    def log_search_forward(self):
-        self.search_text_forward()
-
-    @QtCore.pyqtSlot()
-    def log_search_backward(self):
-        self.search_text_backward()
-
     @QtCore.pyqtSlot()
     def log_show_compare_branch(self):
         branches = self.repo.listall_branches()
@@ -1064,14 +1121,6 @@ class AppBuffer(BrowserBuffer):
         message_to_emacs("Show compare branch {}".format(branch))
 
     @QtCore.pyqtSlot()
-    def stash_search_forward(self):
-        self.search_text_forward()
-
-    @QtCore.pyqtSlot()
-    def stash_search_backward(self):
-        self.search_text_backward()
-        
-    @QtCore.pyqtSlot()
     def branch_new(self):
         self.send_input_message("New branch: ", "new_branch")
         
@@ -1130,18 +1179,19 @@ class FetchLogThread(QThread):
         git_log = []
 
         try:
-            merge_index = 0
+            index = 0
             for commit in self.repo.walk(self.branch.target):
                 git_log.append({
                     "id": str(commit.id),
-                    "merge_index": merge_index,
+                    "index": index,
                     "time": pretty_date(int(commit.commit_time)),
                     "author": commit.author.name,
                     "message": commit.message.splitlines()[0],
-                    "marked": ""
+                    "marked": "",
+                    "match": ""
                 })
                 
-                merge_index += 1
+                index += 1
         except KeyError:
             import traceback
             traceback.print_exc()
@@ -1161,15 +1211,15 @@ class FetchStashThread(QThread):
         git_stash = []
 
         try:
-            merge_index = 0
+            index = 0
             for stash in self.repo.listall_stashes():
                 git_stash.append({
                     "id": str(stash.commit_id),
-                    "merge_index": merge_index,
+                    "index": index,
                     "message": stash.message
                 })
                 
-                merge_index += 1
+                index += 1
         except KeyError:
             import traceback
             traceback.print_exc()

@@ -78,6 +78,7 @@
      backgroundColor: String,
      selectColor: String,
      markColor: String,
+     matchColor: String,
      currentLogIndex: Number,
      pyobject: Object
    },
@@ -124,14 +125,6 @@
        that.logViewDiff();
      });
 
-     this.$root.$on("logSearchForward", function () {
-       that.pyobject.log_search_forward();
-     });
-
-     this.$root.$on("logSearchBackward", function () {
-       that.pyobject.log_search_backward();
-     });
-
      this.$root.$on("logShowCompareBranch", function () {
        that.pyobject.log_show_compare_branch();
      });
@@ -170,8 +163,6 @@
    },
    beforeDestroy() {
      this.$root.$off("logViewDiff");
-     this.$root.$off("logSearchForward");
-     this.$root.$off("logSearchBackward");
      this.$root.$off("logRevertCommit");
      this.$root.$off("logResetLast");
      this.$root.$off("logResetTo");
@@ -241,7 +232,9 @@
      },
      
      logIdColor(item) {
-       if (item.marked === "marked") {
+       if (item.match == "match") {
+         return this.matchColor;
+       } else if (item.marked === "marked") {
          return this.markColor;
        } else {
          return this.idColor;
@@ -249,7 +242,9 @@
      },
 
      logDateColor(item) {
-       if (item.marked === "marked") {
+       if (item.match == "match") {
+         return this.matchColor;
+       } else if (item.marked === "marked") {
          return this.markColor;
        } else {
          return this.dateColor;
@@ -257,7 +252,9 @@
      },
 
      logAuthorColor(item) {
-       if (item.marked === "marked") {
+       if (item.match == "match") {
+         return this.matchColor;
+       } else if (item.marked === "marked") {
          return this.markColor;
        } else {
          return this.authorColor;
@@ -265,7 +262,9 @@
      },
 
      logMessageColor(item) {
-       if (item.marked === "marked") {
+       if (item.match == "match") {
+         return this.matchColor;
+       } else if (item.marked === "marked") {
          return this.markColor;
        } else {
          return "";
