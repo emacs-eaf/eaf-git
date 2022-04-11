@@ -1,21 +1,27 @@
 {
   "pacman": [
-    "git-delta"
+    "git-delta",
+    "ripgrep"
   ],
   "emerge": [
-    "dev-util/git-delta"
+    "dev-util/git-delta",
+    "sys-apps/ripgrep"
   ],
   "dnf": [
-    "git-delta"
+    "git-delta",
+    "ripgrep"
   ],
   "pkg": [
-    "git-delta"
+    "git-delta",
+    "ripgrep"
   ],
   "zypper": [
-    "git-delta"
+    "git-delta",
+    "ripgrep"
   ],
   "brew": [
-    "git-delta"
+    "git-delta",
+    "ripgrep"
   ],
   "pip": {
     "linux": [
