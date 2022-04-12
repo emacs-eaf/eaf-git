@@ -52,12 +52,12 @@
 
  .log-date {
    padding-left: 20px;
-   width: 150px;
+   width: 120px;
  }
 
  .log-author {
    padding-left: 20px;
-   width: 150px;
+   width: 240px;
 
    overflow: hidden;
    white-space: nowrap;

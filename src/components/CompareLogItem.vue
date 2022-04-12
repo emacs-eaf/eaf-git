@@ -44,20 +44,6 @@
    width: 80px;
  }
 
- .log-date {
-   padding-left: 20px;
-   width: 150px;
- }
-
- .log-author {
-   padding-left: 20px;
-   width: 150px;
-
-   overflow: hidden;
-   white-space: nowrap;
-   text-overflow: ellipsis;
- }
-
  .log-message {
    padding-left: 20px;
    flex: 1;
