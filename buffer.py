@@ -24,6 +24,7 @@ from PyQt6.QtGui import QColor
 from PyQt6.QtCore import QThread, QTimer
 from core.webengine import BrowserBuffer
 from core.utils import get_emacs_func_result, get_emacs_var, PostGui, message_to_emacs, eval_in_emacs, interactive
+from charset_normalizer import from_path
 from pygit2 import (Repository, IndexEntry, Oid,
                     GIT_CHECKOUT_ALLOW_CONFLICTS,
                     GIT_SORT_TOPOLOGICAL,
@@ -577,13 +578,11 @@ class AppBuffer(BrowserBuffer):
         if type == "untrack":
             if file == "":
                 for status in self.untrack_status:
-                    with open(os.path.join(self.repo_root, status["file"])) as f:
-                        diff_string += "Untrack file: {}\n\n".format(status["file"])
-                        diff_string += f.read()
-                        diff_string += "\n"
+                    diff_string += "Untrack file: {}\n\n".format(status["file"])
+                    diff_string += str(from_path(os.path.join(self.repo_root, status["file"])).best())
+                    diff_string += "\n"
             else:
-                with open(os.path.join(self.repo_root, file)) as f:
-                    diff_string = f.read()
+                diff_string = str(from_path(os.path.join(self.repo_root, file)).best())
         elif type == "stage":
             if file == "":
                 diff_string = get_command_result("cd {}; git diff --color --staged".format(self.repo_root))
