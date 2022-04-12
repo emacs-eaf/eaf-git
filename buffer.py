@@ -527,9 +527,9 @@ class AppBuffer(BrowserBuffer):
     
     @QtCore.pyqtSlot(int)
     def show_stash_diff(self, stash_index):
-        diff_string = get_command_result("cd {}; git stash show -p stash@".format(self.repo_root) + "{" + str(stash_index) + "} --color")
-        eval_in_emacs("eaf-git-show-commit-diff", [diff_string])
-        
+        stash_item = "stash@" + "{" + str(stash_index) + "}"
+        eval_in_emacs("eaf-git-show-commit-diff", [self.repo.diff("{}^".format(stash_item), stash_item).patch])
+
     @QtCore.pyqtSlot(int, str)
     def stash_apply(self, index, message):
         self.stash_apply_index = index
