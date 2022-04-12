@@ -121,6 +121,22 @@
    props: {
    },
    watch: {
+     currentLogIndex: {
+       // eslint-disable-next-line no-unused-vars
+       handler: function(val, oldVal) {
+         if (this.logInfo.length > 0) {
+           this.updateLogItemBackground(oldVal, val);
+         }
+       }
+     },
+     searchLogMatchIndex: {
+       // eslint-disable-next-line no-unused-vars
+       handler: function(val, oldVal) {
+         if (this.logInfo.length > 0) {
+           this.updateLogItemMatchColor(oldVal, val);
+         }
+       }
+     },
      branchInfo: {
        // eslint-disable-next-line no-unused-vars
        handler: function (val, oldVal) {
@@ -268,7 +284,7 @@
      this.$root.$on("logSelectFirst", function () {
        that.logSelectFirst();
      });
-
+     
      this.currentSubmoduleIndex = 0;
      this.$root.$on("submoduleSelectNext", function () {
        that.submoduleSelectNext();
@@ -457,6 +473,7 @@
      updateLogInfo(logBranch, logInfo) {
        this.logBranch = logBranch;
        this.logInfo = logInfo;
+       this.logInfo[0].backgroundColor = this.selectColor;
      },
 
      updateCompareLogInfo(compareLogBranch, compareLogInfo) {
@@ -721,22 +738,41 @@
      },
 
      logMarkFile() {
-       this.$root.$emit("logMarkItem", this.currentLogIndex);
+       this.logInfo[this.currentLogIndex].foregroundColor = this.navItemActiveColor;
        this.logInfo[this.currentLogIndex].marked = "marked";
        this.logSelectNext();
      },
 
      logUnmarkFile() {
-       this.$root.$emit("logUnmarkItem", this.currentLogIndex);
+       this.logInfo[this.currentLogIndex].foregroundColor = "";
        this.logInfo[this.currentLogIndex].marked = "";
        this.logSelectNext();
      },
 
      logUnmarkAll() {
-       this.$root.$emit("logUnmarkAllItem");
-       
        for (var i=0; i < this.logInfo.length; i++) {
+         this.logInfo[i].foregroundColor = "";
          this.logInfo[i].marked = "";
+       }
+     },
+     
+     updateLogItemBackground(oldIndex, newIndex) {
+       if (oldIndex !== null && oldIndex >= 0) {
+         this.logInfo[oldIndex].backgroundColor = this.backgroundColor;
+       }
+
+       if (newIndex !== null && newIndex >= 0) {
+         this.logInfo[newIndex].backgroundColor = this.selectColor;
+       }
+     },
+     
+     updateLogItemMatchColor(oldIndex, newIndex) {
+       if (oldIndex !== null && oldIndex >= 0) {
+         this.logInfo[oldIndex].foregroundColor = "";
+       }
+
+       if (newIndex !== null && newIndex >= 0) {
+         this.logInfo[newIndex].foregroundColor = this.matchColor;
        }
      },
    }

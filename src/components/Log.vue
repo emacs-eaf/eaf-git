@@ -1,50 +1,31 @@
 <template>
   <div class="log-box">
-    <Dialog 
+    <Dialog
       class="flex-expand"
       :title="logTitle"
       hasScrollChild="true">
-      <div
+      <virtual-list
+        ref="loglist"
         class="list"
-        ref="logs">
-        <div
-          v-for="info in logInfo"
-          :key="info.index"
-          class="log-item">
-          <div class="log-id">
-            {{ info.id.slice(0, 7) }}
-          </div>
-          <div class="log-date">
-            {{ info.time }}
-          </div>
-          <div class="log-author">
-            {{ info.author }}
-          </div>
-          <div class="log-message">
-            {{ info.message }}
-          </div>
-        </div>
-      </div>
+        :keeps="50"
+        :estimate-size="100"
+        :data-key="'index'"
+        :data-sources="logInfo"
+        :data-component="logItemComponent"/>
     </Dialog>
-    
-    <Dialog 
+
+    <Dialog
       v-if="compareLogInfo.length > 0"
       class="compare-log-list"
       :title="compareLogTitle"
       hasScrollChild="true">
-      <div class="list">
-        <div
-          v-for="info in compareLogInfo"
-          :key="info.index"
-          class="log-item">
-          <div class="log-id">
-            {{ info.id.slice(0, 7) }}
-          </div>
-          <div class="log-message">
-            {{ info.message }}
-          </div>
-        </div>
-      </div>
+      <virtual-list
+        class="list"
+        :keeps="50"
+        :estimate-size="100"
+        :data-key="'index'"
+        :data-sources="compareLogInfo"
+        :data-component="compareLogItemComponent"/>
     </Dialog>
   </div>
 </template>
@@ -52,9 +33,14 @@
 <script>
  import Dialog from "./Dialog.vue"
 
+ import LogItem from './LogItem'
+ import CompareLogItem from './CompareLogItem'
+ import VirtualList from 'vue-virtual-scroll-list'
+
  export default {
    name: 'Log',
    components: {
+     'virtual-list': VirtualList,
      Dialog
    },
    props: {
@@ -78,6 +64,8 @@
    },
    data() {
      return {
+       logItemComponent: LogItem,
+       compareLogItemComponent: CompareLogItem,
        currentPageElementNum: 0
      }
    },
@@ -86,16 +74,7 @@
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
          if (this.logInfo.length > 0) {
-           this.updateItemBackground(oldVal, val);
            this.keepSelectVisible();
-         }
-       }
-     },
-     searchLogMatchIndex: {
-       // eslint-disable-next-line no-unused-vars
-       handler: function(val, oldVal) {
-         if (this.logInfo.length > 0) {
-           this.updateItemMatchColor(oldVal, val);
          }
        }
      },
@@ -112,7 +91,7 @@
          return "";
        }
      },
-     
+
      compareLogTitle() {
        if (this.compareLogBranch && this.compareLogInfo) {
          return this.compareLogBranch + "(" + this.compareLogInfo.length + ")";
@@ -124,7 +103,6 @@
    mounted() {
      var that = this;
 
-     this.showHighlightLine();
      this.refreshSceenElementNumber();
 
      this.$root.$on("logViewDiff", function () {
@@ -154,7 +132,7 @@
      this.$root.$on("logCherryPick", function () {
        that.logCherryPick();
      });
-     
+
      this.$root.$on("logRebaseBranch", function () {
        that.logRebaseBranch();
      });
@@ -167,17 +145,6 @@
        that.logSelectPgDn();
      });
 
-     this.$root.$on("logMarkItem", function (index) {
-       that.logMarkItem(index);
-     });
-
-     this.$root.$on("logUnmarkItem", function (index) {
-       that.logUnmarkItem(index);
-     });
-
-     this.$root.$on("logUnmarkAllItem", function () {
-       that.logUnmarkAllItem();
-     });
    },
    beforeDestroy() {
      this.$root.$off("logViewDiff");
@@ -187,57 +154,8 @@
      this.$root.$off("logRebaseBranch");
      this.$root.$off("logSelectPgUp");
      this.$root.$off("logSelectPgDn");
-     this.$root.$off("logMarkItem");
-     this.$root.$off("logUnmarkItem");
-     this.$root.$off("logUnmarkAllItem");
    },
    methods: {
-     showHighlightLine() {
-       if (this.currentLogIndex !== null && this.currentLogIndex >= 0) {
-         this.$refs.logs.children[this.currentLogIndex].style.background = this.selectColor;
-       }
-
-       this.keepSelectVisible();
-     },
-
-     updateItemBackground(oldIndex, newIndex) {
-       if (oldIndex !== null && oldIndex >= 0) {
-         var oldItem = this.$refs.logs.children[oldIndex];
-         oldItem.style.background = this.backgroundColor;
-       }
-
-       if (newIndex !== null && newIndex >= 0) {
-         var newItem = this.$refs.logs.children[newIndex];
-         newItem.style.background = this.selectColor;
-       }
-     },
-
-     updateItemMatchColor(oldIndex, newIndex) {
-       if (oldIndex !== null && oldIndex >= 0) {
-         var oldItem = this.$refs.logs.children[oldIndex];
-         oldItem.style.color = "";
-       }
-
-       if (newIndex !== null && newIndex >= 0) {
-         var newItem = this.$refs.logs.children[newIndex];
-         newItem.style.color = this.matchColor;
-       }
-     },
-     
-     logMarkItem(index) {
-       this.$refs.logs.children[index].style.color = this.markColor;
-     },
-
-     logUnmarkItem(index) {
-       this.$refs.logs.children[index].style.color = "";
-     },
-
-     logUnmarkAllItem() {
-       for (var i=0; i < this.$refs.logs.children.length; i++) {
-         this.$refs.logs.children[i].style.color = "";
-       }
-     },
-     
      logViewDiff() {
        this.pyobject.show_commit_diff(this.logInfo[this.currentLogIndex].id);
      },
@@ -249,7 +167,7 @@
      logResetLast() {
        this.pyobject.log_reset_last(this.logInfo[0].id, this.logInfo[0].message);
      },
-     
+
      logResetTo() {
        this.pyobject.log_reset_last(this.logInfo[this.currentLogIndex].id, this.logInfo[this.currentLogIndex].message);
      },
@@ -269,32 +187,34 @@
      },
 
      refreshSceenElementNumber() {
-       this.$nextTick(() => {
-         var logList = this.$refs.logs
-         var selectLog = this.$refs.logs.children[this.currentLogIndex]
-         if (logList !== undefined && selectLog !== undefined) {
-           this.currentPageElementNum = Math.floor(logList.clientHeight / selectLog.clientHeight);
-         }
-       });
+       var loglist = this.$refs.loglist;
+       var itemHeight = loglist.getSize(0);
+       var viewHeight = loglist.getClientSize();
+
+       this.currentPageElementNum = Math.floor(viewHeight / itemHeight);
      },
-     
+
      logCherryPick() {
        var pickList = this.logInfo.filter(info => { return info.marked == "marked" });
        if (pickList.length == 0) {
          pickList.push(this.logInfo[this.currentLogIndex]);
        }
-       
+
        this.pyobject.log_cherry_pick(pickList);
      },
-     
+
      keepSelectVisible() {
-       /* Use nextTick wait DOM update, then make sure current file in visible area. */
-       this.$nextTick(function() {
-         var selectLog = this.$refs.logs.children[this.currentLogIndex]
-         if (selectLog !== undefined) {
-           selectLog.scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
-         }
-       })
+       var loglist = this.$refs.loglist;
+       var itemHeight = loglist.getSize(0);
+       var currentOffsetY = itemHeight * this.currentLogIndex;
+       var viewHeight = loglist.getClientSize();
+       var offset = loglist.getOffset();
+
+       if (currentOffsetY + itemHeight > offset + viewHeight) {
+         loglist.scrollToOffset(currentOffsetY - viewHeight + itemHeight);
+       } else if (currentOffsetY < offset) {
+         loglist.scrollToOffset(currentOffsetY);
+       }
      },
    }
  }
@@ -305,7 +225,7 @@
  .log-box {
    width: 100%;
    height: 100%;
-   
+
    display: flex;
    flex-direction: row;
  }
@@ -346,7 +266,7 @@
    overflow: hidden;
    white-space: nowrap;
    text-overflow: ellipsis;
-   
+
    width: 100px;
  }
 
@@ -359,13 +279,13 @@
  .flex-expand {
    flex: 1;
  }
- 
+
  .list {
    z-index: 100;
    max-height: calc(100vh - 150px);
    overflow-y: scroll;
  }
- 
+
  .compare-log-list {
    width: 30%;
  }

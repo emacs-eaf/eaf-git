@@ -1182,7 +1182,9 @@ class FetchLogThread(QThread):
                     "author": author,
                     "message": message,
                     "marked": "",
-                    "match": ""
+                    "match": "",
+                    "foregroundColor": "",
+                    "backgroundColor": ""
                 })
                 
                 if self.search_cache:

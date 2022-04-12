@@ -11,7 +11,8 @@
     "ansi_up": "^5.1.0",
     "core-js": "^3.16.1",
     "qwebchannel": "^6.2.0",
-    "vue": "^2.6.14"
+    "vue": "^2.6.14",
+    "vue-virtual-scroll-list": "^2.3.3"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.13",
