@@ -25,13 +25,16 @@
   ],
   "pip": {
     "linux": [
-      "pygit2"
+      "pygit2",
+      "charset-normalizer"
     ],
     "win32": [
-      "pygit2"
+      "pygit2",
+      "charset-normalizer"
     ],
     "darwin": [
-      "pygit2"
+      "pygit2",
+      "charset-normalizer"
     ]
   },
   "vue_install": true
