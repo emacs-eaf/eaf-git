@@ -206,7 +206,17 @@ class AppBuffer(BrowserBuffer):
         
     @PostGui()
     def update_status_info(self, stage_status, unstage_status, untrack_status):
-        self.buffer_widget.eval_js('''updateStatusInfo({}, {}, {})'''.format(json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status)))
+        self.buffer_widget.eval_js('''updateStatusInfo({}, {}, {})'''.format(json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status)))        
+        
+        QTimer().singleShot(300, self.init_diff)
+        
+    def init_diff(self):
+        if len(self.untrack_status) > 0:
+            self.update_diff("untrack", "")
+        elif len(self.unstage_status) > 0:
+            self.update_diff("unstage", "")
+        elif len(self.stage_status) > 0:
+            self.update_diff("stage", "")
 
     def get_keybinding_info(self):
         js_keybindig = get_emacs_var("eaf-git-js-keybinding")
@@ -570,6 +580,16 @@ class AppBuffer(BrowserBuffer):
         self.fetch_stash_info()
         self.fetch_status_info()
         
+    def get_syntax_highlight_with_content(self, content):
+        from pygments import highlight
+        from pygments.styles import get_all_styles
+        from pygments.lexers import PythonLexer, get_lexer_for_filename, html, guess_lexer
+        from pygments.formatters import HtmlFormatter
+            
+        style_name = "monokai" if self.theme_mode == "dark" else "stata-light"
+        
+        return highlight(content, guess_lexer(content), HtmlFormatter(full=True, style=style_name))
+        
     @QtCore.pyqtSlot(str, str)
     def update_diff(self, type, file):
         
@@ -583,6 +603,8 @@ class AppBuffer(BrowserBuffer):
                     diff_string += "\n"
             else:
                 diff_string = str(from_path(os.path.join(self.repo_root, file)).best())
+                
+            diff_string = self.get_syntax_highlight_with_content(diff_string)    
         elif type == "stage":
             if file == "":
                 diff_string = get_command_result("cd {}; git diff --color --staged".format(self.repo_root))
@@ -594,7 +616,7 @@ class AppBuffer(BrowserBuffer):
             else:
                 diff_string = get_command_result("cd {}; git diff --color {}".format(self.repo_root, file))
                 
-        self.buffer_widget.eval_js('''updateChangeDiff({})'''.format(json.dumps(diff_string)))        
+        self.buffer_widget.eval_js('''updateChangeDiff(\"{}\", {})'''.format(type, json.dumps(diff_string)))        
         
     @QtCore.pyqtSlot()
     def status_commit_stage(self):

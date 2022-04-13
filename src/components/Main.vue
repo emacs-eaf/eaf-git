@@ -22,6 +22,7 @@
       <Dashboard
         v-if="navCurrentItem == 'Dashboard'"
         :diffs="diffs"
+        :diffsType="diffsType"
         :selectItemType="selectItemType"
         :selectItemIndex="selectItemIndex"
         :stageStatusInfo="stageStatusInfo"
@@ -219,6 +220,7 @@
        currentLogIndex: 0,
        currentStashIndex: 0,
        diffs: "",
+       diffsType: "",
        selectItemType: "",
        selectItemIndex: -1,
        stageStatusInfo: [],
@@ -543,8 +545,9 @@
        this.repoHeadName = currentBranch
      },
 
-     updateChangeDiff(diffString) {
+     updateChangeDiff(diffsType, diffString) {
        this.diffs = diffString;
+       this.diffsType = diffsType;
      },
 
      updateDiff() {

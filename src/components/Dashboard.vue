@@ -119,6 +119,7 @@
         hasScrollChild="true">
         <div
           class="status-preview-area"
+          :style="{ 'display': displayStyle() }"
           v-html="prettyHtml">
         </div>
       </Dialog>
@@ -146,6 +147,7 @@
      unpushInfo: String,
      stashInfo: Array,
      diffs: String,
+     diffsType: String,
      backgroundColor: String,
      selectColor: String,
      indexColor: String,
@@ -177,9 +179,13 @@
    },
    computed: {
      prettyHtml() {
-       return ansiUp.ansi_to_html(this.diffs);
+       if (this.diffsType === "untrack") {
+         return this.diffs;
+       } else {
+         return ansiUp.ansi_to_html(this.diffs);
+       }
      },
-
+     
      noFileSubmit() {
        return this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber() + this.stashInfo.length === 0 && this.unpushInfo === "";
      }
@@ -241,6 +247,14 @@
      this.$root.$off("statusStashPush");
    },
    methods: {
+     displayStyle() {
+       if (this.diffsType === "untrack") {
+         return "inline-table";
+       } else {
+         return "block";
+       }
+     },
+
      untrackFileNumber() {
        var untrack_files_number = 0;
        if (this.untrackStatusInfo) {
