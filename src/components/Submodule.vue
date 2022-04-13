@@ -62,6 +62,10 @@
    mounted() {
      var that = this;
      
+     this.$root.$on("submoduleView", function () {
+       that.pyobject.submodule_view(that.submoduleInfo[that.currentSubmoduleIndex].name);
+     });
+     
      this.$root.$on("submoduleAdd", function () {
        that.pyobject.submodule_add();
      });
@@ -88,6 +92,7 @@
      });
    },
    beforeDestroy() {
+     this.$root.$off("submoduleView");
      this.$root.$off("submoduleAdd");
      this.$root.$off("submoduleRemove");
      this.$root.$off("submoduleUpdate");

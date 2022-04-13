@@ -1192,6 +1192,10 @@ class AppBuffer(BrowserBuffer):
         
         message_to_emacs("Switch to branch '{}'".format(branch_name))
         
+    @QtCore.pyqtSlot(str)
+    def submodule_view(self, module_path):
+        eval_in_emacs('eaf-open-in-file-manager', [os.path.join(self.repo_root, module_path)])
+        
     @QtCore.pyqtSlot()
     def submodule_add(self):
         self.send_input_message("Add submodule url: ", "submodule_add_url")
