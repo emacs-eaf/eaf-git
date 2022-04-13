@@ -57,6 +57,7 @@
         v-on:updateLogIndex="updateLogIndex"/>
       <Submodule
         v-if="navCurrentItem == 'Submodule'"
+        :pyobject="pyobject"
         :submoduleInfo="submoduleInfo"
         :currentSubmoduleIndex="currentSubmoduleIndex"
         :backgroundColor="backgroundColor"

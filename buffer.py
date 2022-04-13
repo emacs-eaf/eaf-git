@@ -142,6 +142,8 @@ class AppBuffer(BrowserBuffer):
         
         self.git_push_threads = []
         
+        self.add_submodule_threads = []
+        
         self.log_compare_branch = ""
 
         self.url = os.path.expanduser(self.url)
@@ -404,6 +406,10 @@ class AppBuffer(BrowserBuffer):
             self.handle_log_rebase_branch(result_content)
         elif callback_tag == "search_log":
             self.handle_search_log(result_content)
+        elif callback_tag == "add_submodule_url":
+            self.handle_add_submodule_url(result_content)
+        elif callback_tag == "add_submodule_path":
+            self.handle_add_submodule_path(result_content)
             
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
@@ -1179,6 +1185,63 @@ class AppBuffer(BrowserBuffer):
         
         message_to_emacs("Switch to branch '{}'".format(branch_name))
         
+    @QtCore.pyqtSlot()
+    def submodule_add(self):
+        self.send_input_message("Add submodule url: ", "add_submodule_url")
+        
+    def handle_add_submodule_url(self, url):
+        self.add_submodule_url = url
+        self.send_input_message("Set submodule path: ", "add_submodule_path", "directory", self.repo_root)
+
+    def handle_add_submodule_path(self, path):
+        message_to_emacs("Add submodule {}...".format(self.add_submodule_url))
+        thread = AddSubmoduleThread(self.repo, self.add_submodule_url, path)
+        thread.finished.connect(self.handle_add_submodule_finish)
+        self.add_submodule_threads.append(thread)
+        thread.start()
+        
+    def handle_add_submodule_finish(self, url, path):
+        message_to_emacs("Add submodule {} to {}".format(url, path))
+        
+        self.fetch_status_info()
+        self.fetch_submodule_info()
+        
+class AddSubmoduleCallback(pygit2.RemoteCallbacks, QtCore.QObject):
+    
+    finished = QtCore.pyqtSignal()
+    
+    def __init__(self, url):
+        super(pygit2.RemoteCallbacks, self).__init__()
+        super(QtCore.QObject, self).__init__()
+        self.url = url
+        
+    def sideband_progress(self, string):
+        print("{} {}".format(self.url, string))
+        
+    def transfer_progress(self, progress):
+        if (progress.received_objects == progress.total_objects == progress.indexed_objects) and (progress.indexed_deltas == progress.total_deltas):
+            self.finished.emit()
+        
+class AddSubmoduleThread(QThread):
+
+    finished = QtCore.pyqtSignal(str, str)
+
+    def __init__(self, repo, url, path):
+        QThread.__init__(self)
+
+        self.repo = repo
+        self.url = url
+        self.path = path
+
+    def run(self):
+        if not os.path.exists(self.path):
+            os.makedirs(self.path)
+            
+        self.callback = AddSubmoduleCallback(self.url)
+        self.callback.finished.connect(lambda : self.finished.emit(self.url, self.path))
+        
+        self.repo.add_submodule(self.url, self.path, callbacks=self.callback)
+
 class FetchLogThread(QThread):
 
     fetch_result = QtCore.pyqtSignal(str, list, str)
@@ -1281,9 +1344,12 @@ class FetchSubmoduleThread(QThread):
         submodule_names = self.repo.listall_submodules()
         
         for submodule_name in submodule_names:
+            submodule = self.repo.lookup_submodule(submodule_name)
+            
             submodule_infos.append({
                 "index": index,
                 "name": submodule_name,
+                "head_id": submodule.head_id.__str__(),
                 "foregroundColor": "",
                 "backgroundColor": ""
             })

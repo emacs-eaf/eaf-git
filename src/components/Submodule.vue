@@ -35,7 +35,8 @@
      submoduleInfo: Array,
      backgroundColor: String,
      selectColor: String,
-     currentSubmoduleIndex: Number
+     currentSubmoduleIndex: Number,
+     pyobject: Object
    },
    data() {
      return {
@@ -60,6 +61,10 @@
    },
    mounted() {
      var that = this;
+     
+     this.$root.$on("submoduleAdd", function () {
+       that.pyobject.submodule_add();
+     });
      
      this.$root.$on("submoduleSelectPgUp", function () {
        that.submoduleSelectPgUp();
