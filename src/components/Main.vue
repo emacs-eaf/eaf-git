@@ -125,7 +125,7 @@
      selectBranchIndex: {
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
-         if (this.logInfo.length > 0) {
+         if (this.branchInfo.length > 0) {
            this.updateBranchItemBackground(oldVal, val);
          }
        }
@@ -149,7 +149,7 @@
      currentSubmoduleIndex: {
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
-         if (this.logInfo.length > 0) {
+         if (this.submoduleInfo.length > 0) {
            this.updateSubmoduleItemBackground(oldVal, val);
          }
        }
@@ -535,7 +535,10 @@
        this.currentBranch = currentBranch
        this.branchInfo = branchInfo;
        
-       this.selectBranchIndex = this.branchInfo.indexOf(this.currentBranch);
+       this.selectBranchIndex = 0;
+       if (this.branchInfo.length > 0) {
+         this.branchInfo[0].backgroundColor = this.selectColor;
+       }
 
        this.repoHeadName = currentBranch
      },

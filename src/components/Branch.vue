@@ -66,10 +66,8 @@
      });
    },
    beforeDestroy() {
-     this.$root.$off("branchSelectNext");
-     this.$root.$off("branchSelectPrev");
-     this.$root.$off("branchSelectLast");
-     this.$root.$off("branchSelectFirst");
+     this.$root.$off("branchNew");
+     this.$root.$off("branchDelete");
      this.$root.$off("branchSwitch");
    },
    methods: {
