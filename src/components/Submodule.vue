@@ -69,6 +69,10 @@
      this.$root.$on("submoduleRemove", function () {
        that.pyobject.submodule_remove(that.submoduleInfo[that.currentSubmoduleIndex].name);
      });
+
+     this.$root.$on("submoduleUpdate", function () {
+       that.pyobject.submodule_remove(that.submoduleInfo[that.currentSubmoduleIndex].name);
+     });
      
      this.$root.$on("submoduleSelectPgUp", function () {
        that.submoduleSelectPgUp();
@@ -81,6 +85,7 @@
    beforeDestroy() {
      this.$root.$off("submoduleAdd");
      this.$root.$off("submoduleRemove");
+     this.$root.$off("submoduleUpdate");
      this.$root.$off("submoduleSelectPgUp");
      this.$root.$off("submoduleSelectPgDn");
    },

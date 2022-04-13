@@ -1212,7 +1212,7 @@ class AppBuffer(BrowserBuffer):
     @QtCore.pyqtSlot(str)
     def submodule_remove(self, module_path):
         self.submodule_remove_path = module_path
-        self.send_input_message("Remove submodule {}: ".format(module_path), "submodule_remove", "yes-or-no")
+        self.send_input_message("Remove submodule {} ?".format(module_path), "submodule_remove", "yes-or-no")
         
     def handle_submodule_remove(self):
         import subprocess
@@ -1232,6 +1232,10 @@ class AppBuffer(BrowserBuffer):
         
         self.fetch_status_info()
         self.fetch_submodule_info()
+        
+    @QtCore.pyqtSlot(str)
+    def submodule_update(self, module_path):
+        self.send_input_message("Update submodule {} ?".format(module_path), "submodule_update", "yes-or-no")
         
 class AddSubmoduleCallback(pygit2.RemoteCallbacks, QtCore.QObject):
     
