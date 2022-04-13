@@ -1,17 +1,16 @@
 <template>
   <div class="box">
-    <Dialog title="Submodule">
-      <div
+    <Dialog 
+      :title="dialogTitle">
+      <virtual-list
         v-if="submoduleInfo.length > 0"
+        ref="submodulelist"
         class="list"
-        ref="submodules">
-        <div
-          v-for="info in submoduleInfo"
-          :key="info"
-          class="item">
-          {{ info }}
-        </div>
-      </div>
+        :keeps="50"
+        :estimate-size="100"
+        :data-key="'index'"
+        :data-sources="submoduleInfo"
+        :data-component="submoduleItemComponent"/>
       <div
         v-else
         class="notify">
@@ -23,10 +22,13 @@
 
 <script>
  import Dialog from "./Dialog.vue"
+ import SubmoduleItem from './SubmoduleItem'
+ import VirtualList from 'vue-virtual-scroll-list'
 
  export default {
    name: 'Submodule',
    components: {
+     'virtual-list': VirtualList,
      Dialog
    },
    props: {
@@ -37,7 +39,13 @@
    },
    data() {
      return {
+       submoduleItemComponent: SubmoduleItem,
        currentPageElementNum: 0
+     }
+   },
+   computed: {
+     dialogTitle() {
+       return "Submodule (" + this.submoduleInfo.length + ")";
      }
    },
    watch: {
@@ -45,7 +53,6 @@
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
          if (this.submoduleInfo.length > 0) {
-           this.updateItemBackground(oldVal, val);
            this.keepSelectVisible();
          }
        }
@@ -54,8 +61,6 @@
    mounted() {
      var that = this;
      
-     this.showHighlightLine();
-
      this.$root.$on("submoduleSelectPgUp", function () {
        that.submoduleSelectPgUp();
      });
@@ -69,34 +74,18 @@
      this.$root.$off("submoduleSelectPgDn");
    },
    methods: {
-     showHighlightLine() {
-       if (this.currentSubmoduleIndex !== null && this.currentSubmoduleIndex >= 0) {
-         this.$refs.submodules.children[this.currentSubmoduleIndex].style.background = this.selectColor;
-       }
-
-       this.keepSelectVisible();
-     },
-
-     updateItemBackground(oldIndex, newIndex) {
-       if (oldIndex !== null && oldIndex >= 0) {
-         var oldItem = this.$refs.submodules.children[oldIndex];
-         oldItem.style.background = this.backgroundColor;
-       }
-
-       if (newIndex !== null && newIndex >= 0) {
-         var newItem = this.$refs.submodules.children[newIndex];
-         newItem.style.background = this.selectColor;
-       }
-     },
-
      keepSelectVisible() {
-       /* Use nextTick wait DOM update, then make sure current file in visible area. */
-       this.$nextTick(function() {
-         var selectLog = this.$refs.submodules.children[this.currentSubmoduleIndex]
-         if (selectLog !== undefined) {
-           selectLog.scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
-         }
-       })
+       var submodulelist = this.$refs.submodulelist;
+       var itemHeight = submodulelist.getSize(0);
+       var currentOffsetY = itemHeight * this.currentSubmoduleIndex;
+       var viewHeight = submodulelist.getClientSize();
+       var offset = submodulelist.getOffset();
+
+       if (currentOffsetY + itemHeight > offset + viewHeight) {
+         submodulelist.scrollToOffset(currentOffsetY - viewHeight + itemHeight);
+       } else if (currentOffsetY < offset) {
+         submodulelist.scrollToOffset(currentOffsetY);
+       }
      },
      
      submoduleSelectPgUp() {
@@ -110,15 +99,11 @@
      },
 
      refreshSceenElementNumber() {
-       var that = this;
-       
-       this.$nextTick(() => {
-         var submoduleList = that.$refs.submodules;
-         var selectSubmodule = that.$refs.submodules.children[that.currentSubmoduleIndex];
-         if (submoduleList !== undefined && selectSubmodule !== undefined) {
-           that.currentPageElementNum = Math.floor(submoduleList.clientHeight / selectSubmodule.clientHeight);
-         }
-       });
+       var submodulelist = this.$refs.submodulelist;
+       var itemHeight = submodulelist.getSize(0);
+       var viewHeight = submodulelist.getClientSize();
+
+       this.currentPageElementNum = Math.floor(viewHeight / itemHeight);
      },
    }
  }

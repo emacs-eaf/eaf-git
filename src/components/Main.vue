@@ -137,6 +137,14 @@
          }
        }
      },
+     currentSubmoduleIndex: {
+       // eslint-disable-next-line no-unused-vars
+       handler: function(val, oldVal) {
+         if (this.logInfo.length > 0) {
+           this.updateSubmoduleItemBackground(oldVal, val);
+         }
+       }
+     },
      branchInfo: {
        // eslint-disable-next-line no-unused-vars
        handler: function (val, oldVal) {
@@ -487,6 +495,7 @@
 
      updateSubmoduleInfo(submoduleInfo) {
        this.submoduleInfo = submoduleInfo;
+       this.submoduleInfo[0].backgroundColor = this.selectColor;
      },
 
      updateBranchInfo(currentBranch, branchInfo) {
@@ -773,6 +782,16 @@
 
        if (newIndex !== null && newIndex >= 0) {
          this.logInfo[newIndex].foregroundColor = this.matchColor;
+       }
+     },
+     
+     updateSubmoduleItemBackground(oldIndex, newIndex) {
+       if (oldIndex !== null && oldIndex >= 0) {
+         this.submoduleInfo[oldIndex].backgroundColor = this.backgroundColor;
+       }
+
+       if (newIndex !== null && newIndex >= 0) {
+         this.submoduleInfo[newIndex].backgroundColor = this.selectColor;
        }
      },
    }

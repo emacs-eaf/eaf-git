@@ -1182,7 +1182,6 @@ class FetchLogThread(QThread):
                     "author": author,
                     "message": message,
                     "marked": "",
-                    "match": "",
                     "foregroundColor": "",
                     "backgroundColor": ""
                 })
@@ -1244,7 +1243,21 @@ class FetchSubmoduleThread(QThread):
         self.repo = repo
 
     def run(self):
-        self.fetch_result.emit(self.repo.listall_submodules())
+        index = 0
+        submodule_infos = []
+        submodule_names = self.repo.listall_submodules()
+        
+        for submodule_name in submodule_names:
+            submodule_infos.append({
+                "index": index,
+                "name": submodule_name,
+                "foregroundColor": "",
+                "backgroundColor": ""
+            })
+            
+            index += 1
+        
+        self.fetch_result.emit(submodule_infos)
 
 class FetchBranchThread(QThread):
 
