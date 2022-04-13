@@ -24,7 +24,7 @@ from PyQt6.QtGui import QColor
 from PyQt6.QtCore import QThread, QTimer
 from core.webengine import BrowserBuffer
 from core.utils import get_emacs_func_result, get_emacs_var, PostGui, message_to_emacs, eval_in_emacs, interactive
-from charset_normalizer import from_path
+from charset_normalizer import from_path, from_bytes
 from pygit2 import (Repository, IndexEntry, Oid,
                     GIT_CHECKOUT_ALLOW_CONFLICTS,
                     GIT_SORT_TOPOLOGICAL,
@@ -615,21 +615,29 @@ class AppBuffer(BrowserBuffer):
                     diff_string += "\n"
             else:
                 diff_string = str(from_path(os.path.join(self.repo_root, file)).best())
-                
-            diff_string = self.get_syntax_highlight_with_content(diff_string)    
+
+            diff_string = self.get_syntax_highlight_with_content(diff_string)
         elif type == "stage":
+            head_tree = self.repo.revparse_single("HEAD^{tree}")
+            stage_diff = self.repo.index.diff_to_tree(head_tree)
             if file == "":
-                diff_string = get_command_result("cd {}; git diff --color --staged".format(self.repo_root))
+                diff_string = stage_diff.patch
             else:
-                diff_string = get_command_result("cd {}; git diff --color --staged {}".format(self.repo_root, file))
+                patches = [patch for patch in stage_diff if patch.delta.new_file.path == file]
+                diff_string = "\n".join(map(lambda patch : str(from_bytes(patch.data).best()), patches))
+
+            diff_string = self.get_syntax_highlight_with_content(diff_string)
         elif type == "unstage":
+            unstage_diff = self.repo.diff(cached=True)
             if file == "":
-                diff_string = get_command_result("cd {}; git diff --color".format(self.repo_root))
+                diff_string = unstage_diff.patch
             else:
-                diff_string = get_command_result("cd {}; git diff --color {}".format(self.repo_root, file))
-                
-        self.buffer_widget.eval_js('''updateChangeDiff(\"{}\", {})'''.format(type, json.dumps(diff_string)))        
-        
+                patches = [patch for patch in unstage_diff if patch.delta.new_file.path == file]
+                diff_string = "\n".join(map(lambda patch : str(from_bytes(patch.data).best()), patches))
+
+            diff_string = self.get_syntax_highlight_with_content(diff_string)
+        self.buffer_widget.eval_js('''updateChangeDiff(\"{}\", {})'''.format(type, json.dumps(diff_string)))
+
     @QtCore.pyqtSlot()
     def status_commit_stage(self):
         self.send_input_message("Commit stage files with message: ", "commit_stage_files")

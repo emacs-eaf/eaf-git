@@ -119,8 +119,8 @@
         hasScrollChild="true">
         <div
           class="status-preview-area"
-          :style="{ 'display': displayStyle() }"
-          v-html="prettyHtml">
+          v-html="prettyHtml"
+        >
         </div>
       </Dialog>
     </div>
@@ -129,9 +129,6 @@
 
 <script>
  import Dialog from "./Dialog.vue"
-
- var AU = require('ansi_up');
- var ansiUp = new AU.default;
 
  export default {
    name: 'Dashboard',
@@ -179,11 +176,7 @@
    },
    computed: {
      prettyHtml() {
-       if (this.diffsType === "untrack") {
-         return this.diffs;
-       } else {
-         return ansiUp.ansi_to_html(this.diffs);
-       }
+       return this.diffs;
      },
      
      noFileSubmit() {
@@ -247,14 +240,6 @@
      this.$root.$off("statusStashPush");
    },
    methods: {
-     displayStyle() {
-       if (this.diffsType === "untrack") {
-         return "inline-table";
-       } else {
-         return "block";
-       }
-     },
-
      untrackFileNumber() {
        var untrack_files_number = 0;
        if (this.untrackStatusInfo) {
@@ -446,6 +431,8 @@
    max-height: calc(100vh - 150px);
 
    overflow-y: scroll;
+
+   display: inline-table;
  }
 
  .split-line {
