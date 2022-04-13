@@ -63,6 +63,7 @@
         v-on:updateSubmoduleIndex="updateSubmoduleIndex"/>
       <Branch
         v-if="navCurrentItem == 'Branch'"
+        :selectBranchIndex="selectBranchIndex"
         :selectColor="selectColor"
         :backgroundColor="backgroundColor"
         :currentColor="dateColor"
@@ -121,6 +122,14 @@
    props: {
    },
    watch: {
+     selectBranchIndex: {
+       // eslint-disable-next-line no-unused-vars
+       handler: function(val, oldVal) {
+         if (this.logInfo.length > 0) {
+           this.updateBranchItemBackground(oldVal, val);
+         }
+       }
+     },
      currentLogIndex: {
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
@@ -217,6 +226,7 @@
        untrackStatusInfo: [],
        unpushInfo: "",
        logBranch: "",
+       selectBranchIndex: 0,
        logInfo: [],
        searchLogMatchIndexes: [],
        searchLogMatchNumber: 0,
@@ -292,7 +302,24 @@
      this.$root.$on("logSelectFirst", function () {
        that.logSelectFirst();
      });
-     
+
+     this.selectBranchIndex = this.branchInfo.indexOf(this.currentBranch);
+     this.$root.$on("branchSelectNext", function () {
+       that.branchSelectNext();
+     });
+
+     this.$root.$on("branchSelectPrev", function () {
+       that.branchSelectPrev();
+     });
+
+     this.$root.$on("branchSelectLast", function () {
+       that.branchSelectLast();
+     });
+
+     this.$root.$on("branchSelectFirst", function () {
+       that.branchSelectFirst();
+     });
+
      this.currentSubmoduleIndex = 0;
      this.$root.$on("submoduleSelectNext", function () {
        that.submoduleSelectNext();
@@ -481,7 +508,10 @@
      updateLogInfo(logBranch, logInfo) {
        this.logBranch = logBranch;
        this.logInfo = logInfo;
-       this.logInfo[0].backgroundColor = this.selectColor;
+       
+       if (this.logInfo.length > 0) {
+         this.logInfo[0].backgroundColor = this.selectColor;
+       }
      },
 
      updateCompareLogInfo(compareLogBranch, compareLogInfo) {
@@ -495,12 +525,17 @@
 
      updateSubmoduleInfo(submoduleInfo) {
        this.submoduleInfo = submoduleInfo;
-       this.submoduleInfo[0].backgroundColor = this.selectColor;
+       
+       if (this.submoduleInfo.length > 0) {
+         this.submoduleInfo[0].backgroundColor = this.selectColor;
+       }
      },
 
      updateBranchInfo(currentBranch, branchInfo) {
        this.currentBranch = currentBranch
        this.branchInfo = branchInfo;
+       
+       this.selectBranchIndex = this.branchInfo.indexOf(this.currentBranch);
 
        this.repoHeadName = currentBranch
      },
@@ -533,7 +568,7 @@
 
        this.searchLogMatchIndexes = matchIndexes;
        this.searchLogMatchNumber = this.searchLogMatchIndexes.length;
-       
+
        this.currentLogIndex = this.searchLogMatchIndexes[0];
        this.searchLogMatchIndex = this.currentLogIndex;
      },
@@ -544,7 +579,7 @@
        } else {
          this.searchLogIndex++;
        }
-       
+
        this.currentLogIndex = this.searchLogMatchIndexes[this.searchLogIndex];
        this.searchLogMatchIndex = this.currentLogIndex;
      },
@@ -678,6 +713,26 @@
        }
      },
 
+     branchSelectNext() {
+       if (this.selectBranchIndex < this.branchInfo.length - 1) {
+         this.selectBranchIndex += 1;
+       }
+     },
+
+     branchSelectPrev() {
+       if (this.selectBranchIndex > 0) {
+         this.selectBranchIndex -= 1;
+       }
+     },
+
+     branchSelectLast() {
+       this.selectBranchIndex = this.branchInfo.length - 1;
+     },
+
+     branchSelectFirst() {
+       this.selectBranchIndex = 0;
+     },
+
      submoduleSelectNext() {
        if (this.submoduleInfo.length > 0 && this.currentSubmoduleIndex < this.submoduleInfo.length - 1) {
          this.currentSubmoduleIndex++;
@@ -764,7 +819,17 @@
          this.logInfo[i].marked = "";
        }
      },
-     
+
+     updateBranchItemBackground(oldIndex, newIndex) {
+       if (oldIndex !== null && oldIndex >= 0) {
+         this.branchInfo[oldIndex].backgroundColor = this.backgroundColor;
+       }
+
+       if (newIndex !== null && newIndex >= 0) {
+         this.branchInfo[newIndex].backgroundColor = this.selectColor;
+       }
+     },
+
      updateLogItemBackground(oldIndex, newIndex) {
        if (oldIndex !== null && oldIndex >= 0) {
          this.logInfo[oldIndex].backgroundColor = this.backgroundColor;
@@ -774,7 +839,7 @@
          this.logInfo[newIndex].backgroundColor = this.selectColor;
        }
      },
-     
+
      updateLogItemMatchColor(oldIndex, newIndex) {
        if (oldIndex !== null && oldIndex >= 0) {
          this.logInfo[oldIndex].foregroundColor = "";
@@ -784,7 +849,7 @@
          this.logInfo[newIndex].foregroundColor = this.matchColor;
        }
      },
-     
+
      updateSubmoduleItemBackground(oldIndex, newIndex) {
        if (oldIndex !== null && oldIndex >= 0) {
          this.submoduleInfo[oldIndex].backgroundColor = this.backgroundColor;
