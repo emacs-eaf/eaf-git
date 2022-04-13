@@ -412,6 +412,10 @@ class AppBuffer(BrowserBuffer):
             self.handle_submodule_add_path(result_content)
         elif callback_tag == "submodule_remove":
             self.handle_submodule_remove()
+        elif callback_tag == "submodule_update":
+            self.handle_submodule_update()
+        elif callback_tag == "submodule_rollback":
+            self.handle_submodule_rollback()
             
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
@@ -1235,7 +1239,37 @@ class AppBuffer(BrowserBuffer):
         
     @QtCore.pyqtSlot(str)
     def submodule_update(self, module_path):
+        self.submodule_update_path = module_path
         self.send_input_message("Update submodule {} ?".format(module_path), "submodule_update", "yes-or-no")
+        
+    def handle_submodule_update(self):
+        submodule_path = os.path.join(self.repo_root, self.submodule_update_path)
+        
+        message_to_emacs("Update submodule {}...".format(self.submodule_update_path))
+        thread = GitPullThread(submodule_path)
+        thread.pull_result.connect(self.handle_submodule_update_finish)
+        self.fetch_pull_threads.append(thread)
+        thread.start()
+        
+    def handle_submodule_update_finish(self, message):
+        self.fetch_status_info()
+        message_to_emacs(message)
+        
+    @QtCore.pyqtSlot(str, str)
+    def submodule_rollback(self, module_path, module_head_id):
+        self.submodule_rollback_path = module_path
+        self.submodule_rollback_head_id = module_head_id
+        self.send_input_message("Rollback submodule {} ?".format(module_path), "submodule_rollback", "yes-or-no")
+        
+    def handle_submodule_rollback(self):
+        submodule_path = os.path.join(self.repo_root, self.submodule_rollback_path)
+        submodule_repo = Repository(submodule_path)
+        
+        submodule_repo.reset(self.submodule_rollback_head_id, pygit2.GIT_RESET_HARD)
+        
+        message_to_emacs("Rollback {} to version {}".format(self.submodule_rollback_path, self.submodule_rollback_head_id))
+        
+        self.fetch_status_info()
         
 class AddSubmoduleCallback(pygit2.RemoteCallbacks, QtCore.QObject):
     

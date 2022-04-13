@@ -71,7 +71,12 @@
      });
 
      this.$root.$on("submoduleUpdate", function () {
-       that.pyobject.submodule_remove(that.submoduleInfo[that.currentSubmoduleIndex].name);
+       that.pyobject.submodule_update(that.submoduleInfo[that.currentSubmoduleIndex].name);
+     });
+
+     this.$root.$on("submoduleRollback", function () {
+       that.pyobject.submodule_rollback(that.submoduleInfo[that.currentSubmoduleIndex].name,
+                                        that.submoduleInfo[that.currentSubmoduleIndex].head_id);
      });
      
      this.$root.$on("submoduleSelectPgUp", function () {
@@ -86,6 +91,7 @@
      this.$root.$off("submoduleAdd");
      this.$root.$off("submoduleRemove");
      this.$root.$off("submoduleUpdate");
+     this.$root.$off("submoduleRollback");
      this.$root.$off("submoduleSelectPgUp");
      this.$root.$off("submoduleSelectPgDn");
    },
