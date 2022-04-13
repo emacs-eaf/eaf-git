@@ -406,10 +406,12 @@ class AppBuffer(BrowserBuffer):
             self.handle_log_rebase_branch(result_content)
         elif callback_tag == "search_log":
             self.handle_search_log(result_content)
-        elif callback_tag == "add_submodule_url":
-            self.handle_add_submodule_url(result_content)
-        elif callback_tag == "add_submodule_path":
-            self.handle_add_submodule_path(result_content)
+        elif callback_tag == "submodule_add_url":
+            self.handle_submodule_add_url(result_content)
+        elif callback_tag == "submodule_add_path":
+            self.handle_submodule_add_path(result_content)
+        elif callback_tag == "submodule_remove":
+            self.handle_submodule_remove()
             
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
@@ -911,6 +913,7 @@ class AppBuffer(BrowserBuffer):
         
         self.fetch_unpush_info()
         self.fetch_log_info()
+        self.fetch_submodule_info()
         
         self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
             json.dumps([]), json.dumps([]), json.dumps([]),
@@ -1187,21 +1190,45 @@ class AppBuffer(BrowserBuffer):
         
     @QtCore.pyqtSlot()
     def submodule_add(self):
-        self.send_input_message("Add submodule url: ", "add_submodule_url")
+        self.send_input_message("Add submodule url: ", "submodule_add_url")
         
-    def handle_add_submodule_url(self, url):
-        self.add_submodule_url = url
-        self.send_input_message("Set submodule path: ", "add_submodule_path", "directory", self.repo_root)
+    def handle_submodule_add_url(self, url):
+        self.submodule_add_url = url
+        self.send_input_message("Set submodule path: ", "submodule_add_path", "directory", self.repo_root)
 
-    def handle_add_submodule_path(self, path):
-        message_to_emacs("Add submodule {}...".format(self.add_submodule_url))
-        thread = AddSubmoduleThread(self.repo, self.add_submodule_url, path)
+    def handle_submodule_add_path(self, path):
+        message_to_emacs("Add submodule {}...".format(self.submodule_add_url))
+        thread = AddSubmoduleThread(self.repo, self.submodule_add_url, path)
         thread.finished.connect(self.handle_add_submodule_finish)
         self.add_submodule_threads.append(thread)
         thread.start()
         
     def handle_add_submodule_finish(self, url, path):
         message_to_emacs("Add submodule {} to {}".format(url, path))
+        
+        self.fetch_status_info()
+        self.fetch_submodule_info()
+        
+    @QtCore.pyqtSlot(str)
+    def submodule_remove(self, module_path):
+        self.submodule_remove_path = module_path
+        self.send_input_message("Remove submodule {}: ".format(module_path), "submodule_remove", "yes-or-no")
+        
+    def handle_submodule_remove(self):
+        import subprocess
+        import shutil
+        
+        # Remove submodule path and remove submodule section from .gitmodules file.
+        subprocess.Popen("cd {} ; git rm {}".format(self.repo_root, self.submodule_remove_path), 
+                         shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
+
+        # Remove submodule path from .git/modules/ directory.
+        shutil.rmtree(os.path.join(self.repo_root, ".git", "modules", self.submodule_remove_path))
+        
+        # Remove submodule section from .git/config file.
+        get_command_result("cd {} ; git config --remove-section submodule.{}".format(self.repo_root, self.submodule_remove_path))
+        
+        message_to_emacs("Remove submodule {}".format(self.submodule_remove_path))
         
         self.fetch_status_info()
         self.fetch_submodule_info()
