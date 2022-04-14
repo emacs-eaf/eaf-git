@@ -50,6 +50,7 @@ import os
 import json
 import shutil
 import pygit2
+from pygit2._pygit2 import GitError
 
 GIT_STATUS_DICT = {
     GIT_STATUS_CURRENT: "Current",
@@ -146,25 +147,32 @@ class AppBuffer(BrowserBuffer):
         self.fetch_branch_threads = []
         self.fetch_pull_threads = []
         self.fetch_unpush_threads = []
-        
+
         self.git_push_threads = []
-        
+
         self.add_submodule_threads = []
-        
+
         self.log_compare_branch = ""
 
         self.url = os.path.expanduser(self.url)
         self.repo = Repository(self.url)
         self.repo_root = self.url
-            
+
         self.repo_path = os.path.sep.join(list(filter(lambda x: x != '', self.repo_root.split(os.path.sep)))[-2:])
 
-        self.last_commit_id = str(self.repo.head.target)[:7]
-        self.last_commit = self.repo.revparse_single(str(self.repo.head.target))
-        self.last_commit_message = self.last_commit.message.splitlines()[0]
-        
+        self.last_commit = None
+        self.last_commit_id = ""
+        self.last_commit_message = ""
+
+        if self.repo.head_is_unborn:
+            message_to_emacs("There is no commit yet")
+        else:
+            self.last_commit_id = str(self.repo.head.target)[:7]
+            self.last_commit = self.repo.revparse_single(str(self.repo.head.target))
+            self.last_commit_message = self.last_commit.message.splitlines()[0]
+
         self.load_index_html(__file__)
-        
+
     def init_app(self):
         self.init_vars()
         self.update_git_info()
@@ -258,6 +266,7 @@ class AppBuffer(BrowserBuffer):
         )))
 
     def fetch_log_info(self):
+        if self.repo.head_is_unborn: return
         thread = FetchLogThread(self.repo, self.repo.head, True)
         thread.fetch_result.connect(self.update_log_info)
         self.fetch_log_threads.append(thread)
@@ -423,24 +432,24 @@ class AppBuffer(BrowserBuffer):
             self.handle_submodule_update()
         elif callback_tag == "submodule_rollback":
             self.handle_submodule_rollback()
-            
+
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
         if callback_tag == "search_log":
             self.buffer_widget.eval_js('''searchLogsCancel()''')
-            
+
     def handle_copy_changes_file_to_mirror(self, target_repo_dir):
-        current_repo_last_commint_id = str(self.repo.head.target)
+        current_repo_last_commint_id = self.last_commit_id
         target_repo_last_commint_id = str(Repository(target_repo_dir).head.target)
-        
+
         if target_repo_last_commint_id == current_repo_last_commint_id:
             status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
             files = list(map(lambda info: info[0], status))
-            
+
             for file in files:
                 shutil.copy(os.path.join(self.repo_root, file), os.path.join(target_repo_dir, file))
-                
-            message_to_emacs("Copy {} files to {}".format(len(files), os.path.join(target_repo_dir)))    
+
+            message_to_emacs("Copy {} files to {}".format(len(files), os.path.join(target_repo_dir)))
         else:
             message_to_emacs("{} last commit is not same as current repo, stop copy files.".format(target_repo_dir))
 
@@ -1031,19 +1040,20 @@ class AppBuffer(BrowserBuffer):
     @QtCore.pyqtSlot(list)
     def vue_update_branch_status(self, branch_status):
         self.branch_status = branch_status
-        
+
     @QtCore.pyqtSlot(str)
     def vue_update_nav_current_item(self, nav_current_item):
         self.nav_current_item = nav_current_item
-        
+
     @QtCore.pyqtSlot()
     def status_pull(self):
-        message_to_emacs("Git pull {}...".format(self.repo.head.name))
+        if not self.repo.head_is_unborn:
+            message_to_emacs("Git pull {}...".format(self.repo.head.name))
         thread = GitPullThread(self.repo_root)
         thread.pull_result.connect(self.handle_stash_pull)
         self.fetch_pull_threads.append(thread)
         thread.start()
-        
+
     def handle_stash_pull(self, message):
         self.fetch_log_info()
         message_to_emacs(message)
@@ -1166,55 +1176,56 @@ class AppBuffer(BrowserBuffer):
                 "foregroundColor": "",
                 "backgroundColor": ""
             })
-            
+
             self.repo.branches.local.create(branch_name, self.repo.revparse_single('HEAD'))
             self.update_branch_list(branch_list)
-            
+
             message_to_emacs("Create branch '{}'.".format(branch_name))
-            
+
     @QtCore.pyqtSlot(list)
     def branch_delete(self, branch):
         self.delete_branch = branch[0]
         self.send_input_message("Delete branch '{}': ".format(self.delete_branch["name"]), "delete_branch", "yes-or-no")
-        
+
     def handle_delete_branch(self):
         branch_list = self.branch_status
-        
+
         for branch in branch_list:
             if branch["name"] == self.delete_branch["name"]:
                 branch_list.remove(branch)
                 break
-            
+
         self.repo.branches.local.delete(self.delete_branch["name"])
-        
+
         self.update_branch_list(branch_list)
-        
+
         message_to_emacs("Delete branch '{}'".format(self.delete_branch["name"]))
-        
+
     def update_branch_list(self, branch_list):
-        self.buffer_widget.eval_js('''updateBranchInfo(\"{}\", {})'''.format(self.repo.head.shorthand, json.dumps(branch_list)))
-        
+        if not self.repo.head_is_unborn:
+            self.buffer_widget.eval_js('''updateBranchInfo(\"{}\", {})'''.format(self.repo.head.shorthand, json.dumps(branch_list)))
+
     @QtCore.pyqtSlot(list)
     def branch_switch(self, branch):
         # Tips
-        # When switch the branch, the uncommitted changes will be copied over to the new branch. 
-        # However you cannot pull/fetch/rebase, unless you stash or commit. 
+        # When switch the branch, the uncommitted changes will be copied over to the new branch.
+        # However you cannot pull/fetch/rebase, unless you stash or commit.
         # Because Git will prevent that to stop from overwriting any uncommitted code.
         branch_name = branch[0]["name"]
         self.git_checkout_branch(branch_name)
-        
+
         self.update_git_info()
-        
+
         message_to_emacs("Switch to branch '{}'".format(branch_name))
-        
+
     @QtCore.pyqtSlot(str)
     def submodule_view(self, module_path):
         eval_in_emacs('eaf-open-in-file-manager', [os.path.join(self.repo_root, module_path)])
-        
+
     @QtCore.pyqtSlot()
     def submodule_add(self):
         self.send_input_message("Add submodule url: ", "submodule_add_url")
-        
+
     def handle_submodule_add_url(self, url):
         self.submodule_add_url = url
         self.send_input_message("Set submodule path: ", "submodule_add_path", "directory", self.repo_root)
@@ -1560,6 +1571,6 @@ class FetchUnpushThread(QThread):
         self.repo_root = repo_root
 
     def run(self):
+        if self.repo.head_is_unborn: return
         result = get_command_result("cd {}; git log origin/{}..HEAD".format(self.repo_root, self.repo.head.shorthand)).strip()
-        self.fetch_result.emit(result)         
-        
+        self.fetch_result.emit(result)
