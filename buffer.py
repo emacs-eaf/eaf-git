@@ -68,6 +68,14 @@ GIT_STATUS_DICT = {
     GIT_STATUS_CONFLICTED: "Conflicted"
 }
 
+GIT_STATUS_INDEX_CHANGES = [
+    GIT_STATUS_INDEX_NEW,
+    GIT_STATUS_INDEX_MODIFIED,
+    GIT_STATUS_INDEX_DELETED,
+    GIT_STATUS_INDEX_RENAMED,
+    GIT_STATUS_INDEX_TYPECHANGE,
+]
+
 def pretty_date(time=False):
     """
     Get a datetime object or a int() Epoch timestamp and return a
@@ -1504,7 +1512,7 @@ class FetchStatusThread(QThread):
             "type": GIT_STATUS_DICT[type_key]
         }
         
-        if type_key in [GIT_STATUS_INDEX_MODIFIED, GIT_STATUS_INDEX_DELETED, GIT_STATUS_INDEX_RENAMED, GIT_STATUS_INDEX_TYPECHANGE]:
+        if type_key in GIT_STATUS_INDEX_CHANGES:
             if status not in stage_status:
                 stage_status.append(status)
         elif type_key in [GIT_STATUS_WT_NEW]:
