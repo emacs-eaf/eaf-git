@@ -121,10 +121,9 @@ def pretty_date(time=False):
 
 def get_command_result(command_string):
     import subprocess
-        
     process = subprocess.Popen(command_string, shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    process.wait()
-    return "".join(process.stdout.readlines())
+    ret = process.wait()
+    return "".join((process.stdout if ret == 0 else process.stderr).readlines())
 
 class AppBuffer(BrowserBuffer):
     def __init__(self, buffer_id, url, arguments):
