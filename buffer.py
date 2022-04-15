@@ -171,6 +171,8 @@ class AppBuffer(BrowserBuffer):
             self.last_commit = self.repo.revparse_single(str(self.repo.head.target))
             self.last_commit_message = self.last_commit.message.splitlines()[0]
 
+        self.highlight_style = "monokai"
+
         self.load_index_html(__file__)
 
     def init_app(self):
@@ -206,6 +208,8 @@ class AppBuffer(BrowserBuffer):
              "font-lock-comment-face",
              "font-lock-string-face",
              "font-lock-negation-char-face"])
+
+        self.highlight_style = get_emacs_var("eaf-git-highlight-style");
 
         self.buffer_widget.eval_js('''init(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", {}, {})'''.format(
             self.theme_background_color, self.theme_foreground_color, select_color, QColor(self.theme_background_color).darker(110).name(),
@@ -614,9 +618,7 @@ class AppBuffer(BrowserBuffer):
         from pygments.lexers import PythonLexer, get_lexer_for_filename, html, guess_lexer
         from pygments.formatters import HtmlFormatter
 
-        style_name = "monokai" if self.theme_mode == "dark" else "stata-light"
-
-        return highlight(content, guess_lexer(content), HtmlFormatter(full=True, style=style_name))
+        return highlight(content, guess_lexer(content), HtmlFormatter(full=True, style=self.highlight_style))
 
     @QtCore.pyqtSlot(str, str)
     def update_diff(self, type, file):
