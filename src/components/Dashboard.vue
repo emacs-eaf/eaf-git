@@ -1,7 +1,7 @@
 <template>
   <div class="box">
     <Dialog
-      v-if="noFileSubmit"
+      v-if="isCleanWorkspace"
       title="Welcome">
       <div class="clean-workspace">
         No file need submitted, clean workspace.
@@ -14,7 +14,9 @@
         <Dialog
           class="flex-expand"
           title="Commit">
-          <div class="changed-count">
+          <div
+            v-if="noFileChanged"
+            class="changed-count">
             {{ changedCount }}
           </div>
           <div v-if="untrackFileNumber() > 0">
@@ -213,8 +215,12 @@
        return this.diffs;
      },
 
-     noFileSubmit() {
+     isCleanWorkspace() {
        return this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber() + this.stashInfo.length === 0 && this.unpushInfo === "";
+     },
+
+     noFileChanged() {
+       return this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber() !== 0;
      },
      
      changedCount() {
