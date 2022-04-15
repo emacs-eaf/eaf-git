@@ -13,7 +13,7 @@
       <div
         class="repo-info"
         :style="{ 'color': infoColor }">
-        {{ repoPath }} ({{ repoHeadName }}) {{ repoLastCommitId }} {{ repoLastCommitMessage }}
+        {{ repoPath }} ({{ repoHeadName }}) {{ repoLastCommitId.slice(0, 7) }} {{ repoLastCommitMessage }}
       </div>
     </div>
     <div
@@ -110,6 +110,8 @@
  import Branch from "./Branch.vue"
  import Stash from "./Stash.vue"
  import Patch from "./Patch.vue"
+ 
+ import { updateListItemBackground, updateListItemMatchColor, updateListIndex } from "./utils.js"
 
  export default {
    name: 'Main',
@@ -128,7 +130,7 @@
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
          if (this.branchInfo.length > 0) {
-           this.updateBranchItemBackground(oldVal, val);
+           updateListItemBackground(this.branchInfo, oldVal, val);
          }
        }
      },
@@ -136,7 +138,7 @@
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
          if (this.logInfo.length > 0) {
-           this.updateLogItemBackground(oldVal, val);
+           updateListItemBackground(this.logInfo, oldVal, val);
          }
        }
      },
@@ -144,7 +146,7 @@
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
          if (this.logInfo.length > 0) {
-           this.updateLogItemMatchColor(oldVal, val);
+           updateListItemMatchColor(this.logInfo, oldVal, val);
          }
        }
      },
@@ -152,7 +154,7 @@
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
          if (this.submoduleInfo.length > 0) {
-           this.updateSubmoduleItemBackground(oldVal, val);
+           updateListItemBackground(this.submoduleInfo, oldVal, val);
          }
        }
      },
@@ -765,23 +767,11 @@
      },
 
      updateLogIndex(index) {
-       if (index >= this.logInfo.length) {
-         this.currentLogIndex = this.logInfo.length - 1;
-       } else if (index <= 0) {
-         this.currentLogIndex = 0;
-       } else {
-         this.currentLogIndex = index;
-       }
+       this.currentLogIndex = updateListIndex(this.logInfo, index);
      },
 
      updateSubmoduleIndex(index) {
-       if (index >= this.submoduleInfo.length) {
-         this.currentSubmoduleIndex = this.submoduleInfo.length - 1;
-       } else if (index <= 0) {
-         this.currentSubmoduleIndex = 0;
-       } else {
-         this.currentSubmoduleIndex = index;
-       }
+       this.currentSubmoduleIndex = updateListIndex(this.submoduleInfo, index);
      },
 
      stashSelectNext() {
@@ -824,46 +814,6 @@
        for (var i=0; i < this.logInfo.length; i++) {
          this.logInfo[i].foregroundColor = "";
          this.logInfo[i].marked = "";
-       }
-     },
-
-     updateBranchItemBackground(oldIndex, newIndex) {
-       if (oldIndex !== null && oldIndex >= 0) {
-         this.branchInfo[oldIndex].backgroundColor = this.backgroundColor;
-       }
-
-       if (newIndex !== null && newIndex >= 0) {
-         this.branchInfo[newIndex].backgroundColor = this.selectColor;
-       }
-     },
-
-     updateLogItemBackground(oldIndex, newIndex) {
-       if (oldIndex !== null && oldIndex >= 0) {
-         this.logInfo[oldIndex].backgroundColor = this.backgroundColor;
-       }
-
-       if (newIndex !== null && newIndex >= 0) {
-         this.logInfo[newIndex].backgroundColor = this.selectColor;
-       }
-     },
-
-     updateLogItemMatchColor(oldIndex, newIndex) {
-       if (oldIndex !== null && oldIndex >= 0) {
-         this.logInfo[oldIndex].foregroundColor = "";
-       }
-
-       if (newIndex !== null && newIndex >= 0) {
-         this.logInfo[newIndex].foregroundColor = this.matchColor;
-       }
-     },
-
-     updateSubmoduleItemBackground(oldIndex, newIndex) {
-       if (oldIndex !== null && oldIndex >= 0) {
-         this.submoduleInfo[oldIndex].backgroundColor = this.backgroundColor;
-       }
-
-       if (newIndex !== null && newIndex >= 0) {
-         this.submoduleInfo[newIndex].backgroundColor = this.selectColor;
        }
      },
    }

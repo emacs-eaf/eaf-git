@@ -36,6 +36,8 @@
  import LogItem from './LogItem'
  import CompareLogItem from './CompareLogItem'
  import VirtualList from 'vue-virtual-scroll-list'
+ 
+ import { keepSelectVisible, getListPageElementNumber } from "./utils.js"
 
  export default {
    name: 'Log',
@@ -74,7 +76,7 @@
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
          if (this.logInfo.length > 0) {
-           this.keepSelectVisible();
+           this.keepSelectVisible(this.$refs.loglist, val);
          }
        }
      },
@@ -102,8 +104,6 @@
    },
    mounted() {
      var that = this;
-
-     this.refreshSceenElementNumber();
 
      this.$root.$on("logViewDiff", function () {
        that.logViewDiff();
@@ -177,21 +177,11 @@
      },
 
      logSelectPgUp() {
-       this.refreshSceenElementNumber()
-       this.$emit("updateLogIndex", this.currentLogIndex - this.currentPageElementNum);
+       this.$emit("updateLogIndex", this.currentLogIndex - getListPageElementNumber(this.$refs.loglist));
      },
 
      logSelectPgDn() {
-       this.refreshSceenElementNumber()
-       this.$emit("updateLogIndex", this.currentLogIndex + this.currentPageElementNum);
-     },
-
-     refreshSceenElementNumber() {
-       var loglist = this.$refs.loglist;
-       var itemHeight = loglist.getSize(0);
-       var viewHeight = loglist.getClientSize();
-
-       this.currentPageElementNum = Math.floor(viewHeight / itemHeight);
+       this.$emit("updateLogIndex", this.currentLogIndex + getListPageElementNumber(this.$refs.loglist));
      },
 
      logCherryPick() {
@@ -201,20 +191,6 @@
        }
 
        this.pyobject.log_cherry_pick(pickList);
-     },
-
-     keepSelectVisible() {
-       var loglist = this.$refs.loglist;
-       var itemHeight = loglist.getSize(0);
-       var currentOffsetY = itemHeight * this.currentLogIndex;
-       var viewHeight = loglist.getClientSize();
-       var offset = loglist.getOffset();
-
-       if (currentOffsetY + itemHeight > offset + viewHeight) {
-         loglist.scrollToOffset(currentOffsetY - viewHeight + itemHeight);
-       } else if (currentOffsetY < offset) {
-         loglist.scrollToOffset(currentOffsetY);
-       }
      },
    }
  }

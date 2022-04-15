@@ -18,6 +18,8 @@
  import BranchItem from './BranchItem'
  import VirtualList from 'vue-virtual-scroll-list'
 
+ import { keepSelectVisible } from "./utils.js"
+ 
  export default {
    name: 'Branch',
    components: {
@@ -37,7 +39,7 @@
        // eslint-disable-next-line no-unused-vars
        handler: function (val, oldVal) {
          this.selectBranch = this.branchInfo[this.selectBranchIndex];
-         this.keepSelectVisible();
+         this.keepSelectVisible(this.$refs.branchlist, val);
        },
        deep: true
      }
@@ -71,19 +73,6 @@
      this.$root.$off("branchSwitch");
    },
    methods: {
-     keepSelectVisible() {
-       var branchlist = this.$refs.branchlist;
-       var itemHeight = branchlist.getSize(0);
-       var currentOffsetY = itemHeight * this.selectBranchIndex;
-       var viewHeight = branchlist.getClientSize();
-       var offset = branchlist.getOffset();
-
-       if (currentOffsetY + itemHeight > offset + viewHeight) {
-         branchlist.scrollToOffset(currentOffsetY - viewHeight + itemHeight);
-       } else if (currentOffsetY < offset) {
-         branchlist.scrollToOffset(currentOffsetY);
-       }
-     },
    }
  }
 </script>

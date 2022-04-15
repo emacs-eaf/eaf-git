@@ -25,6 +25,8 @@
  import SubmoduleItem from './SubmoduleItem'
  import VirtualList from 'vue-virtual-scroll-list'
 
+ import { keepSelectVisible, getListPageElementNumber } from "./utils.js"
+ 
  export default {
    name: 'Submodule',
    components: {
@@ -54,7 +56,7 @@
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
          if (this.submoduleInfo.length > 0) {
-           this.keepSelectVisible();
+           keepSelectVisible(this.$refs.submodulelist, val);
          }
        }
      },
@@ -101,36 +103,12 @@
      this.$root.$off("submoduleSelectPgDn");
    },
    methods: {
-     keepSelectVisible() {
-       var submodulelist = this.$refs.submodulelist;
-       var itemHeight = submodulelist.getSize(0);
-       var currentOffsetY = itemHeight * this.currentSubmoduleIndex;
-       var viewHeight = submodulelist.getClientSize();
-       var offset = submodulelist.getOffset();
-
-       if (currentOffsetY + itemHeight > offset + viewHeight) {
-         submodulelist.scrollToOffset(currentOffsetY - viewHeight + itemHeight);
-       } else if (currentOffsetY < offset) {
-         submodulelist.scrollToOffset(currentOffsetY);
-       }
-     },
-     
      submoduleSelectPgUp() {
-       this.refreshSceenElementNumber()
-       this.$emit("updateSubmoduleIndex", this.currentSubmoduleIndex - this.currentPageElementNum);
+       this.$emit("updateSubmoduleIndex", this.currentSubmoduleIndex - getListPageElementNumber(this.$refs.submodulelist));
      },
 
      submoduleSelectPgDn() {
-       this.refreshSceenElementNumber()
-       this.$emit("updateSubmoduleIndex", this.currentSubmoduleIndex + this.currentPageElementNum);
-     },
-
-     refreshSceenElementNumber() {
-       var submodulelist = this.$refs.submodulelist;
-       var itemHeight = submodulelist.getSize(0);
-       var viewHeight = submodulelist.getClientSize();
-
-       this.currentPageElementNum = Math.floor(viewHeight / itemHeight);
+       this.$emit("updateSubmoduleIndex", this.currentSubmoduleIndex + getListPageElementNumber(this.$refs.submodulelist));
      },
    }
  }

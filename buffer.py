@@ -167,7 +167,7 @@ class AppBuffer(BrowserBuffer):
         if self.repo.head_is_unborn:
             message_to_emacs("There is no commit yet")
         else:
-            self.last_commit_id = str(self.repo.head.target)[:7]
+            self.last_commit_id = str(self.repo.head.target)
             self.last_commit = self.repo.revparse_single(str(self.repo.head.target))
             self.last_commit_message = self.last_commit.message.splitlines()[0]
 
@@ -447,7 +447,7 @@ class AppBuffer(BrowserBuffer):
     def handle_copy_changes_file_to_mirror(self, target_repo_dir):
         current_repo_last_commint_id = self.last_commit_id
         target_repo_last_commint_id = str(Repository(target_repo_dir).head.target)
-
+        
         if target_repo_last_commint_id == current_repo_last_commint_id:
             status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
             files = list(map(lambda info: info[0], status))
