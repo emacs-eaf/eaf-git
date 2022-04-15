@@ -113,16 +113,16 @@
         </Dialog>
       </div>
 
-      <Dialog
-        class="flex-expand"
-        title="Preview"
-        hasScrollChild="true">
-        <div
-          class="status-preview-area"
-          v-html="prettyHtml"
-        >
-        </div>
-      </Dialog>
+      <div class="status-right-panel">
+        <Dialog
+          title="Preview"
+          hasScrollChild="true">
+          <div
+            class="status-preview-area"
+            v-html="prettyHtml">
+          </div>
+        </Dialog>
+      </div>
     </div>
   </div>
 </template>
@@ -178,7 +178,7 @@
      prettyHtml() {
        return this.diffs;
      },
-     
+
      noFileSubmit() {
        return this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber() + this.stashInfo.length === 0 && this.unpushInfo === "";
      }
@@ -392,6 +392,12 @@
    height: 100%;
  }
 
+ .status-right-panel {
+   width: 70%;
+   max-height: calc(100vh - 110px);
+   height: 100%;
+ }
+
  .flex-expand {
    flex: 1;
  }
@@ -428,11 +434,13 @@
    white-space: pre-wrap;
    font-size: 16px;
 
-   max-height: calc(100vh - 150px);
-
    overflow-y: scroll;
 
-   display: inline-table;
+   display: flex;
+ }
+
+ .status-preview-area ::v-deep pre {
+   width: 1;
  }
 
  .split-line {

@@ -138,6 +138,7 @@ class AppBuffer(BrowserBuffer):
         self.nav_current_item = "Dashboard"
 
         self.search_log_cache_path = ""
+        self.search_submodule_cache_path = ""
 
         self.fetch_status_threads = []
         self.fetch_log_threads = []
@@ -315,7 +316,11 @@ class AppBuffer(BrowserBuffer):
         thread.start()
 
     @PostGui()
-    def update_submodule_info(self, submodule):
+    def update_submodule_info(self, submodule, search_cache_path):
+        if self.search_submodule_cache_path != "" and os.path.exists(self.search_submodule_cache_path):
+            os.remove(self.search_submodule_cache_path)
+
+        self.search_submodule_cache_path = search_cache_path
         self.buffer_widget.eval_js('''updateSubmoduleInfo({})'''.format(json.dumps(submodule)))
 
     def fetch_branch_info(self):
@@ -333,7 +338,18 @@ class AppBuffer(BrowserBuffer):
         if self.nav_current_item == "Log":
             self.search_log_count = 0
             self.send_input_message("Search log: ", "search_log", "search")
+        elif self.nav_current_item == "Submodule":
+            self.search_submodule_count = 0
+            self.send_input_message("Search submodule: ", "search_submodule", "search")
 
+    def search_match_lines(self, search_string, cache_file_path):
+        import subprocess
+
+        command = "rg '{}' {} --color='never' --line-number --smart-case -o --replace=''".format(search_string, cache_file_path)
+        result = subprocess.run(command, shell=True, text=True, stdout=subprocess.PIPE)
+
+        return list(map(lambda x: int(x[:-1]) - 1, result.stdout.split()))
+            
     def handle_search_log(self, search_string):
         in_minibuffer = get_emacs_func_result("minibufferp", [])
 
@@ -344,29 +360,47 @@ class AppBuffer(BrowserBuffer):
         else:
             self.buffer_widget.eval_js('''searchLogsFinish()''')
 
+    def handle_search_submodule(self, search_string):
+        in_minibuffer = get_emacs_func_result("minibufferp", [])
+
+        if in_minibuffer:
+            self.search_submodule_count += 1
+            count = self.search_submodule_count
+            QTimer().singleShot(300, lambda : self.try_search_submodule(count, search_string))
+        else:
+            self.buffer_widget.eval_js('''searchSubmodulesFinish()''')
+
     def try_search_log(self, count, search_string):
         if count == self.search_log_count and search_string.strip() != "":
             if self.search_log_cache_path and os.path.exists(self.search_log_cache_path):
-                import subprocess
+                self.buffer_widget.eval_js('''searchLogsStart(\"{}\", {});'''.format(
+                    search_string, 
+                    json.dumps(self.search_match_lines(search_string, self.search_log_cache_path))))
 
-                command = "rg '{}' {} --color='never' --line-number --smart-case -o --replace=''".format(search_string, self.search_log_cache_path)
-                result = subprocess.run(command, shell=True, text=True, stdout=subprocess.PIPE)
-
-                match_lines = list(map(lambda x: int(x[:-1]) - 1, result.stdout.split()))
-
-                self.buffer_widget.eval_js('''searchLogsStart(\"{}\", {});'''.format(search_string, json.dumps(match_lines)))
+    def try_search_submodule(self, count, search_string):
+        if count == self.search_submodule_count and search_string.strip() != "":
+            if self.search_submodule_cache_path and os.path.exists(self.search_submodule_cache_path):
+                self.buffer_widget.eval_js('''searchSubmodulesStart(\"{}\", {});'''.format(
+                    search_string, 
+                    json.dumps(self.search_match_lines(search_string, self.search_submodule_cache_path))))
 
     def handle_search_forward(self, callback_tag):
         if callback_tag == "search_log":
             self.buffer_widget.eval_js('''searchLogsJumpNext();''')
+        elif callback_tag == "search_submodule":
+            self.buffer_widget.eval_js('''searchSubmodulesJumpNext();''')
 
     def handle_search_backward(self, callback_tag):
         if callback_tag == "search_log":
             self.buffer_widget.eval_js('''searchLogsJumpPrev();''')
+        elif callback_tag == "search_submodule":
+            self.buffer_widget.eval_js('''searchSubmodulesJumpPrev();''')
 
     def handle_search_finish(self, callback_tag):
         if callback_tag == "search_log":
             self.buffer_widget.eval_js('''searchLogsFinish()''')
+        elif callback_tag == "search_submodule":
+            self.buffer_widget.eval_js('''searchSubmodulesFinish()''')
 
     @QtCore.pyqtSlot()
     def copy_change_files_to_mirror_repo(self):
@@ -428,6 +462,8 @@ class AppBuffer(BrowserBuffer):
             self.handle_log_rebase_branch(result_content)
         elif callback_tag == "search_log":
             self.handle_search_log(result_content)
+        elif callback_tag == "search_submodule":
+            self.handle_search_submodule(result_content)
         elif callback_tag == "submodule_add_url":
             self.handle_submodule_add_url(result_content)
         elif callback_tag == "submodule_add_path":
@@ -443,6 +479,8 @@ class AppBuffer(BrowserBuffer):
         ''' Cancel input message.'''
         if callback_tag == "search_log":
             self.buffer_widget.eval_js('''searchLogsCancel()''')
+        elif callback_tag == "search_submodule":
+            self.buffer_widget.eval_js('''searchSubmodulesCancel()''')
 
     def handle_copy_changes_file_to_mirror(self, target_repo_dir):
         current_repo_last_commint_id = self.last_commit_id
@@ -1428,7 +1466,7 @@ class FetchStashThread(QThread):
 
 class FetchSubmoduleThread(QThread):
 
-    fetch_result = QtCore.pyqtSignal(list)
+    fetch_result = QtCore.pyqtSignal(list, str)
 
     def __init__(self, repo):
         QThread.__init__(self)
@@ -1440,20 +1478,30 @@ class FetchSubmoduleThread(QThread):
         submodule_infos = []
         submodule_names = self.repo.listall_submodules()
 
+        import tempfile
+        cache_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
+        cache_file_path = cache_file.name
+        
+        cache_lines = []
+        
         for submodule_name in submodule_names:
             submodule = self.repo.lookup_submodule(submodule_name)
+            head_id = submodule.head_id.__str__()
 
             submodule_infos.append({
                 "index": index,
                 "name": submodule_name,
-                "head_id": submodule.head_id.__str__(),
+                "head_id": head_id,
                 "foregroundColor": "",
                 "backgroundColor": ""
             })
+            
+            cache_lines.append("{} {}\n".format(id, submodule_name, head_id))
 
             index += 1
 
-        self.fetch_result.emit(submodule_infos)
+        cache_file.writelines(cache_lines)
+        self.fetch_result.emit(submodule_infos, cache_file_path)
 
 class FetchBranchThread(QThread):
 

@@ -58,7 +58,6 @@
      markColor: String,
      matchColor: String,
      currentLogIndex: Number,
-     searchLogMatchIndex: Number,
      searchLogKeyword: String,
      searchLogMatchNumber: Number,
      searchLogIndex: Number,

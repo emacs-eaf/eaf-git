@@ -39,7 +39,6 @@
         v-if="navCurrentItem == 'Log'"
         :pyobject="pyobject"
         :currentLogIndex="currentLogIndex"
-        :searchLogMatchIndex="searchLogMatchIndex"
         :logBranch="logBranch"
         :logInfo="logInfo"
         :compareLogBranch="compareLogBranch"
@@ -62,6 +61,9 @@
         :currentSubmoduleIndex="currentSubmoduleIndex"
         :backgroundColor="backgroundColor"
         :selectColor="selectColor"
+        :searchSubmoduleKeyword="searchSubmoduleKeyword"
+        :searchSubmoduleMatchNumber="searchSubmoduleMatchNumber"
+        :searchSubmoduleIndex="searchSubmoduleIndex"
         v-on:updateSubmoduleIndex="updateSubmoduleIndex"/>
       <Branch
         v-if="navCurrentItem == 'Branch'"
@@ -147,6 +149,14 @@
        handler: function(val, oldVal) {
          if (this.logInfo.length > 0) {
            updateListItemMatchColor(this.logInfo, oldVal, val, this.matchColor);
+         }
+       }
+     },
+     searchSubmoduleMatchIndex: {
+       // eslint-disable-next-line no-unused-vars
+       handler: function(val, oldVal) {
+         if (this.submoduleInfo.length > 0) {
+           updateListItemMatchColor(this.submoduleInfo, oldVal, val, this.matchColor);
          }
        }
      },
@@ -239,7 +249,12 @@
        searchLogIndex: 0,
        searchLogMatchIndex: null,
        searchLogKeyword: "",
-       searchLogNotify: "",
+       searchSubmoduleMatchIndexes: [],
+       searchSubmoduleMatchNumber: 0,
+       searchSubmoduleStartIndex: -1,
+       searchSubmoduleIndex: 0,
+       searchSubmoduleMatchIndex: null,
+       searchSubmoduleKeyword: "",
        compareLogBranch: "",
        compareLogInfo: [],
        stashInfo: [],
@@ -269,6 +284,11 @@
      window.searchLogsCancel = this.searchLogsCancel;
      window.searchLogsJumpNext = this.searchLogsJumpNext;
      window.searchLogsJumpPrev = this.searchLogsJumpPrev;
+     window.searchSubmodulesStart = this.searchSubmodulesStart;
+     window.searchSubmodulesFinish = this.searchSubmodulesFinish;
+     window.searchSubmodulesCancel = this.searchSubmodulesCancel;
+     window.searchSubmodulesJumpNext = this.searchSubmodulesJumpNext;
+     window.searchSubmodulesJumpPrev = this.searchSubmodulesJumpPrev;
 
      if (this.untrackStatusInfo) {
        this.selectItemType = "untrack";
@@ -624,6 +644,63 @@
        this.searchLogMatchIndex = null;
      },
 
+     searchSubmodulesStart(keyword, matchIndexes) {
+       if (this.searchSubmoduleStartIndex == -1) {
+         this.searchSubmoduleStartIndex = this.currentSubmoduleIndex;
+       }
+
+       this.searchSubmoduleKeyword = keyword;
+       this.searchSubmoduleIndex = 0;
+
+       this.searchSubmoduleMatchIndexes = matchIndexes;
+       this.searchSubmoduleMatchNumber = this.searchSubmoduleMatchIndexes.length;
+
+       this.currentSubmoduleIndex = this.searchSubmoduleMatchIndexes[0];
+       this.searchSubmoduleMatchIndex = this.currentSubmoduleIndex;
+     },
+
+     searchSubmodulesJumpNext() {
+       if (this.searchSubmoduleIndex >= this.searchSubmoduleMatchNumber - 1) {
+         this.searchSubmoduleIndex = 0;
+       } else {
+         this.searchSubmoduleIndex++;
+       }
+
+       this.currentSubmoduleIndex = this.searchSubmoduleMatchIndexes[this.searchSubmoduleIndex];
+       this.searchSubmoduleMatchIndex = this.currentSubmoduleIndex;
+     },
+
+     searchSubmodulesJumpPrev() {
+       if (this.searchSubmoduleIndex <= 0) {
+         this.searchSubmoduleIndex = this.searchSubmoduleMatchNumber - 1;
+       } else {
+         this.searchSubmoduleIndex--;
+       }
+
+       this.currentSubmoduleIndex = this.searchSubmoduleMatchIndexes[this.searchSubmoduleIndex];
+       this.searchSubmoduleMatchIndex = this.currentSubmoduleIndex;
+     },
+
+     searchSubmodulesFinish() {
+       this.searchSubmoduleStartIndex = -1;
+       this.searchSubmoduleKeyword = "";
+       this.searchSubmoduleIndex = 0;
+       this.searchSubmoduleMatchIndexes = [];
+       this.searchSubmoduleMatchNumber = 0;
+       this.searchSubmoduleMatchIndex = null;
+     },
+
+     searchSubmodulesCancel() {
+       this.currentSubmoduleIndex = this.searchSubmoduleStartIndex;
+
+       this.searchSubmoduleStartIndex = -1;
+       this.searchSubmoduleKeyword = "";
+       this.searchSubmoduleIndex = 0;
+       this.searchSubmoduleMatchIndexes = [];
+       this.searchSubmoduleMatchNumber = 0;
+       this.searchSubmoduleMatchIndex = null;
+     },
+     
      statusSelectNext() {
        var oldSelectItemType = this.selectItemType;
        var oldSelectItemIndex = this.selectItemIndex;
@@ -869,7 +946,6 @@
  .help-area {
    display: flex;
    flex-direction: row;
-   flex-wrap: wrap;
    align-items: center;
 
    overflow-x: scroll;

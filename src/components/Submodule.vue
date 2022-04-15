@@ -1,6 +1,6 @@
 <template>
   <div class="box">
-    <Dialog 
+    <Dialog
       :title="dialogTitle">
       <virtual-list
         v-if="submoduleInfo.length > 0"
@@ -26,7 +26,7 @@
  import VirtualList from 'vue-virtual-scroll-list'
 
  import { keepSelectVisible, getListPageElementNumber } from "./utils.js"
- 
+
  export default {
    name: 'Submodule',
    components: {
@@ -38,6 +38,9 @@
      backgroundColor: String,
      selectColor: String,
      currentSubmoduleIndex: Number,
+     searchSubmoduleKeyword: String,
+     searchSubmoduleMatchNumber: Number,
+     searchSubmoduleIndex: Number,
      pyobject: Object
    },
    data() {
@@ -48,7 +51,11 @@
    },
    computed: {
      dialogTitle() {
-       return "Submodule (" + this.submoduleInfo.length + ")";
+       if (this.searchSubmoduleKeyword != "") {
+         return "Submodule (" + this.submoduleInfo.length + ") [ Search '" + this.searchSubmoduleKeyword + "' " + (this.searchSubmoduleIndex + 1) + "/" + this.searchSubmoduleMatchNumber + " ]";
+       } else {
+         return "Submodule (" + this.submoduleInfo.length + ")";
+       }
      }
    },
    watch: {
@@ -63,11 +70,11 @@
    },
    mounted() {
      var that = this;
-     
+
      this.$root.$on("submoduleView", function () {
        that.pyobject.submodule_view(that.submoduleInfo[that.currentSubmoduleIndex].name);
      });
-     
+
      this.$root.$on("submoduleAdd", function () {
        that.pyobject.submodule_add();
      });
@@ -84,7 +91,7 @@
        that.pyobject.submodule_rollback(that.submoduleInfo[that.currentSubmoduleIndex].name,
                                         that.submoduleInfo[that.currentSubmoduleIndex].head_id);
      });
-     
+
      this.$root.$on("submoduleSelectPgUp", function () {
        that.submoduleSelectPgUp();
      });
