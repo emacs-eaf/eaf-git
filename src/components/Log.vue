@@ -76,7 +76,7 @@
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
          if (this.logInfo.length > 0) {
-           this.keepSelectVisible(this.$refs.loglist, val);
+           keepSelectVisible(this.$refs.loglist, val);
          }
        }
      },

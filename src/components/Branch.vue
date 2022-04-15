@@ -39,7 +39,7 @@
        // eslint-disable-next-line no-unused-vars
        handler: function (val, oldVal) {
          this.selectBranch = this.branchInfo[this.selectBranchIndex];
-         this.keepSelectVisible(this.$refs.branchlist, val);
+         keepSelectVisible(this.$refs.branchlist, val);
        },
        deep: true
      }
