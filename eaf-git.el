@@ -211,10 +211,6 @@ will be added if not present."
   :type '(choice (const :tag "Hide" t)
                  (const :tag "Show" nil)))
 
-(defcustom eaf-git-highlight-style "monokai"
-  "The default syntax highlight style."
-  :type 'string)
-
 (defcustom eaf-git-light-highlight-style "stata-light"
   "The default light syntax highlight style."
   :type 'string)
