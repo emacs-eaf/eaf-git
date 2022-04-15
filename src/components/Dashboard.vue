@@ -13,7 +13,7 @@
       <div class="status-left-panel">
         <Dialog
           class="flex-expand"
-          title="Commit">
+          title="Status">
           <div
             v-if="noFileChanged"
             class="changed-count">
