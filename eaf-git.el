@@ -215,6 +215,14 @@ will be added if not present."
   "The default syntax highlight style."
   :type 'string)
 
+(defcustom eaf-git-light-highlight-style "stata-light"
+  "The default light syntax highlight style."
+  :type 'string)
+
+(defcustom eaf-git-dark-highlight-style "monokai"
+  "The default dark syntax highlight style."
+  :type 'string)
+
 (add-to-list 'eaf-app-binding-alist '("git" . eaf-git-keybinding))
 
 (setq eaf-git-module-path (concat (file-name-directory load-file-name) "buffer.py"))
