@@ -193,11 +193,15 @@ class AppBuffer(BrowserBuffer):
                 select_color = "#333333"
             else:
                 select_color = QColor(self.theme_background_color).darker(120).name()
+
+            self.highlight_style = get_emacs_var("eaf-git-dark-highlight-style")
         else:
             if self.theme_background_color == "#FFFFFF":
                 select_color = "#EEEEEE"
             else:
                 select_color = QColor(self.theme_background_color).darker(110).name()
+
+            self.highlight_style = get_emacs_var("eaf-git-light-highlight-style")
 
         (text_color, nav_item_color, info_color, date_color, id_color, match_color, author_color) = get_emacs_func_result(
             "get-emacs-face-foregrounds",
@@ -208,8 +212,6 @@ class AppBuffer(BrowserBuffer):
              "font-lock-comment-face",
              "font-lock-string-face",
              "font-lock-negation-char-face"])
-
-        self.highlight_style = get_emacs_var("eaf-git-highlight-style");
 
         self.buffer_widget.eval_js('''init(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", {}, {})'''.format(
             self.theme_background_color, self.theme_foreground_color, select_color, QColor(self.theme_background_color).darker(110).name(),
