@@ -130,7 +130,7 @@
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
          if (this.branchInfo.length > 0) {
-           updateListItemBackground(this.branchInfo, oldVal, val);
+           updateListItemBackground(this.branchInfo, oldVal, val, this.backgroundColor, this.selectColor);
          }
        }
      },
@@ -138,7 +138,7 @@
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
          if (this.logInfo.length > 0) {
-           updateListItemBackground(this.logInfo, oldVal, val);
+           updateListItemBackground(this.logInfo, oldVal, val, this.backgroundColor, this.selectColor);
          }
        }
      },
@@ -146,7 +146,7 @@
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
          if (this.logInfo.length > 0) {
-           updateListItemMatchColor(this.logInfo, oldVal, val);
+           updateListItemMatchColor(this.logInfo, oldVal, val, this.matchColor);
          }
        }
      },
@@ -154,7 +154,7 @@
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
          if (this.submoduleInfo.length > 0) {
-           updateListItemBackground(this.submoduleInfo, oldVal, val);
+           updateListItemBackground(this.submoduleInfo, oldVal, val, this.backgroundColor, this.selectColor);
          }
        }
      },

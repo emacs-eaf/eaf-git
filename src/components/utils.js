@@ -18,23 +18,23 @@ export function getListPageElementNumber(list) {
   return Math.floor(viewHeight / itemHeight);
 }
 
-export function updateListItemBackground(list, oldIndex, newIndex) {
+export function updateListItemBackground(list, oldIndex, newIndex, backgroundColor, selectColor) {
   if (oldIndex !== null && oldIndex >= 0) {
-    list[oldIndex].backgroundColor = this.backgroundColor;
+    list[oldIndex].backgroundColor = backgroundColor;
   }
 
   if (newIndex !== null && newIndex >= 0) {
-    list[newIndex].backgroundColor = this.selectColor;
+    list[newIndex].backgroundColor = selectColor;
   }
 }
 
-export function updateListItemMatchColor(list, oldIndex, newIndex) {
+export function updateListItemMatchColor(list, oldIndex, newIndex, matchColor) {
   if (oldIndex !== null && oldIndex >= 0) {
     list[oldIndex].foregroundColor = "";
   }
 
   if (newIndex !== null && newIndex >= 0) {
-    list[newIndex].foregroundColor = this.matchColor;
+    list[newIndex].foregroundColor = matchColor;
   }
 }
 
