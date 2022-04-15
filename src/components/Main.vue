@@ -519,6 +519,13 @@
              });
            }
 
+           for (const [key, value] of Object.entries(this.keybindingInfo["Global"])) {
+             description_list.push({
+               "key": key,
+               "description": value["description"]
+             });
+           }
+
            this.keyDescriptionList = description_list;
            return;
          }

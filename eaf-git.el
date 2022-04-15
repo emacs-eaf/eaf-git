@@ -102,8 +102,8 @@
 (defcustom eaf-git-js-keybinding
   '(("Global"
      (
-      ("h" ("pageSelectPrev" "<-"))
-      ("l" ("pageSelectNext" "->"))
+      ("h" ("pageSelectPrev" "Left page"))
+      ("l" ("pageSelectNext" "Right page"))
       ))
     ("Dashboard"
      (
