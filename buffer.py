@@ -21,7 +21,7 @@
 
 from PyQt6 import QtCore
 from PyQt6.QtGui import QColor
-from PyQt6.QtCore import QThread, QTimer
+from PyQt6.QtCore import QThread, QTimer, QMimeDatabase
 from core.webengine import BrowserBuffer
 from core.utils import get_emacs_func_result, get_emacs_var, PostGui, message_to_emacs, eval_in_emacs, interactive
 from charset_normalizer import from_path, from_bytes
@@ -137,6 +137,8 @@ class AppBuffer(BrowserBuffer):
 
         self.nav_current_item = "Dashboard"
 
+        self.mime_db = QMimeDatabase()
+        
         self.search_log_cache_path = ""
         self.search_submodule_cache_path = ""
 
@@ -223,7 +225,7 @@ class AppBuffer(BrowserBuffer):
             self.get_keybinding_info()))
 
     def fetch_status_info(self):
-        thread = FetchStatusThread(self.repo, self.repo_root)
+        thread = FetchStatusThread(self.repo, self.repo_root, self.mime_db)
         thread.fetch_result.connect(self.update_status_info)
         self.fetch_status_threads.append(thread)
         thread.start()
@@ -1536,11 +1538,12 @@ class FetchStatusThread(QThread):
 
     fetch_result = QtCore.pyqtSignal(list, list, list)
 
-    def __init__(self, repo, repo_root):
+    def __init__(self, repo, repo_root, mime_db):
         QThread.__init__(self)
 
         self.repo = repo
         self.repo_root = repo_root
+        self.mime_db = mime_db
 
     def run(self):
         status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
@@ -1571,12 +1574,15 @@ class FetchStatusThread(QThread):
 
     def append_file_to_status_list(self, info, type_key, stage_status, unstage_status, untrack_status):
         file = info[0]
+        file_path =os.path.join(self.repo_root, file)
+        mime = self.mime_db.mimeTypeForFile(file_path).name().replace("/", "-")
         
-        (add_count, delete_count) =self.get_line_info(file, type_key)
+        (add_count, delete_count) =self.get_line_info(file, type_key, mime)
         
         status = {
             "file": file,
             "type": GIT_STATUS_DICT[type_key],
+            "mime": mime,
             "add_count": add_count,
             "delete_count": delete_count
         }
@@ -1591,7 +1597,7 @@ class FetchStatusThread(QThread):
             if status not in unstage_status:
                 unstage_status.append(status)
                 
-    def get_line_info(self, file, type_key):
+    def get_line_info(self, file, type_key, mime):
         if type_key in GIT_STATUS_INDEX_CHANGES:
             head_tree = self.repo.revparse_single("HEAD^{tree}")
             stage_diff = self.repo.index.diff_to_tree(head_tree)
@@ -1602,7 +1608,11 @@ class FetchStatusThread(QThread):
                 return (add_count, delete_count)
             
         elif type_key in [GIT_STATUS_WT_NEW]:
-            return (len(open(os.path.join(self.repo_root, file)).readlines()), 0)
+            if mime.startswith("image-"):
+                return (0, 0)
+            else:
+                file_path =os.path.join(self.repo_root, file)
+                return (len(open(file_path).readlines()), 0)
         else:
             unstage_diff = self.repo.diff(cached=True)
             patches = [patch for patch in unstage_diff if patch.delta.new_file.path == file]
