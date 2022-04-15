@@ -223,7 +223,7 @@ class AppBuffer(BrowserBuffer):
             self.get_keybinding_info()))
 
     def fetch_status_info(self):
-        thread = FetchStatusThread(self.repo)
+        thread = FetchStatusThread(self.repo, self.repo_root)
         thread.fetch_result.connect(self.update_status_info)
         self.fetch_status_threads.append(thread)
         thread.start()
@@ -488,12 +488,14 @@ class AppBuffer(BrowserBuffer):
         
         if target_repo_last_commint_id == current_repo_last_commint_id:
             status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
-            files = list(map(lambda info: info[0], status))
 
-            for file in files:
-                shutil.copy(os.path.join(self.repo_root, file), os.path.join(target_repo_dir, file))
+            for (file, file_type) in status:
+                if file_type == GIT_STATUS_WT_DELETED:
+                    os.remove(os.path.join(target_repo_dir, file))
+                else:
+                    shutil.copy(os.path.join(self.repo_root, file), os.path.join(target_repo_dir, file))
 
-            message_to_emacs("Copy {} files to {}".format(len(files), os.path.join(target_repo_dir)))
+            message_to_emacs("Update {} files to {}".format(len(status), os.path.join(target_repo_dir)))
         else:
             message_to_emacs("{} last commit is not same as current repo, stop copy files.".format(target_repo_dir))
 
@@ -652,7 +654,7 @@ class AppBuffer(BrowserBuffer):
         self.fetch_stash_info()
         self.fetch_status_info()
 
-    def get_syntax_highlight_with_content(self, content):
+    def highlight_diff(self, content):
         from pygments import highlight
         from pygments.styles import get_all_styles
         from pygments.lexers import PythonLexer, get_lexer_for_filename, html, guess_lexer
@@ -691,7 +693,7 @@ class AppBuffer(BrowserBuffer):
                 patches = [patch for patch in unstage_diff if patch.delta.new_file.path == file]
                 diff_string = "\n".join(map(lambda patch : str(from_bytes(patch.data).best()), patches))
 
-        diff_string = self.get_syntax_highlight_with_content(diff_string)
+        diff_string = self.highlight_diff(diff_string)
         self.buffer_widget.eval_js('''updateChangeDiff(\"{}\", {})'''.format(type, json.dumps(diff_string)))
 
     @QtCore.pyqtSlot()
@@ -1534,10 +1536,11 @@ class FetchStatusThread(QThread):
 
     fetch_result = QtCore.pyqtSignal(list, list, list)
 
-    def __init__(self, repo):
+    def __init__(self, repo, repo_root):
         QThread.__init__(self)
 
         self.repo = repo
+        self.repo_root = repo_root
 
     def run(self):
         status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
@@ -1567,9 +1570,15 @@ class FetchStatusThread(QThread):
         return (stage_status, unstage_status, untrack_status)
 
     def append_file_to_status_list(self, info, type_key, stage_status, unstage_status, untrack_status):
+        file = info[0]
+        
+        (add_count, delete_count) =self.get_line_info(file, type_key)
+        
         status = {
-            "file": info[0],
-            "type": GIT_STATUS_DICT[type_key]
+            "file": file,
+            "type": GIT_STATUS_DICT[type_key],
+            "add_count": add_count,
+            "delete_count": delete_count
         }
 
         if type_key in GIT_STATUS_INDEX_CHANGES:
@@ -1581,6 +1590,25 @@ class FetchStatusThread(QThread):
         else:
             if status not in unstage_status:
                 unstage_status.append(status)
+                
+    def get_line_info(self, file, type_key):
+        if type_key in GIT_STATUS_INDEX_CHANGES:
+            head_tree = self.repo.revparse_single("HEAD^{tree}")
+            stage_diff = self.repo.index.diff_to_tree(head_tree)
+            
+            patches = [patch for patch in stage_diff if patch.delta.new_file.path == file]
+            for patch in patches:
+                (_, add_count, delete_count) = patch.line_stats
+                return (add_count, delete_count)
+            
+        elif type_key in [GIT_STATUS_WT_NEW]:
+            return (len(open(os.path.join(self.repo_root, file)).readlines()), 0)
+        else:
+            unstage_diff = self.repo.diff(cached=True)
+            patches = [patch for patch in unstage_diff if patch.delta.new_file.path == file]
+            for patch in patches:
+                (_, add_count, delete_count) = patch.line_stats
+                return (add_count, delete_count)
 
 class GitPullThread(QThread):
 

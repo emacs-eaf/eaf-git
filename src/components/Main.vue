@@ -74,7 +74,6 @@
         :currentBranch="currentBranch"
         :branchInfo="branchInfo"
       />
-      <Patch v-if="navCurrentItem == 'Patch'"/>
       <Stash
         v-if="navCurrentItem == 'Stash'"
         :pyobject="pyobject"
@@ -111,7 +110,6 @@
  import Submodule from "./Submodule.vue"
  import Branch from "./Branch.vue"
  import Stash from "./Stash.vue"
- import Patch from "./Patch.vue"
  
  import { updateListItemBackground, updateListItemMatchColor, updateListIndex } from "./utils.js"
 
@@ -122,8 +120,7 @@
      Log,
      Submodule,
      Branch,
-     Stash,
-     Patch
+     Stash
    },
    props: {
    },
@@ -213,7 +210,7 @@
    data() {
      return {
        navbarHeight: "40px",
-       navItems: ["Dashboard", "Log", "Branch", "Stash", "Submodule", "Patch"],
+       navItems: ["Dashboard", "Log", "Branch", "Stash", "Submodule"],
        navCurrentItem: "Dashboard",
        backgroundColor: "",
        foregroundColor: "",
@@ -401,7 +398,7 @@
 
      window.addEventListener('keydown', function(event) {
        var event_key = event.key;
-
+       
        if (event_key === "1") {
          that.changePage("Dashboard");
        } else if (event_key === "2") {

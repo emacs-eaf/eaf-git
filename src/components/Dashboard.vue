@@ -14,6 +14,9 @@
         <Dialog
           class="flex-expand"
           title="Commit">
+          <div class="changed-count">
+            {{ changedCount }}
+          </div>
           <div v-if="untrackFileNumber() > 0">
             <div
               class="untrack-title"
@@ -30,6 +33,16 @@
               </div>
               <div class="file">
                 {{ info.file }}
+              </div>
+              <div
+                :style="{ 'color': idColor }"
+                class="count">
+                <div class="add">
+                  +{{ info.add_count }}
+                </div>
+                <div class="delete">
+                  -{{ info.delete_count }}
+                </div>
               </div>
             </div>
             <div class="split-line"/>
@@ -52,6 +65,16 @@
               <div class="file">
                 {{ info.file }}
               </div>
+              <div
+                :style="{ 'color': idColor }"
+                class="count">
+                <div class="add">
+                  +{{ info.add_count }}
+                </div>
+                <div class="delete">
+                  -{{ info.delete_count }}
+                </div>
+              </div>
             </div>
             <div class="split-line"/>
           </div>
@@ -72,6 +95,16 @@
               </div>
               <div class="file">
                 {{ info.file }}
+              </div>
+              <div
+                :style="{ 'color': idColor }"
+                class="count">
+                <div class="add">
+                  +{{ info.add_count }}
+                </div>
+                <div class="delete">
+                  -{{ info.delete_count }}
+                </div>
               </div>
             </div>
           </div>
@@ -118,6 +151,7 @@
           title="Preview"
           hasScrollChild="true">
           <div
+            ref="scrollArea"
             class="status-preview-area"
             v-html="prettyHtml">
           </div>
@@ -181,6 +215,27 @@
 
      noFileSubmit() {
        return this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber() + this.stashInfo.length === 0 && this.unpushInfo === "";
+     },
+     
+     changedCount() {
+       var fileChangedNumber = this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber();
+       var addCount = 0;
+       var deleteCount = 0;
+       
+       if (this.unstageStatusInfo && this.unstageStatusInfo.length > 0) {
+         addCount += this.unstageStatusInfo.map(info => info.add_count).reduce((x, y) => x + y);
+         deleteCount += this.unstageStatusInfo.map(info => info.delete_count).reduce((x, y) => x + y);
+       }
+       if (this.stageStatusInfo && this.stageStatusInfo.length > 0) {
+         addCount += this.stageStatusInfo.map(info => info.add_count).reduce((x, y) => x + y);
+         deleteCount += this.stageStatusInfo.map(info => info.delete_count).reduce((x, y) => x + y);
+       }
+       if (this.untrackStatusInfo && this.untrackStatusInfo.length > 0) {
+         addCount += this.untrackStatusInfo.map(info => info.add_count).reduce((x, y) => x + y);
+         deleteCount += this.untrackStatusInfo.map(info => info.delete_count).reduce((x, y) => x + y);
+       }
+       
+       return fileChangedNumber + " files changed, " + addCount + " insertions, " + deleteCount + " deletions";
      }
    },
    mounted() {
@@ -226,6 +281,22 @@
      this.$root.$on("statusStashPush", function () {
        that.pyobject.status_stash_push();
      });
+
+     this.$root.$on("statusPreviewScrollUpLine", function () {
+       that.statusPreviewScrollUpLine();
+     });
+
+     this.$root.$on("statusPreviewScrollDownLine", function () {
+       that.statusPreviewScrollDownLine();
+     });
+
+     this.$root.$on("statusPreviewScrollUp", function () {
+       that.statusPreviewScrollUp();
+     });
+
+     this.$root.$on("statusPreviewScrollDown", function () {
+       that.statusPreviewScrollDown();
+     });
    },
    beforeDestroy() {
      this.$root.$off("statusCopyChangeFilesToMirrorRepo");
@@ -238,6 +309,10 @@
      this.$root.$off("statusPush");
      this.$root.$off("statusCheckoutAll");
      this.$root.$off("statusStashPush");
+     this.$root.$off("statusPreviewScrollDown");
+     this.$root.$off("statusPreviewScrollUp");
+     this.$root.$off("statusPreviewScrollUpLine");
+     this.$root.$off("statusPreviewScrollDownLine");
    },
    methods: {
      untrackFileNumber() {
@@ -314,6 +389,22 @@
          return this.backgroundColor;
        }
      },
+
+     statusPreviewScrollUp() {
+       this.$refs.scrollArea.scrollTop = this.$refs.scrollArea.scrollTop + this.$refs.scrollArea.clientHeight;
+     },
+
+     statusPreviewScrollDown() {
+       this.$refs.scrollArea.scrollTop = this.$refs.scrollArea.scrollTop - this.$refs.scrollArea.clientHeight;
+     },
+
+     statusPreviewScrollUpLine() {
+       this.$refs.scrollArea.scrollTop = this.$refs.scrollArea.scrollTop + 50;
+     },
+
+     statusPreviewScrollDownLine() {
+       this.$refs.scrollArea.scrollTop = this.$refs.scrollArea.scrollTop - 50;
+     }
    }
  }
 </script>
@@ -339,6 +430,19 @@
 
  .type {
    padding-right: 10px;
+ }
+ 
+ .file {
+   flex: 1;
+ }
+ 
+ .count {
+   display: flex;
+   flex-direction: row;
+ }
+ 
+ .delete {
+   padding-left: 5px;
  }
 
  .clean-workspace {
@@ -453,5 +557,13 @@
 
  .unpush-dialog {
    max-height: 30%;
+ }
+ 
+ .changed-count {
+   padding-left: 10px;
+   padding-right: 10px;
+   padding-top: 10px;
+   padding-bottom: 20px;
+   font-weight: bold;
  }
 </style>
