@@ -134,11 +134,11 @@ class AppBuffer(BrowserBuffer):
         self.unstage_status = []
         self.untrack_status = []
         self.branch_status = []
-        
+
         self.nav_current_item = "Dashboard"
-        
+
         self.search_log_cache_path = ""
-        
+
         self.fetch_status_threads = []
         self.fetch_log_threads = []
         self.fetch_compare_log_threads = []
@@ -211,7 +211,7 @@ class AppBuffer(BrowserBuffer):
             self.theme_background_color, self.theme_foreground_color, select_color, QColor(self.theme_background_color).darker(110).name(),
             text_color, nav_item_color, info_color,
             date_color, id_color, author_color, match_color,
-            self.repo_path, self.last_commit_id, 
+            self.repo_path, self.last_commit_id,
             json.dumps({"lastCommit": self.last_commit_message}),
             self.get_keybinding_info()))
 
@@ -220,13 +220,13 @@ class AppBuffer(BrowserBuffer):
         thread.fetch_result.connect(self.update_status_info)
         self.fetch_status_threads.append(thread)
         thread.start()
-        
+
     @PostGui()
     def update_status_info(self, stage_status, unstage_status, untrack_status):
-        self.buffer_widget.eval_js('''updateStatusInfo({}, {}, {})'''.format(json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status)))        
-        
+        self.buffer_widget.eval_js('''updateStatusInfo({}, {}, {})'''.format(json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status)))
+
         QTimer().singleShot(300, self.init_diff)
-        
+
     def init_diff(self):
         if len(self.untrack_status) > 0:
             self.update_diff("untrack", "")
@@ -238,27 +238,27 @@ class AppBuffer(BrowserBuffer):
     def get_keybinding_info(self):
         js_keybindig = get_emacs_var("eaf-git-js-keybinding")
         js_keybindig_dict = {}
-        
+
         for keybindig_list in js_keybindig:
             module_name = keybindig_list[0]
             module_keybinding_dict = {}
-            
+
             for key_value in keybindig_list[1:][0]:
                 module_keybinding_dict[key_value[0]] = {
                     "command": key_value[1][0],
                     "description": key_value[1][1]
                 }
-                
-            js_keybindig_dict[module_name] = module_keybinding_dict    
+
+            js_keybindig_dict[module_name] = module_keybinding_dict
 
         return js_keybindig_dict
-        
+
     def fetch_unpush_info(self):
         thread = FetchUnpushThread(self.repo, self.repo_root)
         thread.fetch_result.connect(self.update_unpush_info)
         self.fetch_unpush_threads.append(thread)
         thread.start()
-        
+
     @PostGui()
     def update_unpush_info(self, info):
         self.buffer_widget.eval_js('''updateUnpushInfo({})'''.format(json.dumps(
@@ -276,13 +276,13 @@ class AppBuffer(BrowserBuffer):
     def update_log_info(self, branch_name, log, search_cache_path):
         if self.search_log_cache_path != "" and os.path.exists(self.search_log_cache_path):
             os.remove(self.search_log_cache_path)
-            
+
         self.search_log_cache_path = search_cache_path
         self.buffer_widget.eval_js('''updateLogInfo(\"{}\", {})'''.format(branch_name, json.dumps(log)))
 
     def fetch_compare_log_info(self, branch_name):
         branch = self.repo.branches.get(branch_name)
-        
+
         thread = FetchLogThread(self.repo, branch)
         thread.fetch_result.connect(self.update_compare_log_info)
         self.fetch_compare_log_threads.append(thread)
@@ -291,7 +291,7 @@ class AppBuffer(BrowserBuffer):
     @PostGui()
     def update_compare_log_info(self, branch_name, log, search_cache_path):
         self.buffer_widget.eval_js('''updateCompareLogInfo(\"{}\", {})'''.format(branch_name, json.dumps(log)))
-        
+
     def fetch_stash_info(self):
         thread = FetchStashThread(self.repo)
         thread.fetch_result.connect(self.update_stash_info)
@@ -301,7 +301,7 @@ class AppBuffer(BrowserBuffer):
     @PostGui()
     def update_stash_info(self, stash):
         self.buffer_widget.eval_js('''updateStashInfo({})'''.format(json.dumps(stash)))
-        
+
     def fetch_submodule_info(self):
         thread = FetchSubmoduleThread(self.repo)
         thread.fetch_result.connect(self.update_submodule_info)
@@ -327,7 +327,7 @@ class AppBuffer(BrowserBuffer):
         if self.nav_current_item == "Log":
             self.search_log_count = 0
             self.send_input_message("Search log: ", "search_log", "search")
-            
+
     def handle_search_log(self, search_string):
         in_minibuffer = get_emacs_func_result("minibufferp", [])
 
@@ -337,19 +337,19 @@ class AppBuffer(BrowserBuffer):
             QTimer().singleShot(300, lambda : self.try_search_log(count, search_string))
         else:
             self.buffer_widget.eval_js('''searchLogsFinish()''')
-        
+
     def try_search_log(self, count, search_string):
         if count == self.search_log_count and search_string.strip() != "":
             if self.search_log_cache_path and os.path.exists(self.search_log_cache_path):
                 import subprocess
-                
+
                 command = "rg '{}' {} --color='never' --line-number --smart-case -o --replace=''".format(search_string, self.search_log_cache_path)
                 result = subprocess.run(command, shell=True, text=True, stdout=subprocess.PIPE)
-        
+
                 match_lines = list(map(lambda x: int(x[:-1]) - 1, result.stdout.split()))
-                
+
                 self.buffer_widget.eval_js('''searchLogsStart(\"{}\", {});'''.format(search_string, json.dumps(match_lines)))
-        
+
     def handle_search_forward(self, callback_tag):
         if callback_tag == "search_log":
             self.buffer_widget.eval_js('''searchLogsJumpNext();''')
@@ -365,12 +365,12 @@ class AppBuffer(BrowserBuffer):
     @QtCore.pyqtSlot()
     def copy_change_files_to_mirror_repo(self):
         status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
-        
+
         if len(status) > 0:
             self.send_input_message("Copy changes file to: ", "copy_changes_file_to_mirror", "file", self.repo_root)
         else:
             message_to_emacs("No file need submitted, nothing to copy.")
-            
+
     def handle_input_response(self, callback_tag, result_content):
         if callback_tag == "copy_changes_file_to_mirror":
             self.handle_copy_changes_file_to_mirror(result_content)
@@ -488,22 +488,22 @@ class AppBuffer(BrowserBuffer):
 
     def handle_log_reset_last(self, mode):
         reset_type = pygit2.GIT_RESET_MIXED
-        
+
         if mode == "soft":
             reset_type = pygit2.GIT_RESET_SOFT
         elif mode == "hard":
             reset_type = pygit2.GIT_RESET_HARD
-        
+
         commit = self.repo.revparse_single(self.log_commit_reset_last_id)
         parent_commits = commit.parents
         if len(parent_commits) > 0:
             self.repo.reset(parent_commits[0].id, reset_type)
-            
+
             self.fetch_log_info()
             self.fetch_status_info()
             self.fetch_unpush_info()
             self.fetch_stash_info()
-            
+
             last_commit = self.repo.revparse_single(str(self.repo.head.target))
             message_to_emacs("Current HEAD is: {}".format(last_commit.message.splitlines()[0]))
 
@@ -515,26 +515,26 @@ class AppBuffer(BrowserBuffer):
 
     def handle_log_reset_to(self, mode):
         reset_type = pygit2.GIT_RESET_MIXED
-        
+
         if mode == "soft":
             reset_type = pygit2.GIT_RESET_SOFT
         elif mode == "hard":
             reset_type = pygit2.GIT_RESET_HARD
-        
+
         self.repo.reset(self.log_commit_reset_to_id, reset_type)
-        
+
         self.fetch_log_info()
         self.fetch_status_info()
         self.fetch_unpush_info()
         self.fetch_stash_info()
-        
+
         message_to_emacs("Current HEAD is: {}".format(self.log_commit_reset_to_message))
-        
+
     @QtCore.pyqtSlot()
     def log_rebase_branch(self):
         branches = self.repo.listall_branches()
         self.send_input_message("Rebase from Branch: ", "log_rebase_branch", "list", completion_list=branches)
-        
+
     def handle_log_rebase_branch(self, branch_name):
         if branch_name == self.repo.head.shorthand:
             message_to_emacs("Can't rebase branch self.")
@@ -546,24 +546,24 @@ class AppBuffer(BrowserBuffer):
             current_branch_tree = self.repo.get(current_branch.target).tree
             merge_branch_tree = self.repo.get(merge_branch.target).tree
             merge_base_tree = self.repo.get(merge_base).tree
-            
-            self.repo.checkout(current_branch)                       
+
+            self.repo.checkout(current_branch)
 
             tree_id = self.repo.merge_trees(merge_base_tree, current_branch_tree, merge_branch_tree).write_tree(self.repo)
             merge_message = self.repo.revparse_single(str(merge_branch.target)).message
 
             self.repo.create_commit(
-                current_branch.name, 
+                current_branch.name,
                 self.repo.default_signature,
                 self.repo.default_signature,
                 merge_message,
-                tree_id, 
+                tree_id,
                 [current_branch.target])
-            
+
             self.fetch_log_info()
-            
+
             message_to_emacs("Rebase commints from branch {} to {}".format(merge_branch.name, current_branch.name))
-    
+
     @QtCore.pyqtSlot(int)
     def show_stash_diff(self, stash_index):
         stash_item = "stash@" + "{" + str(stash_index) + "}"
@@ -574,55 +574,55 @@ class AppBuffer(BrowserBuffer):
         self.stash_apply_index = index
         self.stash_apply_message = message
         self.send_input_message("Stash apply '{}'".format(message), "stash_apply", "yes-or-no")
-        
+
     @QtCore.pyqtSlot(int, str)
     def stash_drop(self, index, message):
         self.stash_drop_index = index
         self.stash_drop_message = message
         self.send_input_message("Stash drop '{}'".format(message), "stash_drop", "yes-or-no")
-        
+
     @QtCore.pyqtSlot(int, str)
     def stash_pop(self, index, message):
         self.stash_pop_index = index
         self.stash_pop_message = message
         self.send_input_message("Stash pop '{}'".format(message), "stash_pop", "yes-or-no")
-        
+
     def handle_stash_apply(self):
         self.repo.stash_apply(index=self.stash_apply_index)
         message_to_emacs("Stash apply '{}'".format(self.stash_apply_message))
-        
+
         self.fetch_stash_info()
         self.fetch_status_info()
-    
+
     def handle_stash_drop(self):
         self.repo.stash_drop(index=self.stash_drop_index)
         message_to_emacs("Stash drop '{}'".format(self.stash_drop_message))
-        
+
         self.fetch_stash_info()
         self.fetch_status_info()
-        
+
     def handle_stash_pop(self):
         self.repo.stash_pop(index=self.stash_pop_index)
         message_to_emacs("Stash pop '{}'".format(self.stash_pop_message))
-        
+
         self.fetch_stash_info()
         self.fetch_status_info()
-        
+
     def get_syntax_highlight_with_content(self, content):
         from pygments import highlight
         from pygments.styles import get_all_styles
         from pygments.lexers import PythonLexer, get_lexer_for_filename, html, guess_lexer
         from pygments.formatters import HtmlFormatter
-            
+
         style_name = "monokai" if self.theme_mode == "dark" else "stata-light"
-        
+
         return highlight(content, guess_lexer(content), HtmlFormatter(full=True, style=style_name))
-        
+
     @QtCore.pyqtSlot(str, str)
     def update_diff(self, type, file):
-        
+
         diff_string = ""
-        
+
         if type == "untrack":
             if file == "":
                 for status in self.untrack_status:
@@ -657,15 +657,15 @@ class AppBuffer(BrowserBuffer):
     @QtCore.pyqtSlot()
     def status_commit_stage(self):
         self.send_input_message("Commit stage files with message: ", "commit_stage_files")
-    
+
     @QtCore.pyqtSlot()
     def status_commit_all(self):
         self.send_input_message("Commit all files with message: ", "commit_all_files")
-    
+
     @QtCore.pyqtSlot()
     def status_commit_and_push(self):
         self.send_input_message("Commit all files with message: ", "commit_and_push")
-    
+
     @QtCore.pyqtSlot(str, int)
     def status_stage_file(self, type, file_index):
         if type == "untrack":
@@ -678,12 +678,12 @@ class AppBuffer(BrowserBuffer):
                 self.stage_unstage_files()
             else:
                 self.stage_unstage_file(self.unstage_status[file_index])
-    
+
     def git_add_file(self, path):
         index = self.repo.index
         index.add(path)
         index.write()
-        
+
     def git_reset_file(self, path):
         index = self.repo.index
 
@@ -696,64 +696,64 @@ class AppBuffer(BrowserBuffer):
 
         # Write index
         index.write()
-        
+
     def git_checkout_file(self, paths=[]):
         self.repo.checkout(self.repo.lookup_reference(self.repo.head.name), paths=paths, strategy=GIT_CHECKOUT_FORCE)
-        
+
     def git_checkout_branch(self, branch_name):
         branch = self.repo.lookup_branch(branch_name)
         ref = self.repo.lookup_reference(branch.name)
         self.repo.checkout(ref)
-        
+
     def stage_untrack_files(self):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
-        
+
         for file_info in untrack_status:
             self.git_add_file(file_info["file"])
         stage_status += untrack_status
         untrack_status = []
-        
+
         select_item_type = ""
         select_item_index = -1
         if len(unstage_status) > 0:
             select_item_type = "unstage"
         else:
             select_item_type = "stage"
-        
+
         self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
             json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
             select_item_type, select_item_index))
-            
+
     def stage_unstage_files(self):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
-        
+
         for file_info in unstage_status:
             self.git_add_file(file_info["file"])
         stage_status += unstage_status
         unstage_status = []
-        
+
         select_item_type = "stage"
         select_item_index = -1
-        
+
         self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
             json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
             select_item_type, select_item_index))
-    
+
     def stage_untrack_file(self, file_info):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
-        
+
         self.git_add_file(file_info["file"])
-        
+
         stage_status.append(file_info)
         untrack_file_index = untrack_status.index(file_info)
         untrack_status.remove(file_info)
-        
+
         select_item_type = ""
         select_item_index = -1
         if len(untrack_status) > 0:
@@ -763,22 +763,22 @@ class AppBuffer(BrowserBuffer):
             select_item_type = "unstage"
         else:
             select_item_type = "stage"
-        
+
         self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
             json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
             select_item_type, select_item_index))
-    
+
     def stage_unstage_file(self, file_info):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
-        
+
         self.git_add_file(file_info["file"])
-        
+
         stage_status.append(file_info)
         unstage_file_index = unstage_status.index(file_info)
         unstage_status.remove(file_info)
-        
+
         select_item_type = ""
         select_item_index = -1
         if len(unstage_status) > 0:
@@ -786,7 +786,7 @@ class AppBuffer(BrowserBuffer):
             select_item_index = max(unstage_file_index - 1, 0)
         else:
             select_item_type = "stage"
-        
+
         self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
             json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
             select_item_type, select_item_index))
@@ -812,38 +812,38 @@ class AppBuffer(BrowserBuffer):
     def delete_untrack_file(self, file_info):
         self.delete_untrack_mark_file = file_info
         self.send_input_message("Discard untracked changes in {}?".format(file_info["file"]), "delete_untrack_file", "yes-or-no")
-    
+
     def delete_unstage_file(self, file_info):
         self.delete_unstage_mark_file = file_info
         self.send_input_message("Discard unstaged changes in {}?".format(file_info["file"]), "delete_unstage_file", "yes-or-no")
-    
+
     def delete_stage_file(self, file_info):
         self.delete_stage_mark_file = file_info
         self.send_input_message("Discard staged changes in {}?".format(file_info["file"]), "delete_stage_file", "yes-or-no")
-        
+
     def handle_delete_untrack_files(self):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
-        
+
         delete_file_number = len(self.untrack_status)
-        
+
         for untrack_file in self.untrack_status:
             os.remove(os.path.join(self.repo_root, untrack_file["file"]))
-        
+
         untrack_status = []
-        
+
         select_item_type = ""
         select_item_index = -1
         if len(unstage_status) > 0:
             select_item_type = "unstage"
         else:
             select_item_type = "stage"
-        
+
         self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
             json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
             select_item_type, select_item_index))
-        
+
         if delete_file_number > 1:
             message_to_emacs("Delete {} files.".format(delete_file_number))
         else:
@@ -853,19 +853,19 @@ class AppBuffer(BrowserBuffer):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
-        
+
         for file_info in unstage_status:
             self.git_checkout_file([file_info["file"]])
-            
+
         unstage_status = []
-        
+
         select_item_type = ""
         select_item_index = -1
         if len(untrack_status) > 0:
             select_item_type = "untrack"
         else:
             select_item_type = "stage"
-            
+
         self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
             json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
             select_item_type, select_item_index))
@@ -874,24 +874,24 @@ class AppBuffer(BrowserBuffer):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
-        
+
         for file_info in stage_status:
             self.git_reset_file(file_info["file"])
             self.git_checkout_file([file_info["file"]])
-        
+
         stage_status = []
-        
+
         select_item_type = ""
         select_item_index = -1
         if len(unstage_status) > 0:
             select_item_type = "unstage"
         elif len(untrack_status) > 0:
             select_item_type = "untrack"
-            
+
         self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
             json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
             select_item_type, select_item_index))
-        
+
     def handle_commit_stage_files(self, message):
         tree = self.repo.index.write_tree()
         parent, ref = self.repo.resolve_refish(refish=self.repo.head.name)
@@ -902,33 +902,33 @@ class AppBuffer(BrowserBuffer):
             message,
             tree,
             [parent.oid])
-        
+
         self.fetch_unpush_info()
         self.fetch_log_info()
 
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
-        
+
         stage_status = []
-        
+
         select_item_type = ""
         select_item_index = -1
         if len(unstage_status) > 0:
             select_item_type = "unstage"
         elif len(untrack_status) > 0:
             select_item_type = "untrack"
-        
+
         self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
             json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
             select_item_type, select_item_index))
-        
+
         message_to_emacs("Commit stage files with: {}".format(message))
-    
+
     def handle_commit_all_files(self, message):
         self.repo.index.add_all()
         self.repo.index.write()
-        
+
         tree = self.repo.index.write_tree()
         parent, ref = self.repo.resolve_refish(refish=self.repo.head.name)
         self.repo.create_commit(
@@ -938,30 +938,30 @@ class AppBuffer(BrowserBuffer):
             message,
             tree,
             [parent.oid])
-        
+
         self.fetch_unpush_info()
         self.fetch_log_info()
         self.fetch_submodule_info()
-        
+
         self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
             json.dumps([]), json.dumps([]), json.dumps([]),
             "", -1))
-        
+
         message_to_emacs("Commit stage files with: {}".format(message))
 
     def handle_commit_and_push(self, message):
         self.handle_commit_all_files(message)
         self.status_push()
-        
+
     def handle_delete_untrack_file(self):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
-        
+
         untrack_file_index = untrack_status.index(self.delete_untrack_mark_file)
         untrack_status.remove(self.delete_untrack_mark_file)
         os.remove(os.path.join(self.repo_root, self.delete_untrack_mark_file["file"]))
-        
+
         select_item_type = ""
         select_item_index = -1
         if len(untrack_status) > 0:
@@ -971,23 +971,23 @@ class AppBuffer(BrowserBuffer):
             select_item_type = "unstage"
         else:
             select_item_type = "stage"
-        
+
         self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
             json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
             select_item_type, select_item_index))
-        
+
         message_to_emacs("Delete file {}".format(self.delete_untrack_mark_file["file"]))
-    
+
     def handle_delete_unstage_file(self):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
-        
+
         self.git_checkout_file([self.delete_unstage_mark_file["file"]])
-        
+
         unstage_file_index = unstage_status.index(self.delete_unstage_mark_file)
         unstage_status.remove(self.delete_unstage_mark_file)
-        
+
         select_item_type = ""
         select_item_index = -1
         if len(unstage_status) > 0:
@@ -995,7 +995,7 @@ class AppBuffer(BrowserBuffer):
             select_item_index = max(unstage_file_index - 1, 0)
         else:
             select_item_type = "stage"
-        
+
         self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
             json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
             select_item_type, select_item_index))
@@ -1004,13 +1004,13 @@ class AppBuffer(BrowserBuffer):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
-        
+
         self.git_reset_file(self.delete_stage_mark_file["file"])
         self.git_checkout_file([self.delete_stage_mark_file["file"]])
-        
+
         stage_file_index = stage_status.index(self.delete_stage_mark_file)
         stage_status.remove(self.delete_stage_mark_file)
-        
+
         select_item_type = ""
         select_item_index = -1
         if len(stage_status) > 0:
@@ -1020,11 +1020,11 @@ class AppBuffer(BrowserBuffer):
             select_item_type = "unstage"
         elif len(unstage_status) > 0:
             select_item_type = "untrack"
-        
+
         self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
             json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
             select_item_type, select_item_index))
-    
+
     @QtCore.pyqtSlot(list)
     def vue_update_stage_status(self, stage_status):
         self.stage_status = stage_status
@@ -1065,41 +1065,41 @@ class AppBuffer(BrowserBuffer):
         thread.push_result.connect(self.handle_status_push)
         self.git_push_threads.append(thread)
         thread.start()
-        
+
     def handle_status_push(self, message):
         self.fetch_unpush_info()
         self.fetch_log_info()
-        
+
         message_to_emacs(message)
 
     @QtCore.pyqtSlot()
     def status_checkout_all(self):
         self.send_input_message("Checkout all changes.", "checkout_all_files", "yes-or-no")
-        
+
     @QtCore.pyqtSlot()
     def status_stash_push(self):
         self.send_input_message("Stash push with message: ", "stash_push")
-        
+
     def handle_stash_push(self, message):
         try:
             self.repo.stash(self.repo.default_signature, message, include_untracked=True)
-            
+
             self.fetch_status_info()
             self.fetch_stash_info()
-            
+
             message_to_emacs("Stash push '{}'".format(message))
         except:
             message_to_emacs("There is nothing to stash")
-            
+
     def handle_checkout_all_files(self):
         self.git_checkout_file()
-        
+
         self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
             json.dumps([]), json.dumps([]), json.dumps([]),
             "", -1))
-        
+
         message_to_emacs("Checkout all.")
-        
+
     @QtCore.pyqtSlot()
     def log_show_compare_branch(self):
         branches = self.repo.listall_branches()
@@ -1110,30 +1110,30 @@ class AppBuffer(BrowserBuffer):
         self.log_compare_branch = ""
         self.buffer_widget.eval_js('''updateCompareLogInfo(\"{}\", {})'''.format("", json.dumps([])))
         message_to_emacs("Hide compare branch.")
-        
+
     @QtCore.pyqtSlot(list)
     def log_cherry_pick(self, commits):
         self.log_cherry_pick_commits = commits
         branches = self.repo.listall_branches()
         self.send_input_message("Copy commit to branch: ", "log_cherry_pick", "list", completion_list=branches)
-        
+
     def handle_log_cherry_pick(self, new_branch):
         if new_branch == self.repo.head.shorthand:
             message_to_emacs("You can't copy commit to current branch.")
         else:
             current_branch_name = self.repo.head.shorthand
-            
+
             self.git_checkout_branch(new_branch)
-            
+
             for commit in self.log_cherry_pick_commits:
                 cherry_id = Oid(hex=commit["id"])
                 self.repo.cherrypick(cherry_id)
-            
+
                 if self.repo.index.conflicts is None:
                     tree_id = self.repo.index.write_tree()
-                
+
                     cherry = self.repo.get(cherry_id)
-                    
+
                     parent, ref = self.repo.resolve_refish(refish=self.repo.head.name)
                     self.repo.create_commit(
                         ref.name,
@@ -1142,20 +1142,20 @@ class AppBuffer(BrowserBuffer):
                         cherry.message,
                         tree_id,
                         [ref.target])
-                    
+
                     self.repo.state_cleanup()
-            
+
             self.git_checkout_branch(current_branch_name)
-            
+
             self.fetch_log_info()
             if self.log_compare_branch != "":
                 self.handle_log_show_compare_branch(new_branch)
-                
+
             if len(self.log_cherry_pick_commits) == 1:
                 message_to_emacs("Copy '{}' to branch {}".format(self.log_cherry_pick_commits[0]["message"], new_branch))
             else:
                 message_to_emacs("Copy {} commints to branch {}".format(len(self.log_cherry_pick_commits), new_branch))
-        
+
     def handle_log_show_compare_branch(self, branch):
         self.log_compare_branch = branch
         self.fetch_compare_log_info(branch)
@@ -1164,7 +1164,7 @@ class AppBuffer(BrowserBuffer):
     @QtCore.pyqtSlot()
     def branch_new(self):
         self.send_input_message("New branch: ", "new_branch")
-        
+
     def handle_new_branch(self, branch_name):
         if branch_name in self.branch_status:
             message_to_emacs("Branch '{}' has exists.".format(branch_name))
@@ -1236,87 +1236,87 @@ class AppBuffer(BrowserBuffer):
         thread.finished.connect(self.handle_add_submodule_finish)
         self.add_submodule_threads.append(thread)
         thread.start()
-        
+
     def handle_add_submodule_finish(self, url, path):
         message_to_emacs("Add submodule {} to {}".format(url, path))
-        
+
         self.fetch_status_info()
         self.fetch_submodule_info()
-        
+
     @QtCore.pyqtSlot(str)
     def submodule_remove(self, module_path):
         self.submodule_remove_path = module_path
         self.send_input_message("Remove submodule {} ?".format(module_path), "submodule_remove", "yes-or-no")
-        
+
     def handle_submodule_remove(self):
         import subprocess
         import shutil
-        
+
         # Remove submodule path and remove submodule section from .gitmodules file.
-        subprocess.Popen("cd {} ; git rm {}".format(self.repo_root, self.submodule_remove_path), 
+        subprocess.Popen("cd {} ; git rm {}".format(self.repo_root, self.submodule_remove_path),
                          shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
 
         # Remove submodule path from .git/modules/ directory.
         shutil.rmtree(os.path.join(self.repo_root, ".git", "modules", self.submodule_remove_path))
-        
+
         # Remove submodule section from .git/config file.
         get_command_result("cd {} ; git config --remove-section submodule.{}".format(self.repo_root, self.submodule_remove_path))
-        
+
         message_to_emacs("Remove submodule {}".format(self.submodule_remove_path))
-        
+
         self.fetch_status_info()
         self.fetch_submodule_info()
-        
+
     @QtCore.pyqtSlot(str)
     def submodule_update(self, module_path):
         self.submodule_update_path = module_path
         self.send_input_message("Update submodule {} ?".format(module_path), "submodule_update", "yes-or-no")
-        
+
     def handle_submodule_update(self):
         submodule_path = os.path.join(self.repo_root, self.submodule_update_path)
-        
+
         message_to_emacs("Update submodule {}...".format(self.submodule_update_path))
         thread = GitPullThread(submodule_path)
         thread.pull_result.connect(self.handle_submodule_update_finish)
         self.fetch_pull_threads.append(thread)
         thread.start()
-        
+
     def handle_submodule_update_finish(self, message):
         self.fetch_status_info()
         message_to_emacs(message)
-        
+
     @QtCore.pyqtSlot(str, str)
     def submodule_rollback(self, module_path, module_head_id):
         self.submodule_rollback_path = module_path
         self.submodule_rollback_head_id = module_head_id
         self.send_input_message("Rollback submodule {} ?".format(module_path), "submodule_rollback", "yes-or-no")
-        
+
     def handle_submodule_rollback(self):
         submodule_path = os.path.join(self.repo_root, self.submodule_rollback_path)
         submodule_repo = Repository(submodule_path)
-        
+
         submodule_repo.reset(self.submodule_rollback_head_id, pygit2.GIT_RESET_HARD)
-        
+
         message_to_emacs("Rollback {} to version {}".format(self.submodule_rollback_path, self.submodule_rollback_head_id))
-        
+
         self.fetch_status_info()
-        
+
 class AddSubmoduleCallback(pygit2.RemoteCallbacks, QtCore.QObject):
-    
+
     finished = QtCore.pyqtSignal()
-    
+
     def __init__(self, url):
         super(pygit2.RemoteCallbacks, self).__init__()
         super(QtCore.QObject, self).__init__()
         self.url = url
-        
+
     def sideband_progress(self, string):
         print("{} {}".format(self.url, string))
-        
+
     def transfer_progress(self, progress):
         if (progress.received_objects == progress.total_objects == progress.indexed_objects) and (progress.indexed_deltas == progress.total_deltas):
             self.finished.emit()
-        
+
 class AddSubmoduleThread(QThread):
 
     finished = QtCore.pyqtSignal(str, str)
@@ -1331,10 +1331,10 @@ class AddSubmoduleThread(QThread):
     def run(self):
         if not os.path.exists(self.path):
             os.makedirs(self.path)
-            
+
         self.callback = AddSubmoduleCallback(self.url)
         self.callback.finished.connect(lambda : self.finished.emit(self.url, self.path))
-        
+
         self.repo.add_submodule(self.url, self.path, callbacks=self.callback)
 
 class FetchLogThread(QThread):
@@ -1356,16 +1356,16 @@ class FetchLogThread(QThread):
             import tempfile
             self.cache_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
             self.cache_file_path = self.cache_file.name
-        
+
         try:
             index = 0
             cache_lines = []
-            
+
             for commit in self.repo.walk(self.branch.target):
                 id = str(commit.id)
                 author = commit.author.name
                 message = commit.message.splitlines()[0]
-                
+
                 git_log.append({
                     "id": id,
                     "index": index,
@@ -1376,22 +1376,22 @@ class FetchLogThread(QThread):
                     "foregroundColor": "",
                     "backgroundColor": ""
                 })
-                
+
                 if self.search_cache:
                     cache_lines.append("{} {} {}\n".format(id, author, message))
-                
+
                 index += 1
-            
+
         except KeyError:
             import traceback
             traceback.print_exc()
-            
+
         # NOTE:
-        # Uncomment below code to test log search performance. 
+        # Uncomment below code to test log search performance.
         # git_log = git_log * 50
         # cache_lines = cache_lines * 50
-        
-        if self.search_cache:    
+
+        if self.search_cache:
             self.cache_file.writelines(cache_lines)
 
         self.fetch_result.emit(self.branch.shorthand, git_log, self.cache_file_path)
@@ -1416,14 +1416,14 @@ class FetchStashThread(QThread):
                     "index": index,
                     "message": stash.message
                 })
-                
+
                 index += 1
         except KeyError:
             import traceback
             traceback.print_exc()
 
         self.fetch_result.emit(git_stash)
-        
+
 class FetchSubmoduleThread(QThread):
 
     fetch_result = QtCore.pyqtSignal(list)
@@ -1437,10 +1437,10 @@ class FetchSubmoduleThread(QThread):
         index = 0
         submodule_infos = []
         submodule_names = self.repo.listall_submodules()
-        
+
         for submodule_name in submodule_names:
             submodule = self.repo.lookup_submodule(submodule_name)
-            
+
             submodule_infos.append({
                 "index": index,
                 "name": submodule_name,
@@ -1448,9 +1448,9 @@ class FetchSubmoduleThread(QThread):
                 "foregroundColor": "",
                 "backgroundColor": ""
             })
-            
+
             index += 1
-        
+
         self.fetch_result.emit(submodule_infos)
 
 class FetchBranchThread(QThread):
@@ -1466,7 +1466,7 @@ class FetchBranchThread(QThread):
         index = 0
         branch_infos = []
         branch_names = self.repo.listall_branches()
-        
+
         for branch_name in branch_names:
             branch_infos.append({
                 "index": index,
@@ -1475,9 +1475,9 @@ class FetchBranchThread(QThread):
                 "backgroundColor": "",
                 "isCurrentBranch": branch_name == self.repo.head.shorthand
             })
-            
+
             index += 1
-        
+
         self.fetch_result.emit(branch_infos)
 
 class FetchStatusThread(QThread):
@@ -1491,37 +1491,37 @@ class FetchStatusThread(QThread):
 
     def run(self):
         status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
-        
+
         (stage_status, unstage_status, untrack_status) = self.parse_status(status)
-        
+
         self.fetch_result.emit(stage_status, unstage_status, untrack_status)
-        
+
     def parse_status(self, status):
         stage_status = []
         unstage_status = []
         untrack_status = []
-        
+
         for info in status:
             if info[1] in GIT_STATUS_DICT:
                 self.append_file_to_status_list(info, info[1], stage_status, unstage_status, untrack_status)
             else:
                 first_dict = GIT_STATUS_DICT
                 second_dict = GIT_STATUS_DICT
-                
+
                 for first_key in first_dict:
                     for second_key in second_dict:
                         if info[1] == first_key | second_key:
                             self.append_file_to_status_list(info, first_key, stage_status, unstage_status, untrack_status)
                             self.append_file_to_status_list(info, second_key, stage_status, unstage_status, untrack_status)
-                            
-        return (stage_status, unstage_status, untrack_status)                    
-                            
+
+        return (stage_status, unstage_status, untrack_status)
+
     def append_file_to_status_list(self, info, type_key, stage_status, unstage_status, untrack_status):
         status = {
             "file": info[0],
             "type": GIT_STATUS_DICT[type_key]
         }
-        
+
         if type_key in GIT_STATUS_INDEX_CHANGES:
             if status not in stage_status:
                 stage_status.append(status)
@@ -1531,7 +1531,7 @@ class FetchStatusThread(QThread):
         else:
             if status not in unstage_status:
                 unstage_status.append(status)
-        
+
 class GitPullThread(QThread):
 
     pull_result = QtCore.pyqtSignal(str)
@@ -1540,9 +1540,9 @@ class GitPullThread(QThread):
         QThread.__init__(self)
 
         self.repo_root = repo_root
-        
+
     def run(self):
-        self.pull_result.emit(get_command_result("cd {}; git pull --rebase".format(self.repo_root)).strip())        
+        self.pull_result.emit(get_command_result("cd {}; git pull --rebase".format(self.repo_root)).strip())
 
 class GitPushThread(QThread):
 
