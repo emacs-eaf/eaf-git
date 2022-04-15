@@ -632,7 +632,6 @@ class AppBuffer(BrowserBuffer):
             else:
                 diff_string = str(from_path(os.path.join(self.repo_root, file)).best())
 
-            diff_string = self.get_syntax_highlight_with_content(diff_string)
         elif type == "stage":
             head_tree = self.repo.revparse_single("HEAD^{tree}")
             stage_diff = self.repo.index.diff_to_tree(head_tree)
@@ -642,7 +641,6 @@ class AppBuffer(BrowserBuffer):
                 patches = [patch for patch in stage_diff if patch.delta.new_file.path == file]
                 diff_string = "\n".join(map(lambda patch : str(from_bytes(patch.data).best()), patches))
 
-            diff_string = self.get_syntax_highlight_with_content(diff_string)
         elif type == "unstage":
             unstage_diff = self.repo.diff(cached=True)
             if file == "":
@@ -651,7 +649,7 @@ class AppBuffer(BrowserBuffer):
                 patches = [patch for patch in unstage_diff if patch.delta.new_file.path == file]
                 diff_string = "\n".join(map(lambda patch : str(from_bytes(patch.data).best()), patches))
 
-            diff_string = self.get_syntax_highlight_with_content(diff_string)
+        diff_string = self.get_syntax_highlight_with_content(diff_string)
         self.buffer_widget.eval_js('''updateChangeDiff(\"{}\", {})'''.format(type, json.dumps(diff_string)))
 
     @QtCore.pyqtSlot()
