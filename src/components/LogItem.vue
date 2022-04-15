@@ -52,7 +52,7 @@
 
  .log-date {
    padding-left: 20px;
-   width: 120px;
+   width: 150px;
  }
 
  .log-author {
