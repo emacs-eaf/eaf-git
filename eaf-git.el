@@ -310,6 +310,69 @@ The input buffer contents are expected to be raw git output."
     (select-window (get-buffer-window log-buffer))
     ))
 
+(defun eaf-git-push ()
+  (interactive)
+  (message "Git push...")
+  (save-window-excursion
+    (async-shell-command "git push")))
+
+(defun eaf-git-pull ()
+  (interactive)
+  (message "Git pull...")
+  (save-window-excursion
+    (async-shell-command "git pull --rebase")))
+
+(defun eaf-git-clone (url)
+  (interactive "sGit clone: ")
+  (message "Git %s clone..." url)
+  (save-window-excursion
+    (async-shell-command (format "git clone %s" url))))
+
+(defun eaf-git-show-history ()
+  (interactive)
+  (let ((point-thing (eaf-git-pointer-thing)))
+    (vc-region-history (car point-thing) (cadr point-thing))))
+
+(defun eaf-git-pointer-thing ()
+  (cond ((use-region-p)
+         (list (region-beginning) (region-end)))
+        ((eaf-git-in-string-p)
+         (list
+          (1+ (car (eaf-git-string-start+end-points)))
+          (cdr (eaf-git-string-start+end-points))))
+        (t
+         (list
+          (beginning-of-thing 'symbol)
+          (end-of-thing 'symbol)))))
+
+(defun eaf-git-string-start+end-points (&optional state)
+  "Return a cons of the points of open and close quotes of the string.
+The string is determined from the parse state STATE, or the parse state
+  from the beginning of the defun to the point.
+This assumes that `eaf-git-in-string-p' has already returned true, i.e.
+  that the point is already within a string."
+  (save-excursion
+    (let ((start (nth 8 (or state (eaf-git-current-parse-state)))))
+      (goto-char start)
+      (forward-sexp 1)
+      (cons start (1- (point))))))
+
+(defun eaf-git-in-string-p (&optional state)
+  (or (nth 3 (or state (color-rg-current-parse-state)))
+      (and
+       (eq (get-text-property (point) 'face) 'font-lock-string-face)
+       (eq (get-text-property (- (point) 1) 'face) 'font-lock-string-face))
+      (and
+       (eq (get-text-property (point) 'face) 'font-lock-doc-face)
+       (eq (get-text-property (- (point) 1) 'face) 'font-lock-doc-face))
+      ))
+
+(defun eaf-git-current-parse-state ()
+  "Return parse state of point from beginning of defun."
+  (let ((point (point)))
+    (beginning-of-defun)
+    (parse-partial-sexp (point) point)))
+
 (provide 'eaf-git)
 
 ;;; eaf-git.el ends here
