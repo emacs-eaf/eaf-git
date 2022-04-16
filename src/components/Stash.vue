@@ -73,7 +73,7 @@
 
      this.showHighlightLine();
 
-     this.$root.$on("js_stash_view_diff", function () {
+     this.$root.$on("stash_view_diff", function () {
        that.pyobject.show_stash_diff(that.stashInfo[that.currentStashIndex].index);
      });
 
@@ -85,15 +85,15 @@
        that.pyobject.stash_search_backward();
      });
 
-     this.$root.$on("js_stash_apply", function () {
+     this.$root.$on("stash_apply", function () {
        that.pyobject.stash_apply(that.stashInfo[that.currentStashIndex].index, that.stashInfo[that.currentStashIndex].message);
      });
 
-     this.$root.$on("js_stash_pop", function () {
+     this.$root.$on("stash_pop", function () {
        that.pyobject.stash_pop(that.stashInfo[that.currentStashIndex].index, that.stashInfo[that.currentStashIndex].message);
      });
 
-     this.$root.$on("js_stash_drop", function () {
+     this.$root.$on("stash_drop", function () {
        that.pyobject.stash_drop(that.stashInfo[that.currentStashIndex].index, that.stashInfo[that.currentStashIndex].message);
      });
    },

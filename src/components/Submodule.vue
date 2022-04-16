@@ -71,28 +71,28 @@
    mounted() {
      var that = this;
 
-     this.$root.$on("js_submodule_view", function () {
+     this.$root.$on("submodule_view", function () {
        that.pyobject.submodule_view(that.submoduleInfo[that.currentSubmoduleIndex].name);
      });
 
-     this.$root.$on("js_submodule_remove", function () {
+     this.$root.$on("submodule_remove", function () {
        that.pyobject.submodule_remove(that.submoduleInfo[that.currentSubmoduleIndex].name);
      });
 
-     this.$root.$on("js_submodule_update", function () {
+     this.$root.$on("submodule_update", function () {
        that.pyobject.submodule_update(that.submoduleInfo[that.currentSubmoduleIndex].name);
      });
 
-     this.$root.$on("js_submodule_rollback", function () {
+     this.$root.$on("submodule_rollback", function () {
        that.pyobject.submodule_rollback(that.submoduleInfo[that.currentSubmoduleIndex].name,
                                         that.submoduleInfo[that.currentSubmoduleIndex].head_id);
      });
 
-     this.$root.$on("js_submodule_select_pg_up", function () {
+     this.$root.$on("submodule_select_pg_up", function () {
        that.submoduleSelectPgUp();
      });
 
-     this.$root.$on("js_submodule_select_pg_dn", function () {
+     this.$root.$on("submodule_select_pg_dn", function () {
        that.submoduleSelectPgDn();
      });
    },

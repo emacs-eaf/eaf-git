@@ -71,11 +71,11 @@
      
      this.selectBranchName = this.localBranchInfo[this.selectBranchIndex].name;
      
-     this.$root.$on("js_branch_delete", function () {
+     this.$root.$on("branch_delete", function () {
        window.pyobject.branch_delete(that.selectBranchName);
      });
      
-     this.$root.$on("js_branch_switch", function () {
+     this.$root.$on("branch_switch", function () {
        window.pyobject.branch_switch(that.selectBranchName);
      });
    },

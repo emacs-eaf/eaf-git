@@ -104,31 +104,31 @@
    mounted() {
      var that = this;
 
-     this.$root.$on("js_log_view_diff", function () {
+     this.$root.$on("log_view_diff", function () {
        that.logViewDiff();
      });
 
-     this.$root.$on("js_log_revert_commit", function () {
+     this.$root.$on("log_revert_commit", function () {
        that.logRevertCommit();
      });
 
-     this.$root.$on("js_log_reset_last", function () {
+     this.$root.$on("log_reset_last", function () {
        that.logResetLast();
      });
 
-     this.$root.$on("js_log_reset_to", function () {
+     this.$root.$on("log_reset_to", function () {
        that.logResetTo();
      });
 
-     this.$root.$on("js_log_cherry_pick", function () {
+     this.$root.$on("log_cherry_pick", function () {
        that.logCherryPick();
      });
 
-     this.$root.$on("js_log_select_pg_up", function () {
+     this.$root.$on("log_select_pg_up", function () {
        that.logSelectPgUp();
      });
 
-     this.$root.$on("js_log_select_pg_dn", function () {
+     this.$root.$on("log_select_pg_dn", function () {
        that.logSelectPgDn();
      });
 

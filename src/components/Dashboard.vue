@@ -248,27 +248,27 @@
 
      var that = this;
 
-     this.$root.$on("js_status_stage_file", function () {
+     this.$root.$on("status_stage_file", function () {
        that.pyobject.status_stage_file(that.selectItemType, that.selectItemIndex);
      });
 
-     this.$root.$on("js_status_delete_file", function () {
+     this.$root.$on("status_delete_file", function () {
        that.pyobject.status_delete_file(that.selectItemType, that.selectItemIndex);
      });
 
-     this.$root.$on("js_status_preview_scroll_up_line", function () {
+     this.$root.$on("status_preview_scroll_up_line", function () {
        that.statusPreviewScrollUpLine();
      });
 
-     this.$root.$on("js_status_preview_scroll_down_line", function () {
+     this.$root.$on("status_preview_scroll_down_line", function () {
        that.statusPreviewScrollDownLine();
      });
 
-     this.$root.$on("js_status_preview_scroll_up", function () {
+     this.$root.$on("status_preview_scroll_up", function () {
        that.statusPreviewScrollUp();
      });
 
-     this.$root.$on("js_status_preview_scroll_down", function () {
+     this.$root.$on("status_preview_scroll_down", function () {
        that.statusPreviewScrollDown();
      });
    },

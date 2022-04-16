@@ -303,99 +303,99 @@
 
      let that = this;
 
-     this.$root.$on("js_status_select_next", function () {
+     this.$root.$on("status_select_next", function () {
        that.statusSelectNext();
      });
 
-     this.$root.$on("js_status_select_prev", function () {
+     this.$root.$on("status_select_prev", function () {
        that.statusSelectPrev();
      });
 
      this.currentLogIndex = 0;
-     this.$root.$on("js_log_select_next", function () {
+     this.$root.$on("log_select_next", function () {
        that.logSelectNext();
      });
 
-     this.$root.$on("js_log_select_prev", function () {
+     this.$root.$on("log_select_prev", function () {
        that.logSelectPrev();
      });
 
-     this.$root.$on("js_log_select_last", function () {
+     this.$root.$on("log_select_last", function () {
        that.logSelectLast();
      });
 
-     this.$root.$on("js_log_select_first", function () {
+     this.$root.$on("log_select_first", function () {
        that.logSelectFirst();
      });
 
      this.selectBranchIndex = this.localBranchInfo.indexOf(this.currentBranch);
-     this.$root.$on("js_branch_select_next", function () {
+     this.$root.$on("branch_select_next", function () {
        that.branchSelectNext();
      });
 
-     this.$root.$on("js_branch_select_prev", function () {
+     this.$root.$on("branch_select_prev", function () {
        that.branchSelectPrev();
      });
 
-     this.$root.$on("js_branch_select_last", function () {
+     this.$root.$on("branch_select_last", function () {
        that.branchSelectLast();
      });
 
-     this.$root.$on("js_branch_select_first", function () {
+     this.$root.$on("branch_select_first", function () {
        that.branchSelectFirst();
      });
 
      this.currentSubmoduleIndex = 0;
-     this.$root.$on("js_submodule_select_next", function () {
+     this.$root.$on("submodule_select_next", function () {
        that.submoduleSelectNext();
      });
 
-     this.$root.$on("js_submodule_select_prev", function () {
+     this.$root.$on("submodule_select_prev", function () {
        that.submoduleSelectPrev();
      });
 
-     this.$root.$on("js_submodule_select_last", function () {
+     this.$root.$on("submodule_select_last", function () {
        that.submoduleSelectLast();
      });
 
-     this.$root.$on("js_submodule_select_first", function () {
+     this.$root.$on("submodule_select_first", function () {
        that.submoduleSelectFirst();
      });
 
      this.currentStashIndex = 0;
-     this.$root.$on("js_stash_select_next", function () {
+     this.$root.$on("stash_select_next", function () {
        that.stashSelectNext();
      });
 
-     this.$root.$on("js_stash_select_prev", function () {
+     this.$root.$on("stash_select_prev", function () {
        that.stashSelectPrev();
      });
 
-     this.$root.$on("js_stash_select_last", function () {
+     this.$root.$on("stash_select_last", function () {
        that.stashSelectLast();
      });
 
-     this.$root.$on("js_stash_select_first", function () {
+     this.$root.$on("stash_select_first", function () {
        that.stashSelectFirst();
      });
 
-     this.$root.$on("js_page_select_prev", function () {
+     this.$root.$on("page_select_prev", function () {
        that.pageSelectPrev();
      });
 
-     this.$root.$on("js_page_select_next", function () {
+     this.$root.$on("page_select_next", function () {
        that.pageSelectNext();
      });
 
-     this.$root.$on("js_log_mark_file", function () {
+     this.$root.$on("log_mark_file", function () {
        that.logMarkFile();
      });
 
-     this.$root.$on("js_log_unmark_file", function () {
+     this.$root.$on("log_unmark_file", function () {
        that.logUnmarkFile();
      });
 
-     this.$root.$on("js_log_unmark_all", function () {
+     this.$root.$on("log_unmark_all", function () {
        that.logUnmarkAll();
      });
 
@@ -425,6 +425,7 @@
            if (event_key in key_dict) {
              var command = key_dict[event_key]["command"]
              if (command.startsWith("js_")) {
+               command = command.replace("js_", "")
                that.$root.$emit(command);
              } else if (command.startsWith("py_")) {
                command = command.replace("py_", "")
