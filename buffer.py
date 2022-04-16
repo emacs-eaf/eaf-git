@@ -1325,16 +1325,38 @@ class AppBuffer(BrowserBuffer):
     def handle_submodule_remove(self):
         import subprocess
         import shutil
+        import configparser
 
-        # Remove submodule path and remove submodule section from .gitmodules file.
-        subprocess.Popen("cd {} ; git rm {}".format(self.repo_root, self.submodule_remove_path),
-                         shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).wait()
+        # Remove submodule path if submodule path exists in index.
+        for entry in self.repo.index:
+            if entry.path == self.submodule_remove_path:
+                self.repo.index.remove(self.submodule_remove_path)
+                self.repo.index.write()
 
         # Remove submodule path from .git/modules/ directory.
-        shutil.rmtree(os.path.join(self.repo_root, ".git", "modules", self.submodule_remove_path))
+        shutil.rmtree(os.path.join(self.repo_root, ".git", "modules", self.submodule_remove_path), ignore_errors=True)
 
-        # Remove submodule section from .git/config file.
-        get_command_result("cd {} ; git config --remove-section submodule.{}".format(self.repo_root, self.submodule_remove_path))
+        # Update .gitmodules if submodule path in .gitmodules sections.
+        mod_config = configparser.ConfigParser()
+        gitmodules_path = os.path.join(self.repo_root, ".gitmodules")
+        mod_config.read(gitmodules_path)
+        for section in mod_config.sections():
+            if mod_config[section].get("path") == self.submodule_remove_path:
+                mod_config.remove_section(section)
+
+        with open(gitmodules_path, 'w') as f:
+            mod_config.write(f)
+
+        # Update .git/config if submodule path in .git/config sections.
+        config = configparser.ConfigParser()
+        gitconf_path = os.path.join(self.repo_root, ".git", "config")
+        config.read(gitconf_path)
+        for section in config.sections():
+            if section == "submodule \"{}\"".format(self.submodule_remove_path):
+                config.remove_section(section)
+
+        with open(gitconf_path, 'w') as f:
+            config.write(f)
 
         message_to_emacs("Remove submodule {}".format(self.submodule_remove_path))
 
