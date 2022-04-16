@@ -672,11 +672,22 @@ class AppBuffer(BrowserBuffer):
         if type == "untrack":
             if file == "":
                 for status in self.untrack_status:
-                    diff_string += "Untrack file: {}\n\n".format(status["file"])
-                    diff_string += str(from_path(os.path.join(self.repo_root, status["file"])).best())
-                    diff_string += "\n"
+                    path = os.path.join(self.repo_root, status["file"])
+                    if os.path.isfile(path):
+                        diff_string += "Untrack file: {}\n\n".format(status["file"])
+                        diff_string += str(from_path(path).best())
+                        diff_string += "\n"
+                    else:
+                        # submodule directory
+                        diff_string += "Untrack: {}\n\n".format(status["file"])
+                        diff_string += "\n"
+
             else:
-                diff_string = str(from_path(os.path.join(self.repo_root, file)).best())
+                path = os.path.join(self.repo_root, file)
+                if os.path.isfile(path):
+                    diff_string = str(from_path(path).best())
+                else:
+                    diff_string = ""
 
         elif type == "stage":
             head_tree = self.repo.revparse_single("HEAD^{tree}")
