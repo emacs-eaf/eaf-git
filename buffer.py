@@ -1608,11 +1608,11 @@ class FetchStatusThread(QThread):
                 return (add_count, delete_count)
             
         elif type_key in [GIT_STATUS_WT_NEW]:
-            if mime.startswith("image-"):
-                return (0, 0)
-            else:
+            if mime.startswith("text-"):
                 file_path =os.path.join(self.repo_root, file)
                 return (len(open(file_path).readlines()), 0)
+            else:
+                return (0, 0)
         else:
             unstage_diff = self.repo.diff(cached=True)
             patches = [patch for patch in unstage_diff if patch.delta.new_file.path == file]
