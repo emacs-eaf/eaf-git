@@ -69,7 +69,7 @@
    mounted() {
      var that = this;
      
-     this.selectBranchName = this.currentBranch;
+     this.selectBranchName = this.localBranchInfo[this.selectBranchIndex].name;
      
      this.$root.$on("branchNew", function () {
        window.pyobject.branch_new();
