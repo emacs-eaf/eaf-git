@@ -111,7 +111,7 @@
  import Submodule from "./Submodule.vue"
  import Branch from "./Branch.vue"
  import Stash from "./Stash.vue"
- 
+
  import { updateListItemBackground, updateListItemMatchColor, updateListIndex } from "./utils.js"
 
  export default {
@@ -401,7 +401,7 @@
 
      window.addEventListener('keydown', function(event) {
        var event_key = event.key;
-       
+
        if (event_key === "1") {
          that.changePage("Dashboard");
        } else if (event_key === "2") {
@@ -416,21 +416,14 @@
          that.changePage("Patch");
        } else {
          if (event_key in that.keybindingInfo["Global"]) {
-           that.$root.$emit(that.keybindingInfo["Global"][event_key]["command"])
+           that.execute_command(that.keybindingInfo["Global"][event_key]["command"]);
          }
        }
 
        for (const [module_name, key_dict] of Object.entries(that.keybindingInfo)) {
          if (that.navCurrentItem === module_name) {
            if (event_key in key_dict) {
-             var command = key_dict[event_key]["command"]
-             if (command.startsWith("js_")) {
-               command = command.replace("js_", "")
-               that.$root.$emit(command);
-             } else if (command.startsWith("py_")) {
-               command = command.replace("py_", "")
-               that.pyobject[command]();
-             }
+             that.execute_command(key_dict[event_key]["command"]);
            }
          }
        }
@@ -547,7 +540,7 @@
      updateLogInfo(logBranch, logInfo) {
        this.logBranch = logBranch;
        this.logInfo = logInfo;
-       
+
        if (this.logInfo.length > 0) {
          this.logInfo[0].backgroundColor = this.selectColor;
        }
@@ -564,7 +557,7 @@
 
      updateSubmoduleInfo(submoduleInfo) {
        this.submoduleInfo = submoduleInfo;
-       
+
        if (this.submoduleInfo.length > 0) {
          this.submoduleInfo[0].backgroundColor = this.selectColor;
        }
@@ -574,24 +567,24 @@
        this.currentBranch = currentBranch
        this.localBranchInfo = localBranchInfo;
        this.remoteBranchInfo = remoteBranchInfo;
-       
+
        this.selectBranchIndex = 0;
        if (this.localBranchInfo.length > 0) {
          this.localBranchInfo[0].backgroundColor = this.selectColor;
        }
-       
+
        this.repoHeadName = currentBranch
      },
 
      updateLocalBranchInfo(currentBranch, localBranchInfo) {
        this.currentBranch = currentBranch
        this.localBranchInfo = localBranchInfo;
-       
+
        this.selectBranchIndex = 0;
        if (this.localBranchInfo.length > 0) {
          this.localBranchInfo[0].backgroundColor = this.selectColor;
        }
-       
+
        this.repoHeadName = currentBranch
      },
 
@@ -727,7 +720,7 @@
        this.searchSubmoduleMatchNumber = 0;
        this.searchSubmoduleMatchIndex = null;
      },
-     
+
      statusSelectNext() {
        var oldSelectItemType = this.selectItemType;
        var oldSelectItemIndex = this.selectItemIndex;
@@ -920,6 +913,16 @@
          this.logInfo[i].marked = "";
        }
      },
+
+     execute_command(command) {
+       if (command.startsWith("js_")) {
+         command = command.replace("js_", "")
+         this.$root.$emit(command);
+       } else if (command.startsWith("py_")) {
+         command = command.replace("py_", "")
+         this.pyobject[command]();
+       }
+     }
    }
  }
 </script>
