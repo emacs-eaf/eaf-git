@@ -143,18 +143,7 @@ class AppBuffer(BrowserBuffer):
         self.search_log_cache_path = ""
         self.search_submodule_cache_path = ""
 
-        self.git_status_threads = []
-        self.git_log_threads = []
-        self.git_compare_log_threads = []
-        self.git_stash_threads = []
-        self.git_submodule_threads = []
-        self.git_branch_threads = []
-        self.git_pull_threads = []
-        self.git_unpush_threads = []
-        self.git_push_threads = []
-        self.git_fetch_threads = []
-
-        self.add_submodule_threads = []
+        self.thread_reference_list = []
 
         self.log_compare_branch = ""
 
@@ -230,7 +219,7 @@ class AppBuffer(BrowserBuffer):
     def fetch_status_info(self):
         thread = FetchStatusThread(self.repo, self.repo_root, self.mime_db)
         thread.fetch_result.connect(self.update_status_info)
-        self.git_status_threads.append(thread)
+        self.thread_reference_list.append(thread)
         thread.start()
 
     @PostGui()
@@ -268,7 +257,7 @@ class AppBuffer(BrowserBuffer):
     def fetch_unpush_info(self):
         thread = FetchUnpushThread(self.repo, self.repo_root)
         thread.fetch_result.connect(self.update_unpush_info)
-        self.git_unpush_threads.append(thread)
+        self.thread_reference_list.append(thread)
         thread.start()
 
     @PostGui()
@@ -281,7 +270,7 @@ class AppBuffer(BrowserBuffer):
         if self.repo.head_is_unborn: return
         thread = FetchLogThread(self.repo, self.repo.head, True)
         thread.fetch_result.connect(self.update_log_info)
-        self.git_log_threads.append(thread)
+        self.thread_reference_list.append(thread)
         thread.start()
 
     @PostGui()
@@ -297,7 +286,7 @@ class AppBuffer(BrowserBuffer):
 
         thread = FetchLogThread(self.repo, branch)
         thread.fetch_result.connect(self.update_compare_log_info)
-        self.git_compare_log_threads.append(thread)
+        self.thread_reference_list.append(thread)
         thread.start()
 
     @PostGui()
@@ -307,7 +296,7 @@ class AppBuffer(BrowserBuffer):
     def fetch_stash_info(self):
         thread = FetchStashThread(self.repo)
         thread.fetch_result.connect(self.update_stash_info)
-        self.git_stash_threads.append(thread)
+        self.thread_reference_list.append(thread)
         thread.start()
 
     @PostGui()
@@ -317,7 +306,7 @@ class AppBuffer(BrowserBuffer):
     def fetch_submodule_info(self):
         thread = FetchSubmoduleThread(self.repo)
         thread.fetch_result.connect(self.update_submodule_info)
-        self.git_submodule_threads.append(thread)
+        self.thread_reference_list.append(thread)
         thread.start()
 
     @PostGui()
@@ -331,7 +320,7 @@ class AppBuffer(BrowserBuffer):
     def fetch_branch_info(self):
         thread = FetchBranchThread(self.repo)
         thread.fetch_result.connect(self.update_branch_info)
-        self.git_branch_threads.append(thread)
+        self.thread_reference_list.append(thread)
         thread.start()
 
     @PostGui()
@@ -1115,7 +1104,7 @@ class AppBuffer(BrowserBuffer):
             message_to_emacs("Git pull {}...".format(self.repo.head.name))
         thread = GitPullThread(self.repo_root)
         thread.pull_result.connect(self.handle_stash_pull)
-        self.git_pull_threads.append(thread)
+        self.thread_reference_list.append(thread)
         thread.start()
 
     def handle_stash_pull(self, message):
@@ -1127,7 +1116,7 @@ class AppBuffer(BrowserBuffer):
         message_to_emacs("Git push {}...".format(self.repo.head.name))
         thread = GitPushThread(self.repo, self.repo_root)
         thread.push_result.connect(self.handle_status_push)
-        self.git_push_threads.append(thread)
+        self.thread_reference_list.append(thread)
         thread.start()
 
     def handle_status_push(self, message):
@@ -1308,7 +1297,7 @@ class AppBuffer(BrowserBuffer):
         message_to_emacs("Add submodule {}...".format(self.submodule_add_url))
         thread = AddSubmoduleThread(self.repo, self.submodule_add_url, path)
         thread.finished.connect(self.handle_add_submodule_finish)
-        self.add_submodule_threads.append(thread)
+        self.thread_reference_list.append(thread)
         thread.start()
 
     def handle_add_submodule_finish(self, url, path):
@@ -1374,7 +1363,7 @@ class AppBuffer(BrowserBuffer):
         message_to_emacs("Update submodule {}...".format(self.submodule_update_path))
         thread = GitPullThread(submodule_path)
         thread.pull_result.connect(self.handle_submodule_update_finish)
-        self.git_pull_threads.append(thread)
+        self.thread_reference_list.append(thread)
         thread.start()
 
     def handle_submodule_update_finish(self, message):
@@ -1407,7 +1396,7 @@ class AppBuffer(BrowserBuffer):
         
         thread = GitFetchThread(self.repo_root, remote_branch)
         thread.fetch_result.connect(self.handle_branch_fetch_finish)
-        self.git_fetch_threads.append(thread)
+        self.thread_reference_list.append(thread)
         thread.start()
         
     def handle_branch_fetch_finish(self, branch_name, result):
@@ -1424,7 +1413,7 @@ class AppBuffer(BrowserBuffer):
     def handle_branch_fetch_all(self):
         thread = GitFetchThread(self.repo_root)
         thread.fetch_result.connect(self.handle_branch_fetch_all_finish)
-        self.git_fetch_threads.append(thread)
+        self.thread_reference_list.append(thread)
         thread.start()
 
     def handle_branch_fetch_all_finish(self, branch_name, result):
