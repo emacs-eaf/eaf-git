@@ -26,6 +26,7 @@ from core.webengine import BrowserBuffer
 from core.utils import get_emacs_func_result, get_emacs_var, PostGui, message_to_emacs, eval_in_emacs, interactive
 from charset_normalizer import from_path, from_bytes
 from pygit2 import (Repository, IndexEntry, Oid,
+                    GIT_BRANCH_REMOTE,
                     GIT_CHECKOUT_ALLOW_CONFLICTS,
                     GIT_SORT_TOPOLOGICAL,
                     GIT_STATUS_CURRENT,
@@ -142,16 +143,16 @@ class AppBuffer(BrowserBuffer):
         self.search_log_cache_path = ""
         self.search_submodule_cache_path = ""
 
-        self.fetch_status_threads = []
-        self.fetch_log_threads = []
-        self.fetch_compare_log_threads = []
-        self.fetch_stash_threads = []
-        self.fetch_submodule_threads = []
-        self.fetch_branch_threads = []
-        self.fetch_pull_threads = []
-        self.fetch_unpush_threads = []
-
+        self.git_status_threads = []
+        self.git_log_threads = []
+        self.git_compare_log_threads = []
+        self.git_stash_threads = []
+        self.git_submodule_threads = []
+        self.git_branch_threads = []
+        self.git_pull_threads = []
+        self.git_unpush_threads = []
         self.git_push_threads = []
+        self.git_fetch_threads = []
 
         self.add_submodule_threads = []
 
@@ -227,7 +228,7 @@ class AppBuffer(BrowserBuffer):
     def fetch_status_info(self):
         thread = FetchStatusThread(self.repo, self.repo_root, self.mime_db)
         thread.fetch_result.connect(self.update_status_info)
-        self.fetch_status_threads.append(thread)
+        self.git_status_threads.append(thread)
         thread.start()
 
     @PostGui()
@@ -265,7 +266,7 @@ class AppBuffer(BrowserBuffer):
     def fetch_unpush_info(self):
         thread = FetchUnpushThread(self.repo, self.repo_root)
         thread.fetch_result.connect(self.update_unpush_info)
-        self.fetch_unpush_threads.append(thread)
+        self.git_unpush_threads.append(thread)
         thread.start()
 
     @PostGui()
@@ -278,7 +279,7 @@ class AppBuffer(BrowserBuffer):
         if self.repo.head_is_unborn: return
         thread = FetchLogThread(self.repo, self.repo.head, True)
         thread.fetch_result.connect(self.update_log_info)
-        self.fetch_log_threads.append(thread)
+        self.git_log_threads.append(thread)
         thread.start()
 
     @PostGui()
@@ -294,7 +295,7 @@ class AppBuffer(BrowserBuffer):
 
         thread = FetchLogThread(self.repo, branch)
         thread.fetch_result.connect(self.update_compare_log_info)
-        self.fetch_compare_log_threads.append(thread)
+        self.git_compare_log_threads.append(thread)
         thread.start()
 
     @PostGui()
@@ -304,7 +305,7 @@ class AppBuffer(BrowserBuffer):
     def fetch_stash_info(self):
         thread = FetchStashThread(self.repo)
         thread.fetch_result.connect(self.update_stash_info)
-        self.fetch_stash_threads.append(thread)
+        self.git_stash_threads.append(thread)
         thread.start()
 
     @PostGui()
@@ -314,7 +315,7 @@ class AppBuffer(BrowserBuffer):
     def fetch_submodule_info(self):
         thread = FetchSubmoduleThread(self.repo)
         thread.fetch_result.connect(self.update_submodule_info)
-        self.fetch_submodule_threads.append(thread)
+        self.git_submodule_threads.append(thread)
         thread.start()
 
     @PostGui()
@@ -328,12 +329,12 @@ class AppBuffer(BrowserBuffer):
     def fetch_branch_info(self):
         thread = FetchBranchThread(self.repo)
         thread.fetch_result.connect(self.update_branch_info)
-        self.fetch_branch_threads.append(thread)
+        self.git_branch_threads.append(thread)
         thread.start()
 
     @PostGui()
-    def update_branch_info(self, branch_list):
-        self.update_branch_list(branch_list)
+    def update_branch_info(self, branch_list, remote_branch):
+        self.update_branch_list(branch_list, remote_branch)
 
     @interactive
     def search(self):
@@ -476,6 +477,12 @@ class AppBuffer(BrowserBuffer):
             self.handle_submodule_update()
         elif callback_tag == "submodule_rollback":
             self.handle_submodule_rollback()
+        elif callback_tag == "branch_fetch":
+            self.handle_branch_fetch(result_content)
+        elif callback_tag == "branch_fetch_all":
+            self.handle_branch_fetch_all()
+        elif callback_tag == "branch_create_from_remote":
+            self.handle_branch_create_from_remote(result_content)
 
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
@@ -1106,7 +1113,7 @@ class AppBuffer(BrowserBuffer):
             message_to_emacs("Git pull {}...".format(self.repo.head.name))
         thread = GitPullThread(self.repo_root)
         thread.pull_result.connect(self.handle_stash_pull)
-        self.fetch_pull_threads.append(thread)
+        self.git_pull_threads.append(thread)
         thread.start()
 
     def handle_stash_pull(self, message):
@@ -1233,7 +1240,7 @@ class AppBuffer(BrowserBuffer):
             })
 
             self.repo.branches.local.create(branch_name, self.repo.revparse_single('HEAD'))
-            self.update_branch_list(branch_list)
+            self.update_local_branch_list(branch_list)
 
             message_to_emacs("Create branch '{}'.".format(branch_name))
 
@@ -1252,13 +1259,24 @@ class AppBuffer(BrowserBuffer):
 
         self.repo.branches.local.delete(self.delete_branch_name)
 
-        self.update_branch_list(branch_list)
+        self.update_local_branch_list(branch_list)
 
         message_to_emacs("Delete branch '{}'".format(self.delete_branch_name))
 
-    def update_branch_list(self, branch_list):
+    def update_local_branch_list(self, local_branch_list):
         if not self.repo.head_is_unborn:
-            self.buffer_widget.eval_js('''updateBranchInfo(\"{}\", {})'''.format(self.repo.head.shorthand, json.dumps(branch_list)))
+            self.buffer_widget.eval_js('''updateLocalBranchInfo(\"{}\", {})'''.format(
+                self.repo.head.shorthand, 
+                json.dumps(local_branch_list)
+            ))
+            
+    def update_branch_list(self, local_branch_list, remote_branch_list=[]):
+        if not self.repo.head_is_unborn:
+            self.buffer_widget.eval_js('''updateBranchInfo(\"{}\", {}, {})'''.format(
+                self.repo.head.shorthand, 
+                json.dumps(local_branch_list),
+                json.dumps(remote_branch_list)
+            ))
 
     @QtCore.pyqtSlot(str)
     def branch_switch(self, branch_name):
@@ -1332,7 +1350,7 @@ class AppBuffer(BrowserBuffer):
         message_to_emacs("Update submodule {}...".format(self.submodule_update_path))
         thread = GitPullThread(submodule_path)
         thread.pull_result.connect(self.handle_submodule_update_finish)
-        self.fetch_pull_threads.append(thread)
+        self.git_pull_threads.append(thread)
         thread.start()
 
     def handle_submodule_update_finish(self, message):
@@ -1354,7 +1372,57 @@ class AppBuffer(BrowserBuffer):
         message_to_emacs("Rollback {} to version {}".format(self.submodule_rollback_path, self.submodule_rollback_head_id))
 
         self.fetch_status_info()
+        
+    @QtCore.pyqtSlot()
+    def branch_fetch(self):
+        remote_branch_names = self.repo.listall_branches(GIT_BRANCH_REMOTE)
+        self.send_input_message("Fetch remote branch: ", "branch_fetch", "list", completion_list=remote_branch_names)
+        
+    def handle_branch_fetch(self, remote_branch):
+        remote_branch = remote_branch.split("/")[-1]
+        
+        thread = GitFetchThread(self.repo_root, remote_branch)
+        thread.fetch_result.connect(self.handle_branch_fetch_finish)
+        self.git_fetch_threads.append(thread)
+        thread.start()
+        
+    def handle_branch_fetch_finish(self, branch_name, result):
+        if result == "":
+            message_to_emacs("Fetch remote branch {} finish.".format(branch_name))
+        else:
+            message_to_emacs(result)
+            self.fetch_branch_info()
 
+    @QtCore.pyqtSlot()
+    def branch_fetch_all(self):
+        self.send_input_message("Fetch all remote branches?", "branch_fetch_all", "yes-or-no")
+        
+    def handle_branch_fetch_all(self):
+        thread = GitFetchThread(self.repo_root)
+        thread.fetch_result.connect(self.handle_branch_fetch_all_finish)
+        self.git_fetch_threads.append(thread)
+        thread.start()
+
+    def handle_branch_fetch_all_finish(self, branch_name, result):
+        if result == "":
+            message_to_emacs("Fetch all remote branches finish.")
+            self.fetch_branch_info()
+        else:
+            message_to_emacs(result)
+            
+    @QtCore.pyqtSlot()
+    def branch_create_from_remote(self):
+        remote_branch_names = self.repo.listall_branches(GIT_BRANCH_REMOTE)
+        self.send_input_message("Create branch from remote branch: ", "branch_create_from_remote", "list", completion_list=remote_branch_names)
+        
+    def handle_branch_create_from_remote(self, remote_branch):
+        remote_branch = remote_branch.split("/")[-1]
+        
+        get_command_result("cd {}; git switch {}".format(self.repo_root, remote_branch))
+        
+        message_to_emacs("Create local branch {} finish.".format(remote_branch))
+        self.update_git_info()
+        
 class AddSubmoduleCallback(pygit2.RemoteCallbacks, QtCore.QObject):
 
     finished = QtCore.pyqtSignal()
@@ -1519,7 +1587,7 @@ class FetchSubmoduleThread(QThread):
 
 class FetchBranchThread(QThread):
 
-    fetch_result = QtCore.pyqtSignal(list)
+    fetch_result = QtCore.pyqtSignal(list, list)
 
     def __init__(self, repo):
         QThread.__init__(self)
@@ -1528,11 +1596,11 @@ class FetchBranchThread(QThread):
 
     def run(self):
         index = 0
-        branch_infos = []
-        branch_names = self.repo.listall_branches()
+        local_branch_infos = []
+        local_branch_names = self.repo.listall_branches()
 
-        for branch_name in branch_names:
-            branch_infos.append({
+        for branch_name in local_branch_names:
+            local_branch_infos.append({
                 "index": index,
                 "name": branch_name,
                 "foregroundColor": "",
@@ -1541,8 +1609,23 @@ class FetchBranchThread(QThread):
             })
 
             index += 1
+            
+        index = 0
 
-        self.fetch_result.emit(branch_infos)
+        remote_branch_infos = []
+        remote_branch_names = self.repo.listall_branches(GIT_BRANCH_REMOTE)
+
+        for branch_name in remote_branch_names:
+            remote_branch_infos.append({
+                "index": index,
+                "name": branch_name,
+                "foregroundColor": "",
+                "backgroundColor": ""
+            })
+
+            index += 1
+
+        self.fetch_result.emit(local_branch_infos, remote_branch_infos)
 
 class FetchStatusThread(QThread):
 
@@ -1657,6 +1740,23 @@ class GitPushThread(QThread):
         if result == "":
             result = "Git push {} successfully.".format(self.repo.head.name)
         self.push_result.emit(result)
+
+class GitFetchThread(QThread):
+
+    fetch_result = QtCore.pyqtSignal(str, str)
+
+    def __init__(self, repo_root, remote_branch=None):
+        QThread.__init__(self)
+
+        self.repo_root = repo_root
+        self.remote_branch = remote_branch
+
+    def run(self):
+        command = "cd {}; git fetch".format(self.repo_root)
+        if self.remote_branch != None:
+            command = "cd {}; git fetch origin {}".format(self.repo_root, self.remote_branch)
+        
+        self.fetch_result.emit(self.remote_branch, get_command_result(command).strip())
 
 class FetchUnpushThread(QThread):
 

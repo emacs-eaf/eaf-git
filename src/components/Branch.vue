@@ -1,21 +1,35 @@
 <template>
-  <div class="box">
-    <Dialog title="Branch">
+  <div class="branch-area">
+    <Dialog
+      class="local-branch"
+      title="Local Branch">
       <virtual-list
         ref="branchlist"
         class="list"
         :keeps="50"
         :estimate-size="100"
         :data-key="'index'"
-        :data-sources="branchInfo"
-        :data-component="branchItemComponent"/>
+        :data-sources="localBranchInfo"
+        :data-component="localBranchItemComponent"/>
+    </Dialog>
+    <Dialog
+      class="remote-branch"
+      title="Remote Branch">
+      <virtual-list
+        class="list"
+        :keeps="50"
+        :estimate-size="100"
+        :data-key="'index'"
+        :data-sources="remoteBranchInfo"
+        :data-component="remoteBranchItemComponent"/>
     </Dialog>
   </div>
 </template>
 
 <script>
  import Dialog from "./Dialog.vue"
- import BranchItem from './BranchItem'
+ import LocalBranchItem from './LocalBranchItem'
+ import RemoteBranchItem from './RemoteBranchItem'
  import VirtualList from 'vue-virtual-scroll-list'
 
  import { keepSelectVisible } from "./utils.js"
@@ -32,13 +46,14 @@
      backgroundColor: String,
      selectColor: String,
      currentBranch: String,
-     branchInfo: Array
+     localBranchInfo: Array,
+     remoteBranchInfo: Array
    },
    watch: {
      selectBranchIndex: {
        // eslint-disable-next-line no-unused-vars
        handler: function (val, oldVal) {
-         this.selectBranchName = this.branchInfo[this.selectBranchIndex].name;
+         this.selectBranchName = this.localBranchInfo[this.selectBranchIndex].name;
          keepSelectVisible(this.$refs.branchlist, val);
        },
        deep: true
@@ -46,7 +61,8 @@
    },
    data() {
      return {
-       branchItemComponent: BranchItem,
+       localBranchItemComponent: LocalBranchItem,
+       remoteBranchItemComponent: RemoteBranchItem,
        selectBranchName: ""
      }
    },
@@ -66,11 +82,26 @@
      this.$root.$on("branchSwitch", function () {
        window.pyobject.branch_switch(that.selectBranchName);
      });
+
+     this.$root.$on("branchFetch", function () {
+       window.pyobject.branch_fetch();
+     });
+
+     this.$root.$on("branchFetchAll", function () {
+       window.pyobject.branch_fetch_all();
+     });
+
+     this.$root.$on("branchCreateFromRemote", function () {
+       window.pyobject.branch_create_from_remote();
+     });
    },
    beforeDestroy() {
      this.$root.$off("branchNew");
      this.$root.$off("branchDelete");
      this.$root.$off("branchSwitch");
+     this.$root.$off("branchFetch");
+     this.$root.$off("branchFetchAll");
+     this.$root.$off("branchCreateFromRemote");
    },
    methods: {
    }
@@ -79,14 +110,27 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
- .box {
+ .branch-area {
    width: 100%;
    height: 100%;
+   
+   display: flex;
+   flex-direction: row;
+   
+   max-height: calc(100vh - 110px);
  }
 
  .list {
    z-index: 100;
    max-height: calc(100vh - 150px);
    overflow-y: scroll;
+ }
+ 
+ .local-branch {
+   width: 70%;
+ }
+
+ .remote-branch {
+   width: 30%;
  }
 </style>

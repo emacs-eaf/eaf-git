@@ -72,7 +72,8 @@
         :backgroundColor="backgroundColor"
         :currentColor="dateColor"
         :currentBranch="currentBranch"
-        :branchInfo="branchInfo"
+        :localBranchInfo="localBranchInfo"
+        :remoteBranchInfo="remoteBranchInfo"
       />
       <Stash
         v-if="navCurrentItem == 'Stash'"
@@ -128,8 +129,8 @@
      selectBranchIndex: {
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
-         if (this.branchInfo.length > 0) {
-           updateListItemBackground(this.branchInfo, oldVal, val, this.backgroundColor, this.selectColor);
+         if (this.localBranchInfo.length > 0) {
+           updateListItemBackground(this.localBranchInfo, oldVal, val, this.backgroundColor, this.selectColor);
          }
        }
      },
@@ -165,7 +166,7 @@
          }
        }
      },
-     branchInfo: {
+     localBranchInfo: {
        // eslint-disable-next-line no-unused-vars
        handler: function (val, oldVal) {
          window.pyobject.vue_update_branch_status(val);
@@ -258,7 +259,8 @@
        submoduleInfo: [],
        currentSubmoduleIndex: 0,
        currentBranch: "",
-       branchInfo: [],
+       localBranchInfo: [],
+       remoteBranchInfo: [],
        keybindingInfo: [],
        keyDescriptionList: [],
        pyobject: null
@@ -272,6 +274,7 @@
      window.updateStashInfo = this.updateStashInfo;
      window.updateSubmoduleInfo = this.updateSubmoduleInfo;
      window.updateBranchInfo = this.updateBranchInfo;
+     window.updateLocalBranchInfo = this.updateLocalBranchInfo;
      window.updateStatusInfo = this.updateStatusInfo;
      window.updateUnpushInfo = this.updateUnpushInfo;
      window.updateSelectInfo = this.updateSelectInfo;
@@ -325,7 +328,7 @@
        that.logSelectFirst();
      });
 
-     this.selectBranchIndex = this.branchInfo.indexOf(this.currentBranch);
+     this.selectBranchIndex = this.localBranchInfo.indexOf(this.currentBranch);
      this.$root.$on("branchSelectNext", function () {
        that.branchSelectNext();
      });
@@ -560,15 +563,28 @@
        }
      },
 
-     updateBranchInfo(currentBranch, branchInfo) {
+     updateBranchInfo(currentBranch, localBranchInfo, remoteBranchInfo) {
        this.currentBranch = currentBranch
-       this.branchInfo = branchInfo;
+       this.localBranchInfo = localBranchInfo;
+       this.remoteBranchInfo = remoteBranchInfo;
        
        this.selectBranchIndex = 0;
-       if (this.branchInfo.length > 0) {
-         this.branchInfo[0].backgroundColor = this.selectColor;
+       if (this.localBranchInfo.length > 0) {
+         this.localBranchInfo[0].backgroundColor = this.selectColor;
        }
+       
+       this.repoHeadName = currentBranch
+     },
 
+     updateLocalBranchInfo(currentBranch, localBranchInfo) {
+       this.currentBranch = currentBranch
+       this.localBranchInfo = localBranchInfo;
+       
+       this.selectBranchIndex = 0;
+       if (this.localBranchInfo.length > 0) {
+         this.localBranchInfo[0].backgroundColor = this.selectColor;
+       }
+       
        this.repoHeadName = currentBranch
      },
 
@@ -804,7 +820,7 @@
      },
 
      branchSelectNext() {
-       if (this.selectBranchIndex < this.branchInfo.length - 1) {
+       if (this.selectBranchIndex < this.localBranchInfo.length - 1) {
          this.selectBranchIndex += 1;
        }
      },
@@ -816,7 +832,7 @@
      },
 
      branchSelectLast() {
-       this.selectBranchIndex = this.branchInfo.length - 1;
+       this.selectBranchIndex = this.localBranchInfo.length - 1;
      },
 
      branchSelectFirst() {
