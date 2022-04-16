@@ -161,6 +161,8 @@ class AppBuffer(BrowserBuffer):
         self.url = os.path.expanduser(self.url)
         self.repo = Repository(self.url)
         self.repo_root = self.url
+        
+        eval_in_emacs('eaf--change-default-directory', [self.buffer_id, self.url])
 
         self.repo_path = os.path.sep.join(list(filter(lambda x: x != '', self.repo_root.split(os.path.sep)))[-2:])
 
