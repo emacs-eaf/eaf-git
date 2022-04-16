@@ -104,55 +104,42 @@
    mounted() {
      var that = this;
 
-     this.$root.$on("logViewDiff", function () {
+     this.$root.$on("js_log_view_diff", function () {
        that.logViewDiff();
      });
 
-     this.$root.$on("logShowCompareBranch", function () {
-       that.pyobject.log_show_compare_branch();
-     });
-
-     this.$root.$on("logHideCompareBranch", function () {
-       that.pyobject.log_hide_compare_branch();
-     });
-
-     this.$root.$on("logRevertCommit", function () {
+     this.$root.$on("js_log_revert_commit", function () {
        that.logRevertCommit();
      });
 
-     this.$root.$on("logResetLast", function () {
+     this.$root.$on("js_log_reset_last", function () {
        that.logResetLast();
      });
 
-     this.$root.$on("logResetTo", function () {
+     this.$root.$on("js_log_reset_to", function () {
        that.logResetTo();
      });
 
-     this.$root.$on("logCherryPick", function () {
+     this.$root.$on("js_log_cherry_pick", function () {
        that.logCherryPick();
      });
 
-     this.$root.$on("logRebaseBranch", function () {
-       that.logRebaseBranch();
-     });
-
-     this.$root.$on("logSelectPgUp", function () {
+     this.$root.$on("js_log_select_pg_up", function () {
        that.logSelectPgUp();
      });
 
-     this.$root.$on("logSelectPgDn", function () {
+     this.$root.$on("js_log_select_pg_dn", function () {
        that.logSelectPgDn();
      });
 
    },
    beforeDestroy() {
-     this.$root.$off("logViewDiff");
-     this.$root.$off("logRevertCommit");
-     this.$root.$off("logResetLast");
-     this.$root.$off("logResetTo");
-     this.$root.$off("logRebaseBranch");
-     this.$root.$off("logSelectPgUp");
-     this.$root.$off("logSelectPgDn");
+     this.$root.$off("js_log_view_diff");
+     this.$root.$off("js_log_revert_commit");
+     this.$root.$off("js_log_reset_last");
+     this.$root.$off("js_log_reset_to");
+     this.$root.$off("js_log_select_pg_up");
+     this.$root.$off("js_log_select_pg_dn");
    },
    methods: {
      logViewDiff() {
@@ -169,10 +156,6 @@
 
      logResetTo() {
        this.pyobject.log_reset_last(this.logInfo[this.currentLogIndex].id, this.logInfo[this.currentLogIndex].message);
-     },
-
-     logRebaseBranch() {
-       this.pyobject.log_rebase_branch();
      },
 
      logSelectPgUp() {

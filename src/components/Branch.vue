@@ -71,37 +71,17 @@
      
      this.selectBranchName = this.localBranchInfo[this.selectBranchIndex].name;
      
-     this.$root.$on("branchNew", function () {
-       window.pyobject.branch_new();
-     });
-
-     this.$root.$on("branchDelete", function () {
+     this.$root.$on("js_branch_delete", function () {
        window.pyobject.branch_delete(that.selectBranchName);
      });
      
-     this.$root.$on("branchSwitch", function () {
+     this.$root.$on("js_branch_switch", function () {
        window.pyobject.branch_switch(that.selectBranchName);
-     });
-
-     this.$root.$on("branchFetch", function () {
-       window.pyobject.branch_fetch();
-     });
-
-     this.$root.$on("branchFetchAll", function () {
-       window.pyobject.branch_fetch_all();
-     });
-
-     this.$root.$on("branchCreateFromRemote", function () {
-       window.pyobject.branch_create_from_remote();
      });
    },
    beforeDestroy() {
-     this.$root.$off("branchNew");
-     this.$root.$off("branchDelete");
-     this.$root.$off("branchSwitch");
-     this.$root.$off("branchFetch");
-     this.$root.$off("branchFetchAll");
-     this.$root.$off("branchCreateFromRemote");
+     this.$root.$off("js_branch_delete");
+     this.$root.$off("js_branch_switch");
    },
    methods: {
    }

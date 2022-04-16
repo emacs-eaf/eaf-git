@@ -406,7 +406,7 @@ class AppBuffer(BrowserBuffer):
             self.buffer_widget.eval_js('''searchSubmodulesFinish()''')
 
     @QtCore.pyqtSlot()
-    def copy_change_files_to_mirror_repo(self):
+    def status_copy_change_files_to_mirror_repo(self):
         status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
 
         if len(status) > 0:

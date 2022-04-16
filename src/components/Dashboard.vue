@@ -248,77 +248,37 @@
 
      var that = this;
 
-     this.$root.$on("statusCopyChangeFilesToMirrorRepo", function () {
-       window.pyobject.copy_change_files_to_mirror_repo();
-     });
-
-     this.$root.$on("statusStageFile", function () {
+     this.$root.$on("js_status_stage_file", function () {
        that.pyobject.status_stage_file(that.selectItemType, that.selectItemIndex);
      });
 
-     this.$root.$on("statusDeleteFile", function () {
+     this.$root.$on("js_status_delete_file", function () {
        that.pyobject.status_delete_file(that.selectItemType, that.selectItemIndex);
      });
 
-     this.$root.$on("statusCommitStage", function () {
-       that.pyobject.status_commit_stage();
-     });
-
-     this.$root.$on("statusCommitAll", function () {
-       that.pyobject.status_commit_all();
-     });
-
-     this.$root.$on("statusCommitAndPush", function () {
-       that.pyobject.status_commit_and_push();
-     });
-
-     this.$root.$on("statusPull", function () {
-       that.pyobject.status_pull();
-     });
-
-     this.$root.$on("statusPush", function () {
-       that.pyobject.status_push();
-     });
-
-     this.$root.$on("statusCheckoutAll", function () {
-       that.pyobject.status_checkout_all();
-     });
-
-     this.$root.$on("statusStashPush", function () {
-       that.pyobject.status_stash_push();
-     });
-
-     this.$root.$on("statusPreviewScrollUpLine", function () {
+     this.$root.$on("js_status_preview_scroll_up_line", function () {
        that.statusPreviewScrollUpLine();
      });
 
-     this.$root.$on("statusPreviewScrollDownLine", function () {
+     this.$root.$on("js_status_preview_scroll_down_line", function () {
        that.statusPreviewScrollDownLine();
      });
 
-     this.$root.$on("statusPreviewScrollUp", function () {
+     this.$root.$on("js_status_preview_scroll_up", function () {
        that.statusPreviewScrollUp();
      });
 
-     this.$root.$on("statusPreviewScrollDown", function () {
+     this.$root.$on("js_status_preview_scroll_down", function () {
        that.statusPreviewScrollDown();
      });
    },
    beforeDestroy() {
-     this.$root.$off("statusCopyChangeFilesToMirrorRepo");
-     this.$root.$off("statusStageFile");
-     this.$root.$off("statusDeleteFile");
-     this.$root.$off("statusCommitStage");
-     this.$root.$off("statusCommitAll");
-     this.$root.$off("statusCommitAndPush");
-     this.$root.$off("statusPull");
-     this.$root.$off("statusPush");
-     this.$root.$off("statusCheckoutAll");
-     this.$root.$off("statusStashPush");
-     this.$root.$off("statusPreviewScrollDown");
-     this.$root.$off("statusPreviewScrollUp");
-     this.$root.$off("statusPreviewScrollUpLine");
-     this.$root.$off("statusPreviewScrollDownLine");
+     this.$root.$off("js_status_stage_file");
+     this.$root.$off("js_status_delete_file");
+     this.$root.$off("js_status_preview_scroll_down");
+     this.$root.$off("js_status_preview_scroll_up");
+     this.$root.$off("js_status_preview_scroll_up_line");
+     this.$root.$off("js_status_preview_scroll_down_line");
    },
    methods: {
      untrackFileNumber() {

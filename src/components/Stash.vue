@@ -73,7 +73,7 @@
 
      this.showHighlightLine();
 
-     this.$root.$on("stashViewDiff", function () {
+     this.$root.$on("js_stash_view_diff", function () {
        that.pyobject.show_stash_diff(that.stashInfo[that.currentStashIndex].index);
      });
 
@@ -85,25 +85,25 @@
        that.pyobject.stash_search_backward();
      });
 
-     this.$root.$on("stashApply", function () {
+     this.$root.$on("js_stash_apply", function () {
        that.pyobject.stash_apply(that.stashInfo[that.currentStashIndex].index, that.stashInfo[that.currentStashIndex].message);
      });
 
-     this.$root.$on("stashPop", function () {
+     this.$root.$on("js_stash_pop", function () {
        that.pyobject.stash_pop(that.stashInfo[that.currentStashIndex].index, that.stashInfo[that.currentStashIndex].message);
      });
 
-     this.$root.$on("stashDrop", function () {
+     this.$root.$on("js_stash_drop", function () {
        that.pyobject.stash_drop(that.stashInfo[that.currentStashIndex].index, that.stashInfo[that.currentStashIndex].message);
      });
    },
    beforeDestroy() {
-     this.$root.$off("stashViewDiff");
+     this.$root.$off("js_stash_view_diff");
      this.$root.$off("stashSearchForward");
      this.$root.$off("stashSearchBackward");
-     this.$root.$off("stashApply");
-     this.$root.$off("stashPop");
-     this.$root.$off("stashDrop");
+     this.$root.$off("js_stash_apply");
+     this.$root.$off("js_stash_pop");
+     this.$root.$off("js_stash_drop");
    },
    methods: {
      showHighlightLine() {

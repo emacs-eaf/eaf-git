@@ -71,43 +71,38 @@
    mounted() {
      var that = this;
 
-     this.$root.$on("submoduleView", function () {
+     this.$root.$on("js_submodule_view", function () {
        that.pyobject.submodule_view(that.submoduleInfo[that.currentSubmoduleIndex].name);
      });
 
-     this.$root.$on("submoduleAdd", function () {
-       that.pyobject.submodule_add();
-     });
-
-     this.$root.$on("submoduleRemove", function () {
+     this.$root.$on("js_submodule_remove", function () {
        that.pyobject.submodule_remove(that.submoduleInfo[that.currentSubmoduleIndex].name);
      });
 
-     this.$root.$on("submoduleUpdate", function () {
+     this.$root.$on("js_submodule_update", function () {
        that.pyobject.submodule_update(that.submoduleInfo[that.currentSubmoduleIndex].name);
      });
 
-     this.$root.$on("submoduleRollback", function () {
+     this.$root.$on("js_submodule_rollback", function () {
        that.pyobject.submodule_rollback(that.submoduleInfo[that.currentSubmoduleIndex].name,
                                         that.submoduleInfo[that.currentSubmoduleIndex].head_id);
      });
 
-     this.$root.$on("submoduleSelectPgUp", function () {
+     this.$root.$on("js_submodule_select_pg_up", function () {
        that.submoduleSelectPgUp();
      });
 
-     this.$root.$on("submoduleSelectPgDn", function () {
+     this.$root.$on("js_submodule_select_pg_dn", function () {
        that.submoduleSelectPgDn();
      });
    },
    beforeDestroy() {
-     this.$root.$off("submoduleView");
-     this.$root.$off("submoduleAdd");
-     this.$root.$off("submoduleRemove");
-     this.$root.$off("submoduleUpdate");
-     this.$root.$off("submoduleRollback");
-     this.$root.$off("submoduleSelectPgUp");
-     this.$root.$off("submoduleSelectPgDn");
+     this.$root.$off("js_submodule_view");
+     this.$root.$off("js_submodule_remove");
+     this.$root.$off("js_submodule_update");
+     this.$root.$off("js_submodule_rollback");
+     this.$root.$off("js_submodule_select_pg_up");
+     this.$root.$off("js_submodule_select_pg_dn");
    },
    methods: {
      submoduleSelectPgUp() {
