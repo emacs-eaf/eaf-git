@@ -38,7 +38,7 @@
      selectBranchIndex: {
        // eslint-disable-next-line no-unused-vars
        handler: function (val, oldVal) {
-         this.selectBranch = this.branchInfo[this.selectBranchIndex];
+         this.selectBranchName = this.branchInfo[this.selectBranchIndex].name;
          keepSelectVisible(this.$refs.branchlist, val);
        },
        deep: true
@@ -47,24 +47,24 @@
    data() {
      return {
        branchItemComponent: BranchItem,
-       selectBranch: {}
+       selectBranchName: ""
      }
    },
    mounted() {
-     this.selectBranch = this.currentBranch;
-
      var that = this;
-
+     
+     this.selectBranchName = this.currentBranch;
+     
      this.$root.$on("branchNew", function () {
        window.pyobject.branch_new();
      });
 
      this.$root.$on("branchDelete", function () {
-       window.pyobject.branch_delete([that.selectBranch]);
+       window.pyobject.branch_delete(that.selectBranchName);
      });
      
      this.$root.$on("branchSwitch", function () {
-       window.pyobject.branch_switch([that.selectBranch]);
+       window.pyobject.branch_switch(that.selectBranchName);
      });
    },
    beforeDestroy() {

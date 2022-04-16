@@ -1226,36 +1226,35 @@ class AppBuffer(BrowserBuffer):
 
             message_to_emacs("Create branch '{}'.".format(branch_name))
 
-    @QtCore.pyqtSlot(list)
-    def branch_delete(self, branch):
-        self.delete_branch = branch[0]
-        self.send_input_message("Delete branch '{}': ".format(self.delete_branch["name"]), "delete_branch", "yes-or-no")
+    @QtCore.pyqtSlot(str)
+    def branch_delete(self, branch_name):
+        self.delete_branch_name = branch_name
+        self.send_input_message("Delete branch '{}': ".format(branch_name), "delete_branch", "yes-or-no")
 
     def handle_delete_branch(self):
         branch_list = self.branch_status
 
         for branch in branch_list:
-            if branch["name"] == self.delete_branch["name"]:
+            if branch["name"] == self.delete_branch_name:
                 branch_list.remove(branch)
                 break
 
-        self.repo.branches.local.delete(self.delete_branch["name"])
+        self.repo.branches.local.delete(self.delete_branch_name)
 
         self.update_branch_list(branch_list)
 
-        message_to_emacs("Delete branch '{}'".format(self.delete_branch["name"]))
+        message_to_emacs("Delete branch '{}'".format(self.delete_branch_name))
 
     def update_branch_list(self, branch_list):
         if not self.repo.head_is_unborn:
             self.buffer_widget.eval_js('''updateBranchInfo(\"{}\", {})'''.format(self.repo.head.shorthand, json.dumps(branch_list)))
 
-    @QtCore.pyqtSlot(list)
-    def branch_switch(self, branch):
+    @QtCore.pyqtSlot(str)
+    def branch_switch(self, branch_name):
         # Tips
         # When switch the branch, the uncommitted changes will be copied over to the new branch.
         # However you cannot pull/fetch/rebase, unless you stash or commit.
         # Because Git will prevent that to stop from overwriting any uncommitted code.
-        branch_name = branch[0]["name"]
         self.git_checkout_branch(branch_name)
 
         self.update_git_info()
