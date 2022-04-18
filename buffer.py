@@ -1326,7 +1326,15 @@ class AppBuffer(BrowserBuffer):
         import configparser
 
         # Remove submodule path if submodule path exists in index.
-        shutil.rmtree(os.path.join(self.repo_root, self.submodule_remove_path))
+        shutil.rmtree(os.path.join(self.repo_root, self.submodule_remove_path), ignore_errors=True)
+
+        # git rm and write index.
+        try:
+            list(map(lambda entry: self.repo.index.remove(entry.path),
+                    filter(lambda entry : entry.path == self.submodule_remove_path, self.repo.index)))
+            self.repo.index.write()
+        except KeyError:
+            pass
 
         # Remove submodule path from .git/modules/ directory.
         shutil.rmtree(os.path.join(self.repo_root, ".git", "modules", self.submodule_remove_path), ignore_errors=True)
