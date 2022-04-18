@@ -1445,10 +1445,6 @@ class AddSubmoduleCallback(pygit2.RemoteCallbacks, QtCore.QObject):
     def sideband_progress(self, string):
         print("{} {}".format(self.url, string))
 
-    def transfer_progress(self, progress):
-        if (progress.received_objects == progress.total_objects == progress.indexed_objects) and (progress.indexed_deltas == progress.total_deltas):
-            self.finished.emit()
-
 class AddSubmoduleThread(QThread):
 
     finished = QtCore.pyqtSignal(str, str)
@@ -1468,6 +1464,7 @@ class AddSubmoduleThread(QThread):
         self.callback.finished.connect(lambda : self.finished.emit(self.url, self.path))
 
         self.repo.add_submodule(self.url, self.path, callbacks=self.callback)
+        self.callback.finished.emit()
 
 class FetchLogThread(QThread):
 
