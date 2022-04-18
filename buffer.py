@@ -458,6 +458,8 @@ class AppBuffer(BrowserBuffer):
             self.handle_search_log(result_content)
         elif callback_tag == "search_submodule":
             self.handle_search_submodule(result_content)
+        elif callback_tag == "select_submodule_type":
+            self.handle_select_submodule_type(result_content)
         elif callback_tag == "submodule_add_url":
             self.handle_submodule_add_url(result_content)
         elif callback_tag == "submodule_add_path":
@@ -1287,7 +1289,14 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot()
     def submodule_add(self):
-        self.send_input_message("Add submodule url: ", "submodule_add_url")
+        self.send_input_message("Input submodule type: ", "select_submodule_type", "list", completion_list=["path", "url"])
+
+    def handle_select_submodule_type(self, type):
+        if type == "url":
+            self.send_input_message("Add submodule url: ", "submodule_add_url")
+        else:
+            # git clone support local git repositiory.
+            self.send_input_message("Add submodule repositiory: ", "submodule_add_url", "directory", self.repo_root)
 
     def handle_submodule_add_url(self, url):
         self.submodule_add_url = url
