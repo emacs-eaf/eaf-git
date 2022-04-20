@@ -124,6 +124,10 @@
        that.logCherryPick();
      });
 
+     this.$root.$on("log_copy_commit_id", function () {
+       that.logCopyCommitID();
+     });
+
      this.$root.$on("log_select_pg_up", function () {
        that.logSelectPgUp();
      });
@@ -174,6 +178,16 @@
 
        this.pyobject.log_cherry_pick(pickList);
      },
+
+     logCopyCommitID() {
+       const that = this;
+       const commitId = this.logInfo[this.currentLogIndex].id;
+       navigator.clipboard.writeText(commitId).then(() => {
+         that.pyobject.send_message_to_emacs(`Copied ${commitId} successfully.`);
+       }, () => {
+         that.pyobject.send_message_to_emacs(`Copy ${commitId} failed.`);
+       });
+     }
    }
  }
 </script>
