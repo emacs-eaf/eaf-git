@@ -425,6 +425,10 @@ class AppBuffer(BrowserBuffer):
         else:
             message_to_emacs("No file need submitted, nothing to copy.")
 
+    @QtCore.pyqtSlot(str)
+    def send_message_to_emacs(self, message):
+        message_to_emacs(message)
+
     def handle_input_response(self, callback_tag, result_content):
         if callback_tag == "copy_changes_file_to_mirror":
             self.handle_copy_changes_file_to_mirror(result_content)
