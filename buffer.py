@@ -78,6 +78,8 @@ GIT_STATUS_INDEX_CHANGES = [
     GIT_STATUS_INDEX_TYPECHANGE,
 ]
 
+NO_PREVIEW = "Previewing binary data is not supported now. \n"
+
 def pretty_date(time=False):
     """
     Get a datetime object or a int() Epoch timestamp and return a
@@ -120,6 +122,24 @@ def pretty_date(time=False):
     if day_diff < 365:
         return str(day_diff // 30) + " months ago"
     return str(day_diff // 365) + " years ago"
+
+def is_binary(filename_or_bytes):
+    """
+    Return true if the given file or content appears to be binary.
+    File is considered to be binary if it contains a NULL byte.
+    FIXME: This approach incorrectly reports UTF-16 as binary.
+    """
+    if type(filename_or_bytes) == str:
+        with open(filename_or_bytes, 'rb') as f:
+            for block in f:
+                if b'\0' in block:
+                    return True
+            return False
+    else:
+        for b in filename_or_bytes:
+            if b == 0:
+                return True
+            return False
 
 def get_command_result(command_string):
     import subprocess
@@ -675,7 +695,7 @@ class AppBuffer(BrowserBuffer):
                     path = os.path.join(self.repo_root, status["file"])
                     if os.path.isfile(path):
                         diff_string += "Untrack file: {}\n\n".format(status["file"])
-                        diff_string += str(from_path(path).best())
+                        diff_string += str(NO_PREVIEW if is_binary(path) else from_path(path).best())
                         diff_string += "\n"
                     else:
                         # submodule directory
@@ -685,7 +705,7 @@ class AppBuffer(BrowserBuffer):
             else:
                 path = os.path.join(self.repo_root, file)
                 if os.path.isfile(path):
-                    diff_string = str(from_path(path).best())
+                    diff_string = str(NO_PREVIEW if is_binary(path) else from_path(path).best())
                 else:
                     diff_string = ""
 
@@ -696,7 +716,7 @@ class AppBuffer(BrowserBuffer):
                 diff_string = stage_diff.patch
             else:
                 patches = [patch for patch in stage_diff if patch.delta.new_file.path == file]
-                diff_string = "\n".join(map(lambda patch : str(from_bytes(patch.data).best()), patches))
+                diff_string = "\n".join(map(lambda patch : str(NO_PREVIEW if is_binary(patch.data) else from_bytes(patch.data).best()), patches))
 
         elif type == "unstage":
             unstage_diff = self.repo.diff(cached=True)
@@ -704,7 +724,7 @@ class AppBuffer(BrowserBuffer):
                 diff_string = unstage_diff.patch
             else:
                 patches = [patch for patch in unstage_diff if patch.delta.new_file.path == file]
-                diff_string = "\n".join(map(lambda patch : str(from_bytes(patch.data).best()), patches))
+                diff_string = "\n".join(map(lambda patch : str(NO_PREVIEW if is_binary(patch.data) else from_bytes(patch.data).best()), patches))
 
         diff_string = self.highlight_diff(diff_string)
         self.buffer_widget.eval_js('''updateChangeDiff(\"{}\", {})'''.format(type, json.dumps(diff_string)))
