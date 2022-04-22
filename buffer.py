@@ -508,10 +508,10 @@ class AppBuffer(BrowserBuffer):
             self.buffer_widget.eval_js_function('''searchSubmodulesCancel''')
 
     def handle_copy_changes_file_to_mirror(self, target_repo_dir):
-        current_repo_last_commint_id = self.last_commit_id
-        target_repo_last_commint_id = str(Repository(target_repo_dir).head.target)
+        current_repo_last_commit_id = self.last_commit_id
+        target_repo_last_commit_id = str(Repository(target_repo_dir).head.target)
         
-        if target_repo_last_commint_id == current_repo_last_commint_id:
+        if target_repo_last_commit_id == current_repo_last_commit_id:
             status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
 
             for (file, file_type) in status:
@@ -633,7 +633,7 @@ class AppBuffer(BrowserBuffer):
 
             self.fetch_log_info()
 
-            message_to_emacs("Rebase commints from branch {} to {}".format(merge_branch.name, current_branch.name))
+            message_to_emacs("Rebase commits from branch {} to {}".format(merge_branch.name, current_branch.name))
 
     @QtCore.pyqtSlot(int)
     def show_stash_diff(self, stash_index):
@@ -1206,7 +1206,7 @@ class AppBuffer(BrowserBuffer):
             if len(self.log_cherry_pick_commits) == 1:
                 message_to_emacs("Copy '{}' to branch {}".format(self.log_cherry_pick_commits[0]["message"], new_branch))
             else:
-                message_to_emacs("Copy {} commints to branch {}".format(len(self.log_cherry_pick_commits), new_branch))
+                message_to_emacs("Copy {} commits to branch {}".format(len(self.log_cherry_pick_commits), new_branch))
 
     def handle_log_show_compare_branch(self, branch):
         self.log_compare_branch = branch
