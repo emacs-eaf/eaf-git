@@ -589,7 +589,7 @@
      },
 
      updateChangeDiff(diffsType, diffString) {
-       this.diffs = diffString;
+       this.diffs = diffString["diff"];
        this.diffsType = diffsType;
      },
 

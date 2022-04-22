@@ -228,14 +228,14 @@ class AppBuffer(BrowserBuffer):
              "font-lock-string-face",
              "font-lock-negation-char-face"])
 
-        self.buffer_widget.eval_js('''init(\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", {}, {})'''.format(
+        self.buffer_widget.eval_js_function("init", 
             self.theme_background_color, self.theme_foreground_color, select_color, QColor(self.theme_background_color).darker(110).name(),
             text_color, nav_item_color, info_color,
             date_color, id_color, author_color, match_color,
             self.repo_path, self.last_commit_id,
-            json.dumps({"lastCommit": self.last_commit_message}),
-            self.get_keybinding_info()))
-
+            {"lastCommit": self.last_commit_message},
+            self.get_keybinding_info())
+        
     def fetch_status_info(self):
         thread = FetchStatusThread(self.repo, self.repo_root, self.mime_db)
         thread.fetch_result.connect(self.update_status_info)
@@ -244,8 +244,8 @@ class AppBuffer(BrowserBuffer):
 
     @PostGui()
     def update_status_info(self, stage_status, unstage_status, untrack_status):
-        self.buffer_widget.eval_js('''updateStatusInfo({}, {}, {})'''.format(json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status)))
-
+        self.buffer_widget.eval_js_function("updateStatusInfo", stage_status, unstage_status, untrack_status)
+        
         QTimer().singleShot(300, self.init_diff)
 
     def init_diff(self):
@@ -282,10 +282,8 @@ class AppBuffer(BrowserBuffer):
 
     @PostGui()
     def update_unpush_info(self, info):
-        self.buffer_widget.eval_js('''updateUnpushInfo({})'''.format(json.dumps(
-            {"info": info}
-        )))
-
+        self.buffer_widget.eval_js_function("updateUnpushInfo", {"info": info})
+        
     def fetch_log_info(self):
         if self.repo.head_is_unborn: return
         thread = FetchLogThread(self.repo, self.repo.head, True)
@@ -299,7 +297,7 @@ class AppBuffer(BrowserBuffer):
             os.remove(self.search_log_cache_path)
 
         self.search_log_cache_path = search_cache_path
-        self.buffer_widget.eval_js('''updateLogInfo(\"{}\", {})'''.format(branch_name, json.dumps(log)))
+        self.buffer_widget.eval_js_function("updateLogInfo", branch_name, log)
 
     def fetch_compare_log_info(self, branch_name):
         branch = self.repo.branches.get(branch_name)
@@ -311,7 +309,7 @@ class AppBuffer(BrowserBuffer):
 
     @PostGui()
     def update_compare_log_info(self, branch_name, log, search_cache_path):
-        self.buffer_widget.eval_js('''updateCompareLogInfo(\"{}\", {})'''.format(branch_name, json.dumps(log)))
+        self.buffer_widget.eval_js_function("updateCompareLogInfo", branch_name, log)
 
     def fetch_stash_info(self):
         thread = FetchStashThread(self.repo)
@@ -321,7 +319,7 @@ class AppBuffer(BrowserBuffer):
 
     @PostGui()
     def update_stash_info(self, stash):
-        self.buffer_widget.eval_js('''updateStashInfo({})'''.format(json.dumps(stash)))
+        self.buffer_widget.eval_js_function("updateStashInfo", stash)
 
     def fetch_submodule_info(self):
         thread = FetchSubmoduleThread(self.repo)
@@ -335,7 +333,7 @@ class AppBuffer(BrowserBuffer):
             os.remove(self.search_submodule_cache_path)
 
         self.search_submodule_cache_path = search_cache_path
-        self.buffer_widget.eval_js('''updateSubmoduleInfo({})'''.format(json.dumps(submodule)))
+        self.buffer_widget.eval_js_function("updateSubmoduleInfo", submodule)
 
     def fetch_branch_info(self):
         thread = FetchBranchThread(self.repo)
@@ -372,7 +370,7 @@ class AppBuffer(BrowserBuffer):
             count = self.search_log_count
             QTimer().singleShot(300, lambda : self.try_search_log(count, search_string))
         else:
-            self.buffer_widget.eval_js('''searchLogsFinish()''')
+            self.buffer_widget.eval_js_function("searchLogsFinish")
 
     def handle_search_submodule(self, search_string):
         in_minibuffer = get_emacs_func_result("minibufferp", [])
@@ -382,39 +380,40 @@ class AppBuffer(BrowserBuffer):
             count = self.search_submodule_count
             QTimer().singleShot(300, lambda : self.try_search_submodule(count, search_string))
         else:
-            self.buffer_widget.eval_js('''searchSubmodulesFinish()''')
+            self.buffer_widget.eval_js_function("searchSubmodulesFinish")
 
     def try_search_log(self, count, search_string):
         if count == self.search_log_count and search_string.strip() != "":
             if self.search_log_cache_path and os.path.exists(self.search_log_cache_path):
-                self.buffer_widget.eval_js('''searchLogsStart(\"{}\", {});'''.format(
+                self.buffer_widget.eval_js_function("searchLogsStart", 
                     search_string, 
-                    json.dumps(self.search_match_lines(search_string, self.search_log_cache_path))))
+                    self.search_match_lines(search_string, self.search_log_cache_path))
 
     def try_search_submodule(self, count, search_string):
         if count == self.search_submodule_count and search_string.strip() != "":
             if self.search_submodule_cache_path and os.path.exists(self.search_submodule_cache_path):
-                self.buffer_widget.eval_js('''searchSubmodulesStart(\"{}\", {});'''.format(
+                self.buffer_widget.eval_js_function(
+                    "searchSubmodulesStart",
                     search_string, 
-                    json.dumps(self.search_match_lines(search_string, self.search_submodule_cache_path))))
+                    self.search_match_lines(search_string, self.search_submodule_cache_path))
 
     def handle_search_forward(self, callback_tag):
         if callback_tag == "search_log":
-            self.buffer_widget.eval_js('''searchLogsJumpNext();''')
+            self.buffer_widget.eval_js_function('''searchLogsJumpNext''')
         elif callback_tag == "search_submodule":
-            self.buffer_widget.eval_js('''searchSubmodulesJumpNext();''')
+            self.buffer_widget.eval_js_function('''searchSubmodulesJumpNext''')
 
     def handle_search_backward(self, callback_tag):
         if callback_tag == "search_log":
-            self.buffer_widget.eval_js('''searchLogsJumpPrev();''')
+            self.buffer_widget.eval_js_function('''searchLogsJumpPrev''')
         elif callback_tag == "search_submodule":
-            self.buffer_widget.eval_js('''searchSubmodulesJumpPrev();''')
+            self.buffer_widget.eval_js_function('''searchSubmodulesJumpPrev''')
 
     def handle_search_finish(self, callback_tag):
         if callback_tag == "search_log":
-            self.buffer_widget.eval_js('''searchLogsFinish()''')
+            self.buffer_widget.eval_js_function('''searchLogsFinish''')
         elif callback_tag == "search_submodule":
-            self.buffer_widget.eval_js('''searchSubmodulesFinish()''')
+            self.buffer_widget.eval_js_function('''searchSubmodulesFinish''')
 
     @QtCore.pyqtSlot()
     def status_copy_change_files_to_mirror_repo(self):
@@ -504,9 +503,9 @@ class AppBuffer(BrowserBuffer):
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
         if callback_tag == "search_log":
-            self.buffer_widget.eval_js('''searchLogsCancel()''')
+            self.buffer_widget.eval_js_function('''searchLogsCancel''')
         elif callback_tag == "search_submodule":
-            self.buffer_widget.eval_js('''searchSubmodulesCancel()''')
+            self.buffer_widget.eval_js_function('''searchSubmodulesCancel''')
 
     def handle_copy_changes_file_to_mirror(self, target_repo_dir):
         current_repo_last_commint_id = self.last_commit_id
@@ -731,7 +730,7 @@ class AppBuffer(BrowserBuffer):
                 diff_string = "\n".join(map(lambda patch : str(NO_PREVIEW if is_binary(patch.data) else from_bytes(patch.data).best()), patches))
 
         diff_string = self.highlight_diff(diff_string)
-        self.buffer_widget.eval_js('''updateChangeDiff(\"{}\", {})'''.format(type, json.dumps(diff_string)))
+        self.buffer_widget.eval_js_function("updateChangeDiff", type, {"diff": diff_string})
 
     @QtCore.pyqtSlot()
     def status_commit_stage(self):
@@ -801,9 +800,7 @@ class AppBuffer(BrowserBuffer):
         else:
             select_item_type = "stage"
 
-        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
-            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
-            select_item_type, select_item_index))
+        self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
 
     def stage_unstage_files(self):
         untrack_status = self.untrack_status
@@ -818,9 +815,7 @@ class AppBuffer(BrowserBuffer):
         select_item_type = "stage"
         select_item_index = -1
 
-        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
-            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
-            select_item_type, select_item_index))
+        self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
 
     def stage_untrack_file(self, file_info):
         untrack_status = self.untrack_status
@@ -843,9 +838,7 @@ class AppBuffer(BrowserBuffer):
         else:
             select_item_type = "stage"
 
-        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
-            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
-            select_item_type, select_item_index))
+        self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
 
     def stage_unstage_file(self, file_info):
         untrack_status = self.untrack_status
@@ -866,9 +859,7 @@ class AppBuffer(BrowserBuffer):
         else:
             select_item_type = "stage"
 
-        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
-            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
-            select_item_type, select_item_index))
+        self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
 
     @QtCore.pyqtSlot(str, int)
     def status_delete_file(self, type, file_index):
@@ -919,9 +910,7 @@ class AppBuffer(BrowserBuffer):
         else:
             select_item_type = "stage"
 
-        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
-            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
-            select_item_type, select_item_index))
+        self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
 
         if delete_file_number > 1:
             message_to_emacs("Delete {} files.".format(delete_file_number))
@@ -945,9 +934,7 @@ class AppBuffer(BrowserBuffer):
         else:
             select_item_type = "stage"
 
-        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
-            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
-            select_item_type, select_item_index))
+        self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
 
     def handle_delete_stage_files(self):
         untrack_status = self.untrack_status
@@ -967,9 +954,7 @@ class AppBuffer(BrowserBuffer):
         elif len(untrack_status) > 0:
             select_item_type = "untrack"
 
-        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
-            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
-            select_item_type, select_item_index))
+        self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
 
     def handle_commit_stage_files(self, message):
         tree = self.repo.index.write_tree()
@@ -998,10 +983,8 @@ class AppBuffer(BrowserBuffer):
         elif len(untrack_status) > 0:
             select_item_type = "untrack"
 
-        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
-            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
-            select_item_type, select_item_index))
-
+        self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
+        
         message_to_emacs("Commit stage files with: {}".format(message))
 
     def handle_commit_all_files(self, message):
@@ -1022,9 +1005,7 @@ class AppBuffer(BrowserBuffer):
         self.fetch_log_info()
         self.fetch_submodule_info()
 
-        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
-            json.dumps([]), json.dumps([]), json.dumps([]),
-            "", -1))
+        self.buffer_widget.eval_js_function("updateSelectInfo", [], [], [], "", -1)
 
         message_to_emacs("Commit stage files with: {}".format(message))
 
@@ -1051,9 +1032,7 @@ class AppBuffer(BrowserBuffer):
         else:
             select_item_type = "stage"
 
-        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
-            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
-            select_item_type, select_item_index))
+        self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
 
         message_to_emacs("Delete file {}".format(self.delete_untrack_mark_file["file"]))
 
@@ -1075,9 +1054,7 @@ class AppBuffer(BrowserBuffer):
         else:
             select_item_type = "stage"
 
-        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
-            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
-            select_item_type, select_item_index))
+        self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
 
     def handle_delete_stage_file(self):
         untrack_status = self.untrack_status
@@ -1100,10 +1077,8 @@ class AppBuffer(BrowserBuffer):
         elif len(unstage_status) > 0:
             select_item_type = "untrack"
 
-        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
-            json.dumps(stage_status), json.dumps(unstage_status), json.dumps(untrack_status),
-            select_item_type, select_item_index))
-
+        self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
+        
     @QtCore.pyqtSlot(list)
     def vue_update_stage_status(self, stage_status):
         self.stage_status = stage_status
@@ -1173,9 +1148,7 @@ class AppBuffer(BrowserBuffer):
     def handle_checkout_all_files(self):
         self.git_checkout_file()
 
-        self.buffer_widget.eval_js('''updateSelectInfo({}, {}, {}, \"{}\", {})'''.format(
-            json.dumps([]), json.dumps([]), json.dumps([]),
-            "", -1))
+        self.buffer_widget.eval_js_function("updateSelectInfo", [], [], [], "", -1)
 
         message_to_emacs("Checkout all.")
 
@@ -1187,7 +1160,7 @@ class AppBuffer(BrowserBuffer):
     @QtCore.pyqtSlot()
     def log_hide_compare_branch(self):
         self.log_compare_branch = ""
-        self.buffer_widget.eval_js('''updateCompareLogInfo(\"{}\", {})'''.format("", json.dumps([])))
+        self.buffer_widget.eval_js_function("updateCompareLogInfo", "", [])
         message_to_emacs("Hide compare branch.")
 
     @QtCore.pyqtSlot(list)
@@ -1282,18 +1255,11 @@ class AppBuffer(BrowserBuffer):
 
     def update_local_branch_list(self, local_branch_list):
         if not self.repo.head_is_unborn:
-            self.buffer_widget.eval_js('''updateLocalBranchInfo(\"{}\", {})'''.format(
-                self.repo.head.shorthand, 
-                json.dumps(local_branch_list)
-            ))
+            self.buffer_widget.eval_js_function("updateLocalBranchInfo", self.repo.head.shorthand, local_branch_list)
             
     def update_branch_list(self, local_branch_list, remote_branch_list=[]):
         if not self.repo.head_is_unborn:
-            self.buffer_widget.eval_js('''updateBranchInfo(\"{}\", {}, {})'''.format(
-                self.repo.head.shorthand, 
-                json.dumps(local_branch_list),
-                json.dumps(remote_branch_list)
-            ))
+            self.buffer_widget.eval_js_function("updateBranchInfo", self.repo.head.shorthand, local_branch_list, remote_branch_list)
 
     @QtCore.pyqtSlot(str)
     def branch_switch(self, branch_name):
