@@ -5,6 +5,9 @@
     <div class="submodule-name">
       {{ source.name }}
     </div>
+    <div class="submodule-date">
+      {{ source.date }}
+    </div>
     <div class="submodule-hash">
       {{ source.head_id }}
     </div>
@@ -42,6 +45,11 @@
 
  .submodule-name {
    flex: 1;
+ }
+ 
+ .submodule-date {
+   padding-right: 20px;
+   width: 150px;
  }
  
  .submodule-hash {

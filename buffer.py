@@ -322,7 +322,7 @@ class AppBuffer(BrowserBuffer):
         self.buffer_widget.eval_js_function("updateStashInfo", stash)
 
     def fetch_submodule_info(self):
-        thread = FetchSubmoduleThread(self.repo)
+        thread = FetchSubmoduleThread(self.repo, self.repo_root)
         thread.fetch_result.connect(self.update_submodule_info)
         self.thread_reference_list.append(thread)
         thread.start()
@@ -1564,10 +1564,11 @@ class FetchSubmoduleThread(QThread):
 
     fetch_result = QtCore.pyqtSignal(list, str)
 
-    def __init__(self, repo):
+    def __init__(self, repo, repo_root):
         QThread.__init__(self)
 
         self.repo = repo
+        self.repo_root = repo_root
 
     def run(self):
         index = 0
@@ -1583,10 +1584,20 @@ class FetchSubmoduleThread(QThread):
         for submodule_name in submodule_names:
             submodule = self.repo.lookup_submodule(submodule_name)
             head_id = submodule.head_id.__str__()
+            
+            submodule_path = os.path.join(self.repo_root, submodule_name)
+            submodule_last_commit_date = ""
+            
+            try:
+                submodule_repo = Repository(submodule_path)
+                submodule_last_commit_date = pretty_date(int(submodule_repo.revparse_single(str(submodule_repo.head.target)).commit_time))
+            except:
+                print("Fetch last commit date failed on submodule {}".format(submodule_path))
 
             submodule_infos.append({
                 "index": index,
                 "name": submodule_name,
+                "date": submodule_last_commit_date,
                 "head_id": head_id,
                 "foregroundColor": "",
                 "backgroundColor": ""
