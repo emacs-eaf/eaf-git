@@ -174,6 +174,8 @@ class AppBuffer(BrowserBuffer):
         eval_in_emacs('eaf--change-default-directory', [self.buffer_id, self.url])
 
         self.repo_path = os.path.sep.join(list(filter(lambda x: x != '', self.repo_root.split(os.path.sep)))[-2:])
+        
+        self.change_title("Git [{}]".format(self.repo_path))
 
         self.last_commit = None
         self.last_commit_id = ""
