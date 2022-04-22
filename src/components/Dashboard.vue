@@ -475,6 +475,8 @@
  .unpush-info-area {
    padding: 20px;
    padding: 20px;
+   white-space: pre-line;
+   line-height: 1.5;
  }
 
  .stash-info-area {
