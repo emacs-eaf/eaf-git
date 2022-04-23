@@ -45,8 +45,10 @@ from pygit2 import (Repository, IndexEntry, Oid,
                     GIT_STATUS_CONFLICTED,
                     GIT_CHECKOUT_FORCE,
                     discover_repository)
+from unidiff import PatchSet
 from datetime import datetime
 from pathlib import Path
+from io import StringIO
 import os
 import json
 import shutil
@@ -147,6 +149,56 @@ def get_command_result(command_string):
     ret = process.wait()
     return "".join((process.stdout if ret == 0 else process.stderr).readlines())
 
+def patch_stream(instream, hunks):
+    hunks = iter(hunks)
+    srclineno = 1
+    lineends = {"\n":0, "\r\n":0, "\r":0}
+    def get_line():
+        line = instream.readline()
+        if line.endswith("\r\n"):
+            lineends["\r\n"] += 1
+        elif line.endswith("\n"):
+            lineends["\n"] += 1
+        elif line.endswith("\r"):
+            lineends["\r"] += 1
+        return line
+
+    for hno, h in enumerate(hunks):
+        while srclineno < h.source_start:
+            yield get_line()
+            srclineno += 1
+
+        for hline in h:
+            # TODO: check \ No newline at the end of file
+            hline = str(hline)
+            if hline.startswith("-") or hline.startswith("\\"):
+                get_line()
+                srclineno += 1
+                continue
+            else:
+                if not hline.startswith("+"):
+                    get_line()
+                    srclineno += 1
+                line2write = hline[1:]
+                # Detect if line ends are consistent in source file
+                if sum([bool(lineends[x]) for x in lineends]) == 1:
+                    newline = [x for x in lineends if lineends[x] != 0][0]
+                    yield line2write.rstrip("\r\n") + newline
+                else: # Newlines are mixed
+                    yield line2write
+    for line in instream:
+        yield line
+
+def parse_patch(patches, highlight):
+    patch_set = []
+    for patch in patches:
+        patch_set.append({
+            "path": patch.path,
+            "patch_info": "".join(patch.patch_info),
+            "diff_hunks": [highlight(str(hunk)) for hunk in patch]
+        })
+    return patch_set
+
 class AppBuffer(BrowserBuffer):
     def __init__(self, buffer_id, url, arguments):
         BrowserBuffer.__init__(self, buffer_id, url, arguments, False)
@@ -155,6 +207,7 @@ class AppBuffer(BrowserBuffer):
         self.unstage_status = []
         self.untrack_status = []
         self.branch_status = []
+        self.raw_patch_set = []
 
         self.nav_current_item = "Dashboard"
 
@@ -689,10 +742,19 @@ class AppBuffer(BrowserBuffer):
 
         return highlight(content, guess_lexer(content), HtmlFormatter(full=True, style=self.highlight_style))
 
+    def highlight_diff_strict(self, content):
+        from pygments import highlight
+        from pygments.lexers import DiffLexer
+        from pygments.formatters import HtmlFormatter
+
+        return highlight(content, DiffLexer(), HtmlFormatter(full=True, style=self.highlight_style))
+
     @QtCore.pyqtSlot(str, str)
     def update_diff(self, type, file):
 
         diff_string = ""
+        patch_set = []
+        parse_diff_and_color = lambda patch_set : parse_patch(patch_set, self.highlight_diff_strict)
 
         if type == "untrack":
             if file == "":
@@ -719,20 +781,28 @@ class AppBuffer(BrowserBuffer):
             stage_diff = self.repo.index.diff_to_tree(head_tree)
             if file == "":
                 diff_string = stage_diff.patch
+                self.raw_patch_set = PatchSet(diff_string)
+                patch_set = parse_diff_and_color(self.raw_patch_set)
             else:
                 patches = [patch for patch in stage_diff if patch.delta.new_file.path == file]
                 diff_string = "\n".join(map(lambda patch : str(NO_PREVIEW if is_binary(patch.data) else from_bytes(patch.data).best()), patches))
+                self.raw_patch_set = PatchSet(diff_string)
+                patch_set = parse_diff_and_color(self.raw_patch_set)
 
         elif type == "unstage":
             unstage_diff = self.repo.diff(cached=True)
             if file == "":
                 diff_string = unstage_diff.patch
+                self.raw_patch_set = PatchSet(diff_string)
+                patch_set = parse_diff_and_color(self.raw_patch_set)
             else:
                 patches = [patch for patch in unstage_diff if patch.delta.new_file.path == file]
                 diff_string = "\n".join(map(lambda patch : str(NO_PREVIEW if is_binary(patch.data) else from_bytes(patch.data).best()), patches))
+                self.raw_patch_set = PatchSet(diff_string)
+                patch_set = parse_diff_and_color(self.raw_patch_set)
 
         diff_string = self.highlight_diff(diff_string)
-        self.buffer_widget.eval_js_function("updateChangeDiff", type, {"diff": diff_string})
+        self.buffer_widget.eval_js_function("updateChangeDiff", type, {"diff": diff_string, "patch_set": patch_set})
 
     @QtCore.pyqtSlot()
     def status_commit_stage(self):
@@ -762,6 +832,16 @@ class AppBuffer(BrowserBuffer):
             else:
                 self.stage_unstage_file(self.unstage_status[file_index])
 
+    @QtCore.pyqtSlot(str, int, int)
+    def status_stage_hunk(self, type, patch_index, hunk_index):
+        if type == "unstage":
+            if patch_index >= 0 and hunk_index >= 0:
+                self.stage_unstage_hunk(patch_index, hunk_index)
+            else:
+                message_to_emacs("Please select an valid hunk.")
+        else:
+            message_to_emacs("Please select an unstage hunk.")
+
     def git_add_file(self, path):
         index = self.repo.index
         index.add(path)
@@ -787,6 +867,22 @@ class AppBuffer(BrowserBuffer):
         branch = self.repo.lookup_branch(branch_name)
         ref = self.repo.lookup_reference(branch.name)
         self.repo.checkout(ref)
+
+    def stage_unstage_hunk(self, patch_index, hunk_index):
+        index = self.repo.index
+        path = self.raw_patch_set[patch_index].path
+        blob_id = index[path].id
+        blob_data = self.repo[blob_id].data
+        new_content = StringIO()
+        new_content.writelines(patch_stream(
+            StringIO(str(from_bytes(blob_data).best())),
+            [self.raw_patch_set[patch_index][hunk_index]]
+        ))
+        new_id = self.repo.write(pygit2.GIT_OBJ_BLOB, new_content.getvalue())
+        new_entry = IndexEntry(path, new_id, pygit2.GIT_FILEMODE_BLOB)
+        index.add(new_entry)
+        index.write()
+        self.fetch_status_info()
 
     def stage_untrack_files(self):
         untrack_status = self.untrack_status
