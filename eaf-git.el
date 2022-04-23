@@ -119,14 +119,14 @@
       ("x"  ("py_status_stash_push" "Stash push"))
       ("z"  ("py_status_checkout_all" "Revoke changes"))
       ("m"  ("py_status_copy_change_files_to_mirror_repo" "Copy to mirror"))
-      (","  ("js_status_preview_scroll_up_line" "Code up line"))
-      ("."  ("js_status_preview_scroll_down_line" "Code down line"))
-      ("<"  ("js_status_preview_scroll_up" "Code up"))
-      (">"  ("js_status_preview_scroll_down" "Code down"))
       ("j"  ("js_status_select_next" "Next"))
       ("k"  ("js_status_select_prev" "Prev"))
       ("n"  ("js_hunks_select_next" "Next Hunk"))
       ("p"  ("js_hunks_select_prev" "Prev Hunk"))
+      (","  ("js_status_preview_scroll_up_line" "Code up line"))
+      ("."  ("js_status_preview_scroll_down_line" "Code down line"))
+      ("<"  ("js_status_preview_scroll_up" "Code up"))
+      (">"  ("js_status_preview_scroll_down" "Code down"))
       ))
     ("Log"
      (
