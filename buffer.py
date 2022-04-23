@@ -1377,6 +1377,7 @@ class AppBuffer(BrowserBuffer):
 
     def handle_submodule_update_finish(self, message):
         self.fetch_status_info()
+        self.fetch_submodule_info()
         message_to_emacs(message)
 
     @QtCore.pyqtSlot(str, str)
@@ -1394,6 +1395,7 @@ class AppBuffer(BrowserBuffer):
         message_to_emacs("Rollback {} to version {}".format(self.submodule_rollback_path, self.submodule_rollback_head_id))
 
         self.fetch_status_info()
+        self.fetch_submodule_info()
         
     @QtCore.pyqtSlot()
     def branch_fetch(self):
