@@ -363,7 +363,7 @@ This assumes that `eaf-git-in-string-p' has already returned true, i.e.
       (cons start (1- (point))))))
 
 (defun eaf-git-in-string-p (&optional state)
-  (or (nth 3 (or state (color-rg-current-parse-state)))
+  (or (nth 3 (or state (eaf-git-current-parse-state)))
       (and
        (eq (get-text-property (point) 'face) 'font-lock-string-face)
        (eq (get-text-property (- (point) 1) 'face) 'font-lock-string-face))
