@@ -401,21 +401,21 @@ class AppBuffer(BrowserBuffer):
 
     def handle_search_forward(self, callback_tag):
         if callback_tag == "search_log":
-            self.buffer_widget.eval_js_function('''searchLogsJumpNext''')
+            self.buffer_widget.eval_js_function("searchLogsJumpNext")
         elif callback_tag == "search_submodule":
-            self.buffer_widget.eval_js_function('''searchSubmodulesJumpNext''')
+            self.buffer_widget.eval_js_function("searchSubmodulesJumpNext")
 
     def handle_search_backward(self, callback_tag):
         if callback_tag == "search_log":
-            self.buffer_widget.eval_js_function('''searchLogsJumpPrev''')
+            self.buffer_widget.eval_js_function("searchLogsJumpPrev")
         elif callback_tag == "search_submodule":
-            self.buffer_widget.eval_js_function('''searchSubmodulesJumpPrev''')
+            self.buffer_widget.eval_js_function("searchSubmodulesJumpPrev")
 
     def handle_search_finish(self, callback_tag):
         if callback_tag == "search_log":
-            self.buffer_widget.eval_js_function('''searchLogsFinish''')
+            self.buffer_widget.eval_js_function("searchLogsFinish")
         elif callback_tag == "search_submodule":
-            self.buffer_widget.eval_js_function('''searchSubmodulesFinish''')
+            self.buffer_widget.eval_js_function("searchSubmodulesFinish")
 
     @QtCore.pyqtSlot()
     def status_copy_change_files_to_mirror_repo(self):
@@ -505,9 +505,9 @@ class AppBuffer(BrowserBuffer):
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
         if callback_tag == "search_log":
-            self.buffer_widget.eval_js_function('''searchLogsCancel''')
+            self.buffer_widget.eval_js_function("searchLogsCancel")
         elif callback_tag == "search_submodule":
-            self.buffer_widget.eval_js_function('''searchSubmodulesCancel''')
+            self.buffer_widget.eval_js_function("searchSubmodulesCancel")
 
     def handle_copy_changes_file_to_mirror(self, target_repo_dir):
         current_repo_last_commit_id = self.last_commit_id
