@@ -405,14 +405,23 @@
      },
 
      keepHunkVisible() {
-       var selectPatch = this.$refs.patchSets[this.selectPatchIndex];
-       
-       if (selectPatch != undefined) {
-         var selectHunk = selectPatch.children[this.selectHunkIndex + 1]; // first child of patchSet is patch.patch_info, need add 1 offset
-         if (selectHunk != undefined) {
-           selectHunk.scrollIntoView();
+       this.$nextTick(function() {
+         var selectPatch = this.$refs.patchSets[this.selectPatchIndex];
+
+         if (selectPatch != undefined) {
+           /* First child of patchSet is patch.patch_info, need add 1 offset. */
+           var selectHunk = selectPatch.children[this.selectHunkIndex + 1]; 
+           
+           if (selectHunk != undefined) {
+             selectHunk.scrollIntoView();
+           
+             /* Scroll to top if select the first hunk. */
+             if (this.selectHunkIndex == 0) {
+               this.$refs.scrollArea.scrollTop = 0;
+             }
+           }
          }
-       }
+       })
      },
 
      statusPreviewScrollUp() {
@@ -581,11 +590,11 @@
  .status-preview-area ::v-deep pre {
    width: 1;
  }
- 
+
  .hunks-preview-area ::v-deep pre {
    width: 1;
  }
- 
+
  .split-line {
    height: 20px;
  }
