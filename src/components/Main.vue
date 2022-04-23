@@ -533,7 +533,7 @@
      },
 
      updateUnpushInfo(unpushInfo) {
-       this.unpushInfo = unpushInfo["info"];
+       this.unpushInfo = unpushInfo;
      },
 
      updateKeyDescriptionList() {

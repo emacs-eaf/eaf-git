@@ -139,11 +139,14 @@
         </Dialog>
 
         <Dialog
-          v-if="unpushInfo != ''"
+          v-if="unpushInfo.length > 0"
           title="Unpush"
           class="unpush-dialog">
-          <div class="unpush-info-area">
-            {{ unpushInfo }}
+          <div 
+            v-for="info in unpushInfo"
+            :key="info"
+            class="unpush-info-item">
+            {{ info }}
           </div>
         </Dialog>
       </div>
@@ -414,9 +417,9 @@
            
            if (selectHunk != undefined) {
              selectHunk.scrollIntoView();
-           
+             
              /* Scroll to top if select the first hunk. */
-             if (this.selectHunkIndex == 0) {
+             if (this.selectPatchIndex === 0 && this.selectHunkIndex === 0) {
                this.$refs.scrollArea.scrollTop = 0;
              }
            }
@@ -540,11 +543,16 @@
    flex: 1;
  }
 
- .unpush-info-area {
-   padding: 20px;
-   padding: 20px;
-   white-space: pre-line;
-   line-height: 1.5;
+ .unpush-info-item {
+   display: flex;
+   padding-left: 10px;
+   padding-right: 10px;
+   padding-top: 3px;
+   padding-bottom: 3px;
+   
+   overflow: hidden;
+   white-space: nowrap;
+   text-overflow: ellipsis;
  }
 
  .stash-info-area {

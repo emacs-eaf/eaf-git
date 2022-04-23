@@ -336,8 +336,8 @@ class AppBuffer(BrowserBuffer):
         thread.start()
 
     @PostGui()
-    def update_unpush_info(self, info):
-        self.buffer_widget.eval_js_function("updateUnpushInfo", {"info": info})
+    def update_unpush_info(self, unpush_list):
+        self.buffer_widget.eval_js_function("updateUnpushInfo", unpush_list)
         
     def fetch_log_info(self):
         if self.repo.head_is_unborn: return
@@ -1893,7 +1893,7 @@ class GitFetchThread(QThread):
 
 class FetchUnpushThread(QThread):
 
-    fetch_result = QtCore.pyqtSignal(str)
+    fetch_result = QtCore.pyqtSignal(list)
 
     def __init__(self, repo, repo_root):
         QThread.__init__(self)
@@ -1909,4 +1909,4 @@ class FetchUnpushThread(QThread):
             "cd {}; git log origin/{}..HEAD --pretty=format:'%h %s'".format(self.repo_root, self.repo.head.shorthand), 
             shell=True, capture_output=True, text=True).stdout
         
-        self.fetch_result.emit(result)
+        self.fetch_result.emit(result.split("\n"))
