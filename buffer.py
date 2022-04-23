@@ -736,7 +736,10 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot()
     def status_commit_stage(self):
-        self.send_input_message("Commit stage files with message: ", "commit_stage_files")
+        if len(self.stage_status) > 0:
+            self.send_input_message("Commit stage files with message: ", "commit_stage_files")
+        else:
+            message_to_emacs("No stage files found, please stage file first.")
 
     @QtCore.pyqtSlot()
     def status_commit_all(self):
@@ -744,7 +747,7 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot()
     def status_commit_and_push(self):
-        self.send_input_message("Commit all files with message: ", "commit_and_push")
+        self.send_input_message("Commit all files and push with message: ", "commit_and_push")
 
     @QtCore.pyqtSlot(str, int)
     def status_stage_file(self, type, file_index):
