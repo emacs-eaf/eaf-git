@@ -152,21 +152,23 @@
         <Dialog
           v-if="patchSetNumber() > 0"
           title="Preview"
-          hasScrollchild="true"
-          >
-          <div ref="scrollArea"
-               class="hunks-preview-area"
-               >
-            <div v-for="(patch, pIndex) in patchSet"
-                 :key="patch.path"
-                 >
+          hasScrollchild="true">
+          <div
+            ref="scrollArea"
+            class="hunks-preview-area">
+            <div
+              ref="patchSets"
+              v-for="(patch, pIndex) in patchSet"
+              :key="patch.path">
               <strong> {{ patch.patch_info }} </strong>
-              <div v-for="(hunk, hIndex) in patch.diff_hunks"
-                   :key="hunk"
-                   :style="{ 'background': selectHunkBackgroud(pIndex, hIndex) }"
-                   v-html="hunk">
+              <div
+                v-for="(hunk, hIndex) in patch.diff_hunks"
+                :key="hunk"
+                class="hunk"
+                :style="{ 'background': selectHunkBackgroud(pIndex, hIndex) }"
+                v-html="hunk">
               </div>
-          </div>
+            </div>
         </Dialog>
         <Dialog
           v-else
@@ -178,9 +180,9 @@
             v-html="prettyHtml">
           </div>
         </Dialog>
+          </div>
       </div>
     </div>
-  </div>
 </template>
 
 <script>
@@ -232,6 +234,13 @@
        },
        deep: true
      },
+     selectHunkIndex: {
+       // eslint-disable-next-line no-unused-vars
+       handler: function (val, oldVal) {
+         this.keepHunkVisible();
+       },
+       deep: true
+     },
    },
    computed: {
      prettyHtml() {
@@ -245,12 +254,12 @@
      noFileChanged() {
        return this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber() !== 0;
      },
-     
+
      changedCount() {
        var fileChangedNumber = this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber();
        var addCount = 0;
        var deleteCount = 0;
-       
+
        if (this.unstageStatusInfo && this.unstageStatusInfo.length > 0) {
          addCount += this.unstageStatusInfo.map(info => info.add_count).reduce((x, y) => x + y);
          deleteCount += this.unstageStatusInfo.map(info => info.delete_count).reduce((x, y) => x + y);
@@ -263,7 +272,7 @@
          addCount += this.untrackStatusInfo.map(info => info.add_count).reduce((x, y) => x + y);
          deleteCount += this.untrackStatusInfo.map(info => info.delete_count).reduce((x, y) => x + y);
        }
-       
+
        return fileChangedNumber + " files changed, " + addCount + " insertions, " + deleteCount + " deletions";
      }
    },
@@ -395,6 +404,17 @@
        }
      },
 
+     keepHunkVisible() {
+       var selectPatch = this.$refs.patchSets[this.selectPatchIndex];
+       
+       if (selectPatch != undefined) {
+         var selectHunk = selectPatch.children[this.selectHunkIndex + 1]; // first child of patchSet is patch.patch_info, need add 1 offset
+         if (selectHunk != undefined) {
+           selectHunk.scrollIntoView();
+         }
+       }
+     },
+
      statusPreviewScrollUp() {
        this.$refs.scrollArea.scrollTop = this.$refs.scrollArea.scrollTop + this.$refs.scrollArea.clientHeight;
      },
@@ -436,16 +456,16 @@
  .type {
    padding-right: 10px;
  }
- 
+
  .file {
    flex: 1;
  }
- 
+
  .count {
    display: flex;
    flex-direction: row;
  }
- 
+
  .delete {
    padding-left: 5px;
  }
@@ -538,11 +558,11 @@
  }
 
  .hunks-preview-area {
-     overflow-y: scroll;
-     padding-left: 10px;
-     padding-right: 10px;
-     font-size: 16px;
-     height: 95%;
+   overflow-y: scroll;
+   padding-left: 10px;
+   padding-right: 10px;
+   font-size: 16px;
+   height: 95%;
  }
 
  .status-preview-area {
@@ -577,12 +597,17 @@
  .unpush-dialog {
    max-height: 30%;
  }
- 
+
  .changed-count {
    padding-left: 10px;
    padding-right: 10px;
    padding-top: 10px;
    padding-bottom: 20px;
    font-weight: bold;
+ }
+
+ .hunk {
+   padding: 10px;
+   border-radius: 5px;
  }
 </style>
