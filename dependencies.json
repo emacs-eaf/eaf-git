@@ -27,17 +27,20 @@
     "linux": [
       "pygit2",
       "charset-normalizer",
-      "pygments"
+      "pygments",
+      "unidiff"
     ],
     "win32": [
       "pygit2",
       "charset-normalizer",
-      "pygments"
+      "pygments",
+      "unidiff"
     ],
     "darwin": [
       "pygit2",
       "charset-normalizer",
-      "pygments"
+      "pygments",
+      "unidiff"
     ]
   },
   "vue_install": true

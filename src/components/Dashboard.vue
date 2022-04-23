@@ -150,6 +150,26 @@
 
       <div class="status-right-panel">
         <Dialog
+          v-if="patchSetNumber() > 0"
+          title="Preview"
+          hasScrollchild="true"
+          >
+          <div ref="scrollArea"
+               class="hunks-preview-area"
+               >
+            <div v-for="(patch, pIndex) in patchSet"
+                 :key="patch.path"
+                 >
+              <strong> {{ patch.patch_info }} </strong>
+              <div v-for="(hunk, hIndex) in patch.diff_hunks"
+                   :key="hunk"
+                   :style="{ 'background': selectHunkBackgroud(pIndex, hIndex) }"
+                   v-html="hunk">
+              </div>
+          </div>
+        </Dialog>
+        <Dialog
+          v-else
           title="Preview"
           hasScrollChild="true">
           <div
@@ -174,12 +194,15 @@
    props: {
      selectItemType: String,
      selectItemIndex: Number,
+     selectPatchIndex: Number,
+     selectHunkIndex: Number,
      stageStatusInfo: Array,
      unstageStatusInfo: Array,
      untrackStatusInfo: Array,
      unpushInfo: String,
      stashInfo: Array,
      diffs: String,
+     patchSet: Array,
      diffsType: String,
      backgroundColor: String,
      selectColor: String,
@@ -248,6 +271,10 @@
 
      var that = this;
 
+     this.$root.$on("status_stage_hunk", function() {
+       that.pyobject.status_stage_hunk(that.selectItemType, that.selectPatchIndex, that.selectHunkIndex);
+     });
+
      this.$root.$on("status_stage_file", function () {
        that.pyobject.status_stage_file(that.selectItemType, that.selectItemIndex);
      });
@@ -273,6 +300,7 @@
      });
    },
    beforeDestroy() {
+     this.$root.$off("js_status_stage_hunk");
      this.$root.$off("js_status_stage_file");
      this.$root.$off("js_status_delete_file");
      this.$root.$off("js_status_preview_scroll_down");
@@ -281,6 +309,9 @@
      this.$root.$off("js_status_preview_scroll_down_line");
    },
    methods: {
+     patchSetNumber() {
+       return this.patchSet ? this.patchSet.length : 0;
+     },
      untrackFileNumber() {
        var untrack_files_number = 0;
        if (this.untrackStatusInfo) {
@@ -350,6 +381,14 @@
 
      stageItemBackground(index) {
        if (this.selectItemType === "stage" && this.selectItemIndex === index) {
+         return this.selectColor;
+       } else {
+         return this.backgroundColor;
+       }
+     },
+
+     selectHunkBackgroud(patchIndex, hunkIndex) {
+       if (this.selectPatchIndex === patchIndex && this.selectHunkIndex == hunkIndex) {
          return this.selectColor;
        } else {
          return this.backgroundColor;
@@ -496,6 +535,14 @@
 
  .stash-message {
    padding-left: 10px;
+ }
+
+ .hunks-preview-area {
+     overflow-y: scroll;
+     padding-left: 10px;
+     padding-right: 10px;
+     font-size: 16px;
+     height: 95%;
  }
 
  .status-preview-area {

@@ -23,8 +23,11 @@
         v-if="navCurrentItem == 'Dashboard'"
         :diffs="diffs"
         :diffsType="diffsType"
+        :patchSet="patchSet"
         :selectItemType="selectItemType"
         :selectItemIndex="selectItemIndex"
+        :selectPatchIndex="selectPatchIndex"
+        :selectHunkIndex="selectHunkIndex"
         :stageStatusInfo="stageStatusInfo"
         :unstageStatusInfo="unstageStatusInfo"
         :untrackStatusInfo="untrackStatusInfo"
@@ -178,6 +181,7 @@
        handler: function (val, oldVal) {
          if (this.stageStatusInfo.length == 0 && this.unstageStatusInfo.length == 0 && this.untrackStatusInfo.length == 0) {
            this.diffs = "";
+           this.patchSet = [];
          }
        },
        deep: true
@@ -187,6 +191,7 @@
        handler: function (val, oldVal) {
          if (this.stageStatusInfo.length == 0 && this.unstageStatusInfo.length == 0 && this.untrackStatusInfo.length == 0) {
            this.diffs = "";
+           this.patchSet = [];
          }
        },
        deep: true
@@ -196,6 +201,7 @@
        handler: function (val, oldVal) {
          if (this.stageStatusInfo.length == 0 && this.unstageStatusInfo.length == 0 && this.untrackStatusInfo.length == 0) {
            this.diffs = "";
+           this.patchSet = [];
          }
        },
        deep: true
@@ -231,7 +237,12 @@
        currentLogIndex: 0,
        currentStashIndex: 0,
        diffs: "",
+       patchSet: [],
        diffsType: "",
+       selectPatchType: "",
+       selectPatchIndex: -1,
+       selectHunkType: "",
+       selectHunkIndex: -1,
        selectItemType: "",
        selectItemIndex: -1,
        stageStatusInfo: [],
@@ -293,12 +304,18 @@
      if (this.untrackStatusInfo) {
        this.selectItemType = "untrack";
        this.selectItemIndex = -1;
+       this.selectPatchIndex = -1;
+       this.selectHunkIndex = -1;
      } else if (this.unstageStatusInfo) {
        this.selectItemType = "unstage";
        this.selectItemIndex = -1;
+       this.selectPatchIndex = -1;
+       this.selectHunkIndex = -1;
      } else if (this.stageStatusInfo) {
        this.selectItemType = "stage";
        this.selectItemIndex = -1;
+       this.selectPatchIndex = -1;
+       this.selectHunkIndex = -1;
      }
 
      let that = this;
@@ -309,6 +326,14 @@
 
      this.$root.$on("status_select_prev", function () {
        that.statusSelectPrev();
+     });
+
+     this.$root.$on("hunks_select_next", function () {
+       that.hunksSelectNext();
+     });
+
+     this.$root.$on("hunks_select_prev", function () {
+       that.hunksSelectPrev();
      });
 
      this.currentLogIndex = 0;
@@ -588,8 +613,9 @@
        this.repoHeadName = currentBranch
      },
 
-     updateChangeDiff(diffsType, diffString) {
-       this.diffs = diffString["diff"];
+     updateChangeDiff(diffsType, diffInfo) {
+       this.diffs = diffInfo["diff"];
+       this.patchSet = diffInfo["patch_set"];
        this.diffsType = diffsType;
      },
 
@@ -752,6 +778,8 @@
 
        if (oldSelectItemType != this.selectItemType ||
            oldSelectItemIndex != this.selectItemIndex) {
+         this.selectPatchIndex = -1;
+         this.selectHunkIndex = -1;
          this.updateDiff();
        }
      },
@@ -791,7 +819,48 @@
 
        if (oldSelectItemType != this.selectItemType ||
            oldSelectItemIndex != this.selectItemIndex) {
+         this.selectPatchIndex = -1;
+         this.selectHunkIndex = -1;
          this.updateDiff();
+       }
+     },
+
+     hunksSelectNext() {
+       const oldSelectPatchIndex = this.selectPatchIndex;
+       const oldSelectHunkIndex = this.selectHunkIndex;
+       if (this.patchSet.length > 0) {
+         if (this.selectPatchIndex === -1 && this.selectHunkIndex === -1) {
+           this.selectPatchIndex = 0;
+           this.selectHunkIndex = 0;
+         } else {
+           for (let pIndex = this.selectPatchIndex; pIndex < this.patchSet.length; pIndex++) {
+             for (let hIndex = this.selectHunkIndex; hIndex < this.patchSet[pIndex]['diff_hunks'].length; hIndex++) {
+               if (this.patchSet[pIndex] && this.patchSet[pIndex]['diff_hunks'][hIndex]) {
+                 if (pIndex !== oldSelectPatchIndex || hIndex !== oldSelectHunkIndex) {
+                   this.selectPatchIndex = pIndex;
+                   this.selectHunkIndex = hIndex;
+                   return;
+                 }
+               }
+             }
+           }
+         }
+       }
+     },
+
+     hunksSelectPrev() {
+       const oldSelectPatchIndex = this.selectPatchIndex;
+       const oldSelectHunkIndex = this.selectHunkIndex;
+       for (let pIndex = this.selectPatchIndex; pIndex > -1; pIndex--) {
+         for (let hIndex = this.selectHunkIndex; hIndex > -1; hIndex--) {
+           if (this.patchSet[pIndex] && this.patchSet[pIndex]['diff_hunks'][hIndex]) {
+             if (pIndex !== oldSelectPatchIndex || hIndex !== oldSelectHunkIndex) {
+               this.selectPatchIndex = pIndex;
+               this.selectHunkIndex = hIndex;
+               return;
+             }
+           }
+         }
        }
      },
 
