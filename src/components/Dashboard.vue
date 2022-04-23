@@ -561,7 +561,11 @@
  .status-preview-area ::v-deep pre {
    width: 1;
  }
-
+ 
+ .hunks-preview-area ::v-deep pre {
+   width: 1;
+ }
+ 
  .split-line {
    height: 20px;
  }
