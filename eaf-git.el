@@ -110,8 +110,8 @@
      (
       ("u"  ("py_status_pull" "Pull"))
       ("U"  ("py_status_push" "Push"))
-      ("a"  ("js_status_stage_hunk" "Stage Hunk"))
-      ("s"  ("js_status_stage_file" "Stage"))
+      ("s"  ("js_status_stage_file" "Stage file"))
+      ("a"  ("js_status_stage_hunk" "Stage hunk"))
       ("d"  ("js_status_delete_file" "Delete"))
       ("y"  ("py_status_commit_and_push" "Commit and push"))
       ("C"  ("py_status_commit_all" "Commit all"))
@@ -125,8 +125,8 @@
       (">"  ("js_status_preview_scroll_down" "Code down"))
       ("j"  ("js_status_select_next" "Next"))
       ("k"  ("js_status_select_prev" "Prev"))
-      (";"  ("js_hunks_select_next" "Next Hunk"))
-      ("'"  ("js_hunks_select_prev" "Prev Hunk"))
+      ("n"  ("js_hunks_select_next" "Next Hunk"))
+      ("p"  ("js_hunks_select_prev" "Prev Hunk"))
       ))
     ("Log"
      (
