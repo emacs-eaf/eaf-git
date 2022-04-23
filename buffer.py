@@ -1445,6 +1445,11 @@ class AppBuffer(BrowserBuffer):
         message_to_emacs("Create local branch {} finish.".format(remote_branch))
         self.update_git_info()
         
+    @QtCore.pyqtSlot()
+    def exit(self):
+        eval_in_emacs('kill-buffer-and-window', [])
+        message_to_emacs("Exit git repository {}".format(self.repo_path))
+        
 class AddSubmoduleCallback(pygit2.RemoteCallbacks, QtCore.QObject):
 
     finished = QtCore.pyqtSignal()

@@ -104,6 +104,7 @@
      (
       ("h" ("js_page_select_prev" "Left page"))
       ("l" ("js_page_select_next" "Right page"))
+      ("q" ("py_exit" "Exit"))
       ))
     ("Dashboard"
      (
