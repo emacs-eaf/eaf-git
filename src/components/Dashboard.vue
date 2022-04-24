@@ -544,11 +544,13 @@
  }
 
  .unpush-info-item {
-   display: flex;
+   display: block;
    padding-left: 10px;
    padding-right: 10px;
    padding-top: 3px;
    padding-bottom: 3px;
+   
+   width: 25vw;
    
    overflow: hidden;
    white-space: nowrap;
