@@ -251,7 +251,7 @@
      },
 
      isCleanWorkspace() {
-       return this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber() + this.stashInfo.length === 0 && this.unpushInfo === "";
+       return this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber() + this.stashInfo.length === 0 && this.unpushInfo.length === 0;
      },
 
      noFileChanged() {
