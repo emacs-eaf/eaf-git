@@ -1909,4 +1909,4 @@ class FetchUnpushThread(QThread):
             "cd {}; git log origin/{}..HEAD --pretty=format:'%h %s'".format(self.repo_root, self.repo.head.shorthand), 
             shell=True, capture_output=True, text=True).stdout
         
-        self.fetch_result.emit(result.split("\n"))
+        self.fetch_result.emit(list(filter(lambda x: x.strip() != "", result.split("\n"))))

@@ -19,7 +19,7 @@
             class="changed-count">
             {{ changedCount }}
           </div>
-          <div v-if="untrackFileNumber() > 0">
+          <div v-if="untrackStatusNumber() > 0">
             <div
               class="untrack-title"
               :style="{ 'background': untrackTitleBackground() }">
@@ -50,7 +50,7 @@
             <div class="split-line"/>
           </div>
 
-          <div v-if="unstageFileNumber() > 0">
+          <div v-if="unstageStatusNumber() > 0">
             <div
               class="unstaged-title"
               :style="{ 'background': unstageTitleBackground() }">
@@ -81,7 +81,7 @@
             <div class="split-line"/>
           </div>
 
-          <div v-if="stageFileNumber() > 0">
+          <div v-if="stageStatusNumber() > 0">
             <div
               class="staged-title"
               :style="{ 'background': stageTitleBackground() }">
@@ -113,13 +113,13 @@
         </Dialog>
 
         <Dialog
-          v-if="stashInfo != ''"
+          v-if="stashStatusInfo != ''"
           title="Stash"
           class="stash-dialog">
           <div class="stash-info-area">
             <div
               class="stash-item"
-              v-for="info in stashInfo"
+              v-for="info in stashStatusInfo"
               :key="info.index">
               <div
                 class="stash-id"
@@ -139,11 +139,11 @@
         </Dialog>
 
         <Dialog
-          v-if="unpushInfo.length > 0"
+          v-if="unpushStatusInfo.length > 0"
           title="Unpush"
           class="unpush-dialog">
           <div 
-            v-for="info in unpushInfo"
+            v-for="info in unpushStatusInfo"
             :key="info"
             class="unpush-info-item">
             {{ info }}
@@ -204,8 +204,8 @@
      stageStatusInfo: Array,
      unstageStatusInfo: Array,
      untrackStatusInfo: Array,
-     unpushInfo: String,
-     stashInfo: Array,
+     unpushStatusInfo: String,
+     stashStatusInfo: Array,
      diffs: String,
      patchSet: Array,
      diffsType: String,
@@ -251,15 +251,15 @@
      },
 
      isCleanWorkspace() {
-       return this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber() + this.stashInfo.length === 0 && this.unpushInfo.length === 0;
+       return this.unstageStatusNumber() + this.stageStatusNumber() + this.untrackStatusNumber() + this.stashStatusNumber() + this.unpushStatusNumber() === 0;
      },
 
      noFileChanged() {
-       return this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber() !== 0;
+       return this.unstageStatusNumber() + this.stageStatusNumber() + this.untrackStatusNumber() !== 0;
      },
 
      changedCount() {
-       var fileChangedNumber = this.unstageFileNumber() + this.stageFileNumber() + this.untrackFileNumber();
+       var fileChangedNumber = this.unstageStatusNumber() + this.stageStatusNumber() + this.untrackStatusNumber();
        var addCount = 0;
        var deleteCount = 0;
 
@@ -324,7 +324,7 @@
      patchSetNumber() {
        return this.patchSet ? this.patchSet.length : 0;
      },
-     untrackFileNumber() {
+     untrackStatusNumber() {
        var untrack_files_number = 0;
        if (this.untrackStatusInfo) {
          untrack_files_number = this.untrackStatusInfo.length;
@@ -333,7 +333,7 @@
        return untrack_files_number;
      },
 
-     unstageFileNumber() {
+     unstageStatusNumber() {
        var unstage_files_number = 0;
        if (this.unstageStatusInfo) {
          unstage_files_number = this.unstageStatusInfo.length;
@@ -342,7 +342,7 @@
        return unstage_files_number;
      },
 
-     stageFileNumber() {
+     stageStatusNumber() {
        var stage_files_number = 0;
        if (this.stageStatusInfo) {
          stage_files_number = this.stageStatusInfo.length;
@@ -351,6 +351,24 @@
        return stage_files_number;
      },
 
+     stashStatusNumber() {
+       var stash_files_number = 0;
+       if (this.stashStatusInfo) {
+         stash_files_number = this.stashStatusInfo.length;
+       }
+
+       return stash_files_number;
+     },
+     
+     unpushStatusNumber() {
+       var unpush_files_number = 0;
+       if (this.unpushStatusInfo) {
+         unpush_files_number = this.unpushStatusInfo.length;
+       }
+
+       return unpush_files_number;
+     },
+     
      untrackTitleBackground() {
        if (this.selectItemType === "untrack" && this.selectItemIndex === -1) {
          return this.selectColor;

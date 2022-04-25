@@ -32,8 +32,8 @@
         :unstageStatusInfo="unstageStatusInfo"
         :untrackStatusInfo="untrackStatusInfo"
         :pyobject="pyobject"
-        :unpushInfo="unpushInfo"
-        :stashInfo="stashInfo"
+        :unpushStatusInfo="unpushStatusInfo"
+        :stashStatusInfo="stashStatusInfo"
         :idColor="idColor"
         :indexColor="authorColor"
         :backgroundColor="backgroundColor"
@@ -82,7 +82,7 @@
         v-if="navCurrentItem == 'Stash'"
         :pyobject="pyobject"
         :currentStashIndex="currentStashIndex"
-        :stashInfo="stashInfo"
+        :stashStatusInfo="stashStatusInfo"
         :idColor="idColor"
         :dateColor="dateColor"
         :indexColor="authorColor"
@@ -248,7 +248,7 @@
        stageStatusInfo: [],
        unstageStatusInfo: [],
        untrackStatusInfo: [],
-       unpushInfo: "",
+       unpushStatusInfo: "",
        logBranch: "",
        selectBranchIndex: 0,
        logInfo: [],
@@ -266,7 +266,7 @@
        searchSubmoduleKeyword: "",
        compareLogBranch: "",
        compareLogInfo: [],
-       stashInfo: [],
+       stashStatusInfo: [],
        submoduleInfo: [],
        currentSubmoduleIndex: 0,
        currentBranch: "",
@@ -532,8 +532,8 @@
        this.untrackStatusInfo = untrackStatusInfo;
      },
 
-     updateUnpushInfo(unpushInfo) {
-       this.unpushInfo = unpushInfo;
+     updateUnpushInfo(unpushStatusInfo) {
+       this.unpushStatusInfo = unpushStatusInfo;
      },
 
      updateKeyDescriptionList() {
@@ -576,8 +576,8 @@
        this.compareLogInfo = compareLogInfo;
      },
 
-     updateStashInfo(stashInfo) {
-       this.stashInfo = stashInfo;
+     updateStashInfo(stashStatusInfo) {
+       this.stashStatusInfo = stashStatusInfo;
      },
 
      updateSubmoduleInfo(submoduleInfo) {
@@ -941,25 +941,25 @@
      },
 
      stashSelectNext() {
-       if (this.stashInfo.length > 0 && this.currentStashIndex < this.stashInfo.length - 1) {
+       if (this.stashStatusInfo.length > 0 && this.currentStashIndex < this.stashStatusInfo.length - 1) {
          this.currentStashIndex++;
        }
      },
 
      stashSelectLast() {
-       if (this.stashInfo.length > 0 && this.currentStashIndex < this.stashInfo.length - 1) {
-         this.currentStashIndex = this.stashInfo.length - 1;
+       if (this.stashStatusInfo.length > 0 && this.currentStashIndex < this.stashStatusInfo.length - 1) {
+         this.currentStashIndex = this.stashStatusInfo.length - 1;
        }
      },
 
      stashSelectPrev() {
-       if (this.stashInfo.length > 0 && this.currentStashIndex > 0) {
+       if (this.stashStatusInfo.length > 0 && this.currentStashIndex > 0) {
          this.currentStashIndex--;
        }
      },
 
      stashSelectFirst() {
-       if (this.stashInfo.length > 0 && this.currentStashIndex > 0) {
+       if (this.stashStatusInfo.length > 0 && this.currentStashIndex > 0) {
          this.currentStashIndex = 0;
        }
      },

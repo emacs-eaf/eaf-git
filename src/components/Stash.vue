@@ -2,11 +2,11 @@
   <div class="box">
     <Dialog title="Stash">
       <div
-        v-if="stashInfo.length > 0"
+        v-if="stashStatusInfo.length > 0"
         class="list"
         ref="stashs">
         <div
-          v-for="info in stashInfo"
+          v-for="info in stashStatusInfo"
           :key="info.index"
           class="stash-item">
           <div
@@ -42,7 +42,7 @@
      Dialog
    },
    props: {
-     stashInfo: Array,
+     stashStatusInfo: Array,
      idColor: String,
      indexColor: String,
      dateColor: String,
@@ -60,8 +60,8 @@
      currentStashIndex: {
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
-         if (this.stashInfo.length > 0) {
-           this.currentCommitId = this.stashInfo[val].id;
+         if (this.stashStatusInfo.length > 0) {
+           this.currentCommitId = this.stashStatusInfo[val].id;
            this.updateItemBackground(oldVal, val);
            this.keepSelectVisible();
          }
@@ -74,7 +74,7 @@
      this.showHighlightLine();
 
      this.$root.$on("stash_view_diff", function () {
-       that.pyobject.show_stash_diff(that.stashInfo[that.currentStashIndex].index);
+       that.pyobject.show_stash_diff(that.stashStatusInfo[that.currentStashIndex].index);
      });
 
      this.$root.$on("stashSearchForward", function () {
@@ -86,15 +86,15 @@
      });
 
      this.$root.$on("stash_apply", function () {
-       that.pyobject.stash_apply(that.stashInfo[that.currentStashIndex].index, that.stashInfo[that.currentStashIndex].message);
+       that.pyobject.stash_apply(that.stashStatusInfo[that.currentStashIndex].index, that.stashStatusInfo[that.currentStashIndex].message);
      });
 
      this.$root.$on("stash_pop", function () {
-       that.pyobject.stash_pop(that.stashInfo[that.currentStashIndex].index, that.stashInfo[that.currentStashIndex].message);
+       that.pyobject.stash_pop(that.stashStatusInfo[that.currentStashIndex].index, that.stashStatusInfo[that.currentStashIndex].message);
      });
 
      this.$root.$on("stash_drop", function () {
-       that.pyobject.stash_drop(that.stashInfo[that.currentStashIndex].index, that.stashInfo[that.currentStashIndex].message);
+       that.pyobject.stash_drop(that.stashStatusInfo[that.currentStashIndex].index, that.stashStatusInfo[that.currentStashIndex].message);
      });
    },
    beforeDestroy() {
@@ -107,7 +107,7 @@
    },
    methods: {
      showHighlightLine() {
-       if (this.stashInfo.length > 0) {
+       if (this.stashStatusInfo.length > 0) {
          if (this.currentStashIndex !== null && this.currentStashIndex >= 0 && this.$refs.stashs.children.length > 0) {
            this.$refs.stashs.children[this.currentStashIndex].style.background = this.selectColor;
          }
