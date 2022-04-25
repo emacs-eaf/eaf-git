@@ -338,6 +338,14 @@ The input buffer contents are expected to be raw git output."
   (let ((point-thing (eaf-git-pointer-thing)))
     (vc-region-history (car point-thing) (cadr point-thing))))
 
+(setq eaf-git-permalink-path (concat (file-name-directory load-file-name) "generate_file_permalink.py"))
+
+(defun eaf-git-get-permalink ()
+  (interactive)
+  (let ((permalink (shell-command-to-string (format "python %s %s %s" eaf-git-permalink-path (buffer-file-name) (format-mode-line "%l")))))
+    (kill-new permalink)
+    (message "Copy permalink '%s'" permalink)))
+
 (defun eaf-git-pointer-thing ()
   (cond ((use-region-p)
          (list (region-beginning) (region-end)))
