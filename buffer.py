@@ -125,6 +125,9 @@ def pretty_date(time=False):
         return str(day_diff // 30) + " months ago"
     return str(day_diff // 365) + " years ago"
 
+def bytes_decode(str_encode_bytes):
+    return str(from_bytes(str_encode_bytes).best())
+
 def is_binary(filename_or_bytes):
     """
     Return true if the given file or content appears to be binary.
@@ -239,7 +242,7 @@ class AppBuffer(BrowserBuffer):
         else:
             self.last_commit_id = str(self.repo.head.target)
             self.last_commit = self.repo.revparse_single(str(self.repo.head.target))
-            self.last_commit_message = self.last_commit.message.splitlines()[0]
+            self.last_commit_message = bytes_decode(self.last_commit.raw_message).splitlines()[0]
 
         self.highlight_style = "monokai"
 
@@ -631,7 +634,7 @@ class AppBuffer(BrowserBuffer):
             self.fetch_stash_info()
 
             last_commit = self.repo.revparse_single(str(self.repo.head.target))
-            message_to_emacs("Current HEAD is: {}".format(last_commit.message.splitlines()[0]))
+            message_to_emacs("Current HEAD is: {}".format(bytes_decode(last_commit.raw_message)).splitlines()[0])
 
     @QtCore.pyqtSlot(str, str)
     def log_reset_to(self, commit_id, commit_message):
@@ -785,7 +788,7 @@ class AppBuffer(BrowserBuffer):
                 patch_set = parse_diff_and_color(self.raw_patch_set)
             else:
                 patches = [patch for patch in stage_diff if patch.delta.new_file.path == file]
-                diff_string = "\n".join(map(lambda patch : str(NO_PREVIEW if is_binary(patch.data) else from_bytes(patch.data).best()), patches))
+                diff_string = "\n".join(map(lambda patch : NO_PREVIEW if is_binary(patch.data) else bytes_decode(patch.data), patches))
                 self.raw_patch_set = PatchSet(diff_string)
                 patch_set = parse_diff_and_color(self.raw_patch_set)
 
@@ -797,7 +800,7 @@ class AppBuffer(BrowserBuffer):
                 patch_set = parse_diff_and_color(self.raw_patch_set)
             else:
                 patches = [patch for patch in unstage_diff if patch.delta.new_file.path == file]
-                diff_string = "\n".join(map(lambda patch : str(NO_PREVIEW if is_binary(patch.data) else from_bytes(patch.data).best()), patches))
+                diff_string = "\n".join(map(lambda patch : NO_PREVIEW if is_binary(patch.data) else bytes_decode(patch.data), patches))
                 self.raw_patch_set = PatchSet(diff_string)
                 patch_set = parse_diff_and_color(self.raw_patch_set)
 
@@ -875,7 +878,7 @@ class AppBuffer(BrowserBuffer):
         blob_data = self.repo[blob_id].data
         new_content = StringIO()
         new_content.writelines(patch_stream(
-            StringIO(str(from_bytes(blob_data).best())),
+            StringIO(bytes_decode(blob_data)),
             [self.raw_patch_set[patch_index][hunk_index]]
         ))
         new_id = self.repo.write(pygit2.GIT_OBJ_BLOB, new_content.getvalue())
@@ -1607,8 +1610,8 @@ class FetchLogThread(QThread):
 
             for commit in self.repo.walk(self.branch.target):
                 id = str(commit.id)
-                author = commit.author.name
-                message = commit.message.splitlines()[0]
+                author = bytes_decode(commit.author.raw_name)
+                message = bytes_decode(commit.raw_message).splitlines()[0]
 
                 git_log.append({
                     "id": id,
