@@ -1301,16 +1301,20 @@ class AppBuffer(BrowserBuffer):
 
                     self.repo.state_cleanup()
 
-            self.git_checkout_branch(current_branch_name)
-
-            self.fetch_log_info()
-            if self.log_compare_branch != "":
-                self.handle_log_show_compare_branch(new_branch)
-
-            if len(self.log_cherry_pick_commits) == 1:
-                message_to_emacs("Copy '{}' to branch {}".format(self.log_cherry_pick_commits[0]["message"], new_branch))
-            else:
-                message_to_emacs("Copy {} commits to branch {}".format(len(self.log_cherry_pick_commits), new_branch))
+            try:
+                self.git_checkout_branch(current_branch_name)
+                
+                self.fetch_log_info()
+                if self.log_compare_branch != "":
+                    self.handle_log_show_compare_branch(new_branch)
+                
+                if len(self.log_cherry_pick_commits) == 1:
+                    message_to_emacs("Copy '{}' to branch {}".format(self.log_cherry_pick_commits[0]["message"], new_branch))
+                else:
+                    message_to_emacs("Copy {} commits to branch {}".format(len(self.log_cherry_pick_commits), new_branch))
+            except pygit2.GitError:
+                import traceback
+                message_to_emacs(traceback.format_exc())
 
     def handle_log_show_compare_branch(self, branch):
         self.log_compare_branch = branch
