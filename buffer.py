@@ -847,7 +847,13 @@ class AppBuffer(BrowserBuffer):
 
     def git_add_file(self, path):
         index = self.repo.index
-        index.add(path)
+        
+        expand_path = os.path.join(self.repo_root, path)
+        if os.path.exists(expand_path):
+            index.add(path)
+        else:
+            index.remove(path)
+            
         index.write()
 
     def git_reset_file(self, path):
