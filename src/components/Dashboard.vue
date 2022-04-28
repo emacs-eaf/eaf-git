@@ -549,6 +549,8 @@
 
    width: 30%;
    height: 100%;
+   
+   overflow-y: scroll;
  }
 
  .status-right-panel {
