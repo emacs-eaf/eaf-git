@@ -128,6 +128,10 @@
        that.logCopyCommitID();
      });
 
+     this.$root.$on("log_copy_commit_url", function () {
+       that.logCopyCommitUrl();
+     });
+
      this.$root.$on("log_select_pg_up", function () {
        that.logSelectPgUp();
      });
@@ -138,12 +142,15 @@
 
    },
    beforeDestroy() {
-     this.$root.$off("js_log_view_diff");
-     this.$root.$off("js_log_revert_commit");
-     this.$root.$off("js_log_reset_last");
-     this.$root.$off("js_log_reset_to");
-     this.$root.$off("js_log_select_pg_up");
-     this.$root.$off("js_log_select_pg_dn");
+     this.$root.$off("log_view_diff");
+     this.$root.$off("log_revert_commit");
+     this.$root.$off("log_reset_last");
+     this.$root.$off("log_reset_to");
+     this.$root.$off("log_cherry_pick");
+     this.$root.$off("log_copy_commit_id");
+     this.$root.$off("log_copy_commit_url");
+     this.$root.$off("log_select_pg_up");
+     this.$root.$off("log_select_pg_dn");
    },
    methods: {
      logViewDiff() {
@@ -187,6 +194,10 @@
        }, () => {
          that.pyobject.send_message_to_emacs(`Copy ${commitId} failed.`);
        });
+     },
+     
+     logCopyCommitUrl() {
+       this.pyobject.copy_commit_url(this.logInfo[this.currentLogIndex].id);
      }
    }
  }

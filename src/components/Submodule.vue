@@ -97,12 +97,12 @@
      });
    },
    beforeDestroy() {
-     this.$root.$off("js_submodule_view");
-     this.$root.$off("js_submodule_remove");
-     this.$root.$off("js_submodule_update");
-     this.$root.$off("js_submodule_rollback");
-     this.$root.$off("js_submodule_select_pg_up");
-     this.$root.$off("js_submodule_select_pg_dn");
+     this.$root.$off("submodule_view");
+     this.$root.$off("submodule_remove");
+     this.$root.$off("submodule_update");
+     this.$root.$off("submodule_rollback");
+     this.$root.$off("submodule_select_pg_up");
+     this.$root.$off("submodule_select_pg_dn");
    },
    methods: {
      submoduleSelectPgUp() {

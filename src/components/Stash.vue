@@ -98,12 +98,12 @@
      });
    },
    beforeDestroy() {
-     this.$root.$off("js_stash_view_diff");
+     this.$root.$off("stash_view_diff");
      this.$root.$off("stashSearchForward");
      this.$root.$off("stashSearchBackward");
-     this.$root.$off("js_stash_apply");
-     this.$root.$off("js_stash_pop");
-     this.$root.$off("js_stash_drop");
+     this.$root.$off("stash_apply");
+     this.$root.$off("stash_pop");
+     this.$root.$off("stash_drop");
    },
    methods: {
      showHighlightLine() {

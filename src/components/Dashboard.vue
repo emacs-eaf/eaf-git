@@ -312,13 +312,13 @@
      });
    },
    beforeDestroy() {
-     this.$root.$off("js_status_stage_hunk");
-     this.$root.$off("js_status_stage_file");
-     this.$root.$off("js_status_delete_file");
-     this.$root.$off("js_status_preview_scroll_down");
-     this.$root.$off("js_status_preview_scroll_up");
-     this.$root.$off("js_status_preview_scroll_up_line");
-     this.$root.$off("js_status_preview_scroll_down_line");
+     this.$root.$off("status_stage_hunk");
+     this.$root.$off("status_stage_file");
+     this.$root.$off("status_delete_file");
+     this.$root.$off("status_preview_scroll_down");
+     this.$root.$off("status_preview_scroll_up");
+     this.$root.$off("status_preview_scroll_up_line");
+     this.$root.$off("status_preview_scroll_down_line");
    },
    methods: {
      patchSetNumber() {

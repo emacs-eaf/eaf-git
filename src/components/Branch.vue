@@ -80,8 +80,8 @@
      });
    },
    beforeDestroy() {
-     this.$root.$off("js_branch_delete");
-     this.$root.$off("js_branch_switch");
+     this.$root.$off("branch_delete");
+     this.$root.$off("branch_switch");
    },
    methods: {
    }
