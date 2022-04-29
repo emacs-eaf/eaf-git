@@ -87,9 +87,8 @@
 (defun eaf-open-git ()
   "Open EAF Git client."
   (interactive)
-  (if (and (executable-find "git")
-           (string-equal (car (split-string (shell-command-to-string "git rev-parse --is-inside-work-tree"))) "true"))
-      (let ((repo-root (car (split-string (shell-command-to-string "git rev-parse --show-toplevel")))))
+  (if (file-directory-p (concat (file-name-as-directory default-directory) ".git"))
+      (let ((repo-root (car (split-string (shell-command-to-string (format "cd %s ; git rev-parse --show-toplevel" default-directory))))))
         (eaf-open repo-root "git"))
     (message "%s is not a git repository." default-directory)))
 
