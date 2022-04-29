@@ -12,7 +12,11 @@ def generate_file_permalink(file, line):
     
     head_tree = str(repo.head.target)
     
-    return "{}/blob/{}/{}#L{}".format(origin_url, head_tree, os.path.basename(file), line)
+    repo_root = repo.path
+    if repo_root.endswith(".git/"):
+        repo_root = repo_root[:-len(".git/")]
+    
+    return "{}/blob/{}/{}#L{}".format(origin_url, head_tree, file.split(repo_root)[1], line)
 
 if __name__ == "__main__":
     print(generate_file_permalink(*sys.argv[1:]), end='', flush=True)
