@@ -87,10 +87,14 @@
 (defun eaf-open-git ()
   "Open EAF Git client."
   (interactive)
-  (if (file-directory-p (concat (file-name-as-directory default-directory) ".git"))
-      (let ((repo-root (car (split-string (shell-command-to-string (format "cd %s ; git rev-parse --show-toplevel" default-directory))))))
-        (eaf-open repo-root "git"))
-    (message "%s is not a git repository." default-directory)))
+  (let* ((project (project-current))
+         (project-root (when project
+                         (if (version< "27.0" emacs-version)
+                             (cdr project)
+                           (car (last project))))))
+    (if (file-directory-p (concat (file-name-as-directory project-root) ".git"))
+        (eaf-open project-root "git")
+      (message "%s is not a git repository." default-directory))))
 
 (defcustom eaf-git-keybinding
   '(("<f12>" . "open_devtools")
