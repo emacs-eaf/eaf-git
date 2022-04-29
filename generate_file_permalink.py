@@ -1,11 +1,12 @@
 import os
 import sys
+from giturlparse import parse
 from pygit2 import Repository
 
 def generate_file_permalink(file, line):
     repo = Repository(file)
     
-    origin_url = repo.remotes["origin"].url
+    origin_url = parse(repo.remotes["origin"].url).url2https
     if origin_url.endswith(".git"):
         origin_url = origin_url[:-len(".git")]
     

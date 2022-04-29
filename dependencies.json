@@ -28,18 +28,21 @@
       "pygit2",
       "charset-normalizer",
       "pygments",
+      "giturlparse",
       "unidiff"
     ],
     "win32": [
       "pygit2",
       "charset-normalizer",
       "pygments",
+      "giturlparse",
       "unidiff"
     ],
     "darwin": [
       "pygit2",
       "charset-normalizer",
       "pygments",
+      "giturlparse",
       "unidiff"
     ]
   },
