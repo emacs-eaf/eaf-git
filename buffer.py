@@ -294,17 +294,39 @@ class AppBuffer(BrowserBuffer):
             {"lastCommit": self.last_commit_message},
             self.get_keybinding_info())
         
-    def fetch_status_info(self):
+    def fetch_status_info(self, adjust_selection=False):
         thread = FetchStatusThread(self.repo, self.repo_root, self.mime_db)
-        thread.fetch_result.connect(self.update_status_info)
+
+        # If adjust_selection is True, update both status_info and the selection of status.
+        if adjust_selection:
+            thread.fetch_result.connect(self.update_status_info_and_selection)
+        else:
+            thread.fetch_result.connect(self.update_status_info)
+
         self.thread_reference_list.append(thread)
         thread.start()
 
     @PostGui()
-    def update_status_info(self, stage_status, unstage_status, untrack_status):
-        self.buffer_widget.eval_js_function("updateStatusInfo", stage_status, unstage_status, untrack_status)
+    def update_status_info(self, stage_status, unstage_status, untrack_status, select=None):
+        if select == None:
+            self.buffer_widget.eval_js_function("updateStatusInfo", stage_status, unstage_status, untrack_status)
+        else:
+            select_item_index = -1
+            select_item_type = ""
+
+            if len(untrack_status) > 0:
+                select_item_type = "untrack"
+            elif len(unstage_status) > 0:
+                select_item_type = "unstage"
+            elif len(stage_status) > 0:
+                select_item_type = "stage"
+
+            self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
         
         QTimer().singleShot(300, self.init_diff)
+
+    def update_status_info_and_selection(self, stage_status, unstage_status, untrack_status):
+        self.update_status_info(stage_status, unstage_status, untrack_status, True)
 
     def init_diff(self):
         if len(self.untrack_status) > 0:
@@ -759,7 +781,7 @@ class AppBuffer(BrowserBuffer):
         patch_set = []
         parse_diff_and_color = lambda patch_set : parse_patch(patch_set, self.highlight_diff_strict)
 
-        if type == "untrack":
+        if type == "untrack" or self.repo.head_is_unborn:
             if file == "":
                 for status in self.untrack_status:
                     path = os.path.join(self.repo_root, status["file"])
@@ -834,6 +856,11 @@ class AppBuffer(BrowserBuffer):
                 self.stage_unstage_files()
             else:
                 self.stage_unstage_file(self.unstage_status[file_index])
+        elif type == "stage":
+            if file_index == -1:
+                self.unstage_staged_files()
+            else:
+                self.unstage_staged_file(self.stage_status[file_index])
 
     @QtCore.pyqtSlot(str, int, int)
     def status_stage_hunk(self, type, patch_index, hunk_index):
@@ -863,8 +890,12 @@ class AppBuffer(BrowserBuffer):
         index.remove(path)
 
         # Restore object from db
-        obj = self.repo.revparse_single('HEAD').tree[path] # Get object from db
-        index.add(IndexEntry(path, obj.id, obj.filemode)) # Add to index
+        # Use try because the file can be untrack, so there's no HEAD info for it
+        try:
+            obj = self.repo.revparse_single('HEAD').tree[path] # Get object from db
+            index.add(IndexEntry(path, obj.id, obj.filemode)) # Add to index
+        except KeyError:
+            pass
 
         # Write index
         index.write()
@@ -927,6 +958,15 @@ class AppBuffer(BrowserBuffer):
 
         self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
 
+    def unstage_staged_files(self):
+        stage_status = self.stage_status
+
+        for file_info in stage_status:
+            self.git_reset_file(file_info["file"])
+
+        stage_status = []
+        self.fetch_status_info(True)
+
     def stage_untrack_file(self, file_info):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
@@ -968,6 +1008,38 @@ class AppBuffer(BrowserBuffer):
             select_item_index = max(unstage_file_index - 1, 0)
         else:
             select_item_type = "stage"
+
+        self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
+
+    def unstage_staged_file(self, file_info):
+        untrack_status = self.untrack_status
+        unstage_status = self.unstage_status
+        stage_status = self.stage_status
+
+        self.git_reset_file(file_info["file"])
+
+        stage_file_index = 0
+
+        # Use try to get the type of file after unstaging
+        try:
+            self.repo.revparse_single('HEAD').tree[file_info["file"]]
+        except KeyError:
+            untrack_status.append(file_info)
+        else:
+            unstage_status.append(file_info)
+
+        stage_file_index = stage_status.index(file_info)
+        stage_status.remove(file_info)
+
+        select_item_type = ""
+        select_item_index = -1
+        if len(stage_status) > 0:
+            select_item_type = "stage"
+            select_item_index = max(stage_file_index - 1, 0)
+        elif len(unstage_status) > 0:
+            select_item_type = "unstage"
+        elif len(untrack_status) > 0:
+            select_item_type = "untrack"
 
         self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
 
@@ -1184,7 +1256,7 @@ class AppBuffer(BrowserBuffer):
             select_item_index = max(stage_file_index - 1, 0)
         elif len(unstage_status) > 0:
             select_item_type = "unstage"
-        elif len(unstage_status) > 0:
+        elif len(untrack_status) > 0:
             select_item_type = "untrack"
 
         self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
@@ -1850,16 +1922,22 @@ class FetchStatusThread(QThread):
                 unstage_status.append(status)
                 
     def get_line_info(self, file, type_key, mime):
+        # Used to check if there's no commit in current repo.
+        head_unborn = False
+
         if type_key in GIT_STATUS_INDEX_CHANGES:
-            head_tree = self.repo.revparse_single("HEAD^{tree}")
-            stage_diff = self.repo.index.diff_to_tree(head_tree)
+            try:
+                head_tree = self.repo.revparse_single("HEAD^{tree}")
+                stage_diff = self.repo.index.diff_to_tree(head_tree)
             
-            patches = [patch for patch in stage_diff if patch.delta.new_file.path == file]
-            for patch in patches:
-                (_, add_count, delete_count) = patch.line_stats
-                return (add_count, delete_count)
+                patches = [patch for patch in stage_diff if patch.delta.new_file.path == file]
+                for patch in patches:
+                    (_, add_count, delete_count) = patch.line_stats
+                    return (add_count, delete_count)
+            except KeyError:
+                head_unborn = True
             
-        elif type_key in [GIT_STATUS_WT_NEW]:
+        if type_key in [GIT_STATUS_WT_NEW] or head_unborn:
             if mime.startswith("text-"):
                 file_path =os.path.join(self.repo_root, file)
                 return (len(open(file_path).readlines()), 0)
