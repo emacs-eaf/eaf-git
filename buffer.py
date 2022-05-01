@@ -926,37 +926,19 @@ class AppBuffer(BrowserBuffer):
 
     def stage_untrack_files(self):
         untrack_status = self.untrack_status
-        unstage_status = self.unstage_status
-        stage_status = self.stage_status
 
         for file_info in untrack_status:
             self.git_add_file(file_info["file"])
-        stage_status += untrack_status
-        untrack_status = []
 
-        select_item_type = ""
-        select_item_index = -1
-        if len(unstage_status) > 0:
-            select_item_type = "unstage"
-        else:
-            select_item_type = "stage"
-
-        self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
+        self.fetch_status_info(True)
 
     def stage_unstage_files(self):
-        untrack_status = self.untrack_status
         unstage_status = self.unstage_status
-        stage_status = self.stage_status
 
         for file_info in unstage_status:
             self.git_add_file(file_info["file"])
-        stage_status += unstage_status
-        unstage_status = []
 
-        select_item_type = "stage"
-        select_item_index = -1
-
-        self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
+        self.fetch_status_info(True)
 
     def unstage_staged_files(self):
         stage_status = self.stage_status
@@ -964,17 +946,20 @@ class AppBuffer(BrowserBuffer):
         for file_info in stage_status:
             self.git_reset_file(file_info["file"])
 
-        stage_status = []
         self.fetch_status_info(True)
 
     def stage_untrack_file(self, file_info):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
+        refresh_status = False
 
         self.git_add_file(file_info["file"])
 
-        stage_status.append(file_info)
+        if stage_status.count() == 0:
+            stage_status.append(file_info)
+        else:
+            refersh_status = True
         untrack_file_index = untrack_status.index(file_info)
         untrack_status.remove(file_info)
 
@@ -990,14 +975,21 @@ class AppBuffer(BrowserBuffer):
 
         self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
 
+        if refresh_status:
+            self.fetch_status_info()
+
     def stage_unstage_file(self, file_info):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
+        refresh_status = False
 
         self.git_add_file(file_info["file"])
 
-        stage_status.append(file_info)
+        if stage_status.count(file_info) == 0:
+            stage_status.append(file_info)
+        else:
+            refresh_status = True
         unstage_file_index = unstage_status.index(file_info)
         unstage_status.remove(file_info)
 
@@ -1011,10 +1003,14 @@ class AppBuffer(BrowserBuffer):
 
         self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
 
+        if refresh_status:
+            self.fetch_status_info()
+
     def unstage_staged_file(self, file_info):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
+        refresh_status == False
 
         self.git_reset_file(file_info["file"])
 
@@ -1024,9 +1020,15 @@ class AppBuffer(BrowserBuffer):
         try:
             self.repo.revparse_single('HEAD').tree[file_info["file"]]
         except KeyError:
-            untrack_status.append(file_info)
+            if untrack_status.count(file_info) == 0:
+                untrack_status.append(file_info)
+            else:
+                refresh_status = True
         else:
-            unstage_status.append(file_info)
+            if unstage_status.count(file_info) == 0:
+                unstage_status.append(file_info)
+            else:
+                refresh_status = True
 
         stage_file_index = stage_status.index(file_info)
         stage_status.remove(file_info)
@@ -1042,6 +1044,9 @@ class AppBuffer(BrowserBuffer):
             select_item_type = "untrack"
 
         self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
+
+        if refresh_status:
+            self.fetch_status_info()
 
     @QtCore.pyqtSlot(str, int)
     def status_delete_file(self, type, file_index):
