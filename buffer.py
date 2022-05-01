@@ -202,6 +202,14 @@ def parse_patch(patches, highlight):
         })
     return patch_set
 
+def status_is_include(status, file_info):
+    "Check if status1 has file_info"
+    for stat in status:
+        if stat["file"] == file_info["file"]:
+            return True
+
+    return False
+
 class AppBuffer(BrowserBuffer):
     def __init__(self, buffer_id, url, arguments):
         BrowserBuffer.__init__(self, buffer_id, url, arguments, False)
@@ -956,10 +964,10 @@ class AppBuffer(BrowserBuffer):
 
         self.git_add_file(file_info["file"])
 
-        if stage_status.count() == 0:
-            stage_status.append(file_info)
-        else:
+        if status_is_include(stage_status, file_info):
             refersh_status = True
+        else:
+            stage_status.append(file_info)
         untrack_file_index = untrack_status.index(file_info)
         untrack_status.remove(file_info)
 
@@ -986,10 +994,10 @@ class AppBuffer(BrowserBuffer):
 
         self.git_add_file(file_info["file"])
 
-        if stage_status.count(file_info) == 0:
-            stage_status.append(file_info)
-        else:
+        if status_is_include(stage_status, file_info):
             refresh_status = True
+        else:
+            stage_status.append(file_info)
         unstage_file_index = unstage_status.index(file_info)
         unstage_status.remove(file_info)
 
@@ -1020,15 +1028,15 @@ class AppBuffer(BrowserBuffer):
         try:
             self.repo.revparse_single('HEAD').tree[file_info["file"]]
         except KeyError:
-            if untrack_status.count(file_info) == 0:
+            if status_is_include(untrack_status, file_info):
+                refresh_status = True
+            else:
                 untrack_status.append(file_info)
-            else:
-                refresh_status = True
         else:
-            if unstage_status.count(file_info) == 0:
-                unstage_status.append(file_info)
-            else:
+            if status_is_include(unstage_status, file_info):
                 refresh_status = True
+            else:
+                unstage_status.append(file_info)
 
         stage_file_index = stage_status.index(file_info)
         stage_status.remove(file_info)
@@ -1144,16 +1152,7 @@ class AppBuffer(BrowserBuffer):
         self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
 
     def handle_commit_stage_files(self, message):
-        tree = self.repo.index.write_tree()
-        parent, ref = self.repo.resolve_refish(refish=self.repo.head.name)
-        self.repo.create_commit(
-            ref.name,
-            self.repo.default_signature,
-            self.repo.default_signature,
-            message,
-            tree,
-            [parent.oid])
-
+        self.handle_commit(message)
         self.fetch_unpush_info()
         self.fetch_log_info()
 
@@ -1177,16 +1176,7 @@ class AppBuffer(BrowserBuffer):
     def handle_commit_all_files(self, message):
         self.repo.index.add_all()
         self.repo.index.write()
-
-        tree = self.repo.index.write_tree()
-        parent, ref = self.repo.resolve_refish(refish=self.repo.head.name)
-        self.repo.create_commit(
-            ref.name,
-            self.repo.default_signature,
-            self.repo.default_signature,
-            message,
-            tree,
-            [parent.oid])
+        self.handle_commit(message)
 
         self.fetch_unpush_info()
         self.fetch_log_info()
@@ -1195,6 +1185,27 @@ class AppBuffer(BrowserBuffer):
         self.buffer_widget.eval_js_function("updateSelectInfo", [], [], [], "", -1)
 
         message_to_emacs("Commit stage files with: {}".format(message))
+
+    def handle_commit(self, message):
+        tree = self.repo.index.write_tree()
+        # Used for the case with no-commit-repo
+        parent = []
+        ref = 'refs/heads/master'
+
+        try:
+            parent, ref = self.repo.resolve_refish(refish=self.repo.head.name)
+            parent = [parent.oid]
+            ref = ref.name
+        except GitError:
+            pass
+
+        self.repo.create_commit(
+            ref,
+            self.repo.default_signature,
+            self.repo.default_signature,
+            message,
+            tree,
+            parent)
 
     def handle_commit_and_push(self, message):
         self.handle_commit_all_files(message)
