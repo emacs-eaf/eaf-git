@@ -1313,7 +1313,7 @@ class AppBuffer(BrowserBuffer):
         message_to_emacs(message)
 
     @QtCore.pyqtSlot()
-    def status_push(self):
+    def status_push_branch(self):
         remote_branch_names = self.repo.listall_branches(GIT_BRANCH_REMOTE)
         self.send_input_message("Push remote: ", "status_push", "list", completion_list=remote_branch_names)
 
@@ -1329,6 +1329,10 @@ class AppBuffer(BrowserBuffer):
         self.fetch_log_info()
 
         message_to_emacs(message)
+        
+    @QtCore.pyqtSlot()
+    def status_push(self):
+        self.handle_status_push_execute("origin/{}".format(self.repo.head.shorthand))
 
     @QtCore.pyqtSlot()
     def status_checkout_all(self):

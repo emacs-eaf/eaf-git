@@ -108,8 +108,9 @@
       ))
     ("Dashboard"
      (
-      ("u"  ("py_status_pull" "Pull"))
-      ("U"  ("py_status_push" "Push"))
+      ("L"  ("py_status_pull" "Pull"))
+      ("u"  ("py_status_push" "Push"))
+      ("U"  ("py_status_push_branch" "Push branch"))
       ("s"  ("js_status_stage_file" "Stage file"))
       ("S"  ("js_status_stage_hunk" "Stage hunk"))
       ("d"  ("js_status_delete_file" "Delete"))
