@@ -1993,7 +1993,7 @@ class GitPushThread(QThread):
 
         self.repo = repo
         self.repo_root = repo_root
-        [self.remote, self.remote_branch] = remote
+        [self.remote, self.remote_branch] = remote.split('/')
 
     def run(self):
         result = get_command_result("cd {}; git push {} {}".format(self.repo_root, self.remote, self.remote_branch)).strip()
