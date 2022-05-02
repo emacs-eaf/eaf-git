@@ -489,6 +489,13 @@
 
  .file {
    flex: 1;
+   padding-right: 10px;
+
+   overflow: hidden;
+   white-space: nowrap;
+   text-overflow: ellipsis;
+   
+   width: calc(30vw - 400px);
  }
 
  .count {
