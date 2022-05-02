@@ -1998,7 +1998,7 @@ class GitPushThread(QThread):
     def run(self):
         result = get_command_result("cd {}; git push {} {}".format(self.repo_root, self.remote, self.remote_branch)).strip()
         if result == "":
-            result = "Git push {} successfully.".format(self.repo.head.name)
+            result = "Git push {} to {}/{} successfully.".format(self.repo.head.name, self.remote, self.remote_branch)
         self.push_result.emit(result)
 
 class GitFetchThread(QThread):
