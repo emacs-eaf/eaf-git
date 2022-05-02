@@ -1094,9 +1094,8 @@ class AppBuffer(BrowserBuffer):
         stage_status = self.stage_status
 
         delete_file_number = len(self.untrack_status)
-
-        for untrack_file in self.untrack_status:
-            os.remove(os.path.join(self.repo_root, untrack_file["file"]))
+        
+        get_command_result("cd {}; git clean -fd".format(self.repo_root))
 
         untrack_status = []
 
@@ -1220,7 +1219,8 @@ class AppBuffer(BrowserBuffer):
 
         untrack_file_index = untrack_status.index(self.delete_untrack_mark_file)
         untrack_status.remove(self.delete_untrack_mark_file)
-        os.remove(os.path.join(self.repo_root, self.delete_untrack_mark_file["file"]))
+        
+        get_command_result("cd {}; git clean -fd {}".format(self.repo_root, self.delete_untrack_mark_file["file"]))
 
         select_item_type = ""
         select_item_index = -1

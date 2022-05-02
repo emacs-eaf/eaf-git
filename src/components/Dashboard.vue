@@ -19,7 +19,10 @@
             class="changed-count">
             {{ changedCount }}
           </div>
-          <div v-if="untrackStatusNumber() > 0">
+          <div
+            class="untrack-area"
+            ref="untracklist"
+            v-if="untrackStatusNumber() > 0">
             <div
               class="untrack-title"
               :style="{ 'background': untrackTitleBackground() }">
@@ -50,7 +53,9 @@
             <div class="split-line"/>
           </div>
 
-          <div v-if="unstageStatusNumber() > 0">
+          <div
+            v-if="unstageStatusNumber() > 0"
+            ref="unstagelist">
             <div
               class="unstaged-title"
               :style="{ 'background': unstageTitleBackground() }">
@@ -81,7 +86,9 @@
             <div class="split-line"/>
           </div>
 
-          <div v-if="stageStatusNumber() > 0">
+          <div
+            v-if="stageStatusNumber() > 0"
+            ref="stagelist">
             <div
               class="staged-title"
               :style="{ 'background': stageTitleBackground() }">
@@ -142,7 +149,7 @@
           v-if="unpushStatusInfo.length > 0"
           title="Unpush"
           class="unpush-dialog">
-          <div 
+          <div
             v-for="info in unpushStatusInfo"
             :key="info"
             class="unpush-info-item">
@@ -359,7 +366,7 @@
 
        return stash_files_number;
      },
-     
+
      unpushStatusNumber() {
        var unpush_files_number = 0;
        if (this.unpushStatusInfo) {
@@ -368,7 +375,7 @@
 
        return unpush_files_number;
      },
-     
+
      untrackTitleBackground() {
        if (this.selectItemType === "untrack" && this.selectItemIndex === -1) {
          return this.selectColor;
@@ -395,6 +402,14 @@
 
      untrackItemBackground(index) {
        if (this.selectItemType === "untrack" && this.selectItemIndex === index) {
+         /* Use nextTick wait DOM update, then make sure current file in visible area. */
+         this.$nextTick(function() {
+           var selectUntrack = this.$refs.untracklist.children[index + 1]
+           if (selectUntrack !== undefined) {
+             selectUntrack.scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
+           }
+         })
+
          return this.selectColor;
        } else {
          return this.backgroundColor;
@@ -403,6 +418,14 @@
 
      unstageItemBackground(index) {
        if (this.selectItemType === "unstage" && this.selectItemIndex === index) {
+         /* Use nextTick wait DOM update, then make sure current file in visible area. */
+         this.$nextTick(function() {
+           var selectUnstage = this.$refs.ununstagelist.children[index + 1]
+           if (selectUnstage !== undefined) {
+             selectUnstage.scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
+           }
+         })
+
          return this.selectColor;
        } else {
          return this.backgroundColor;
@@ -411,6 +434,14 @@
 
      stageItemBackground(index) {
        if (this.selectItemType === "stage" && this.selectItemIndex === index) {
+         /* Use nextTick wait DOM update, then make sure current file in visible area. */
+         this.$nextTick(function() {
+           var selectStage = this.$refs.unstagelist.children[index + 1]
+           if (selectStage !== undefined) {
+             selectStage.scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
+           }
+         })
+
          return this.selectColor;
        } else {
          return this.backgroundColor;
@@ -431,11 +462,11 @@
 
          if (selectPatch != undefined) {
            /* First child of patchSet is patch.patch_info, need add 1 offset. */
-           var selectHunk = selectPatch.children[this.selectHunkIndex + 1]; 
-           
+           var selectHunk = selectPatch.children[this.selectHunkIndex + 1];
+
            if (selectHunk != undefined) {
              selectHunk.scrollIntoView();
-             
+
              /* Scroll to top if select the first hunk. */
              if (this.selectPatchIndex === 0 && this.selectHunkIndex === 0) {
                this.$refs.scrollArea.scrollTop = 0;
@@ -494,9 +525,7 @@
    overflow: hidden;
    white-space: nowrap;
    text-overflow: ellipsis;
-   
-   direction: rtl;
-   
+
    width: calc(30vw - 400px);
  }
 
@@ -558,7 +587,7 @@
 
    width: 30%;
    height: 100%;
-   
+
    overflow-y: scroll;
  }
 
@@ -578,9 +607,9 @@
    padding-right: 10px;
    padding-top: 3px;
    padding-bottom: 3px;
-   
+
    width: 25vw;
-   
+
    overflow: hidden;
    white-space: nowrap;
    text-overflow: ellipsis;
@@ -657,5 +686,10 @@
  .hunk {
    padding: 10px;
    border-radius: 5px;
+ }
+
+ .untrack-area {
+   overflow-y: scroll;
+   max-height: calc(100vh - 190px);
  }
 </style>
