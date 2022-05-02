@@ -495,6 +495,8 @@
    white-space: nowrap;
    text-overflow: ellipsis;
    
+   direction: rtl;
+   
    width: calc(30vw - 400px);
  }
 
