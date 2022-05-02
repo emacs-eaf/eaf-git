@@ -537,6 +537,8 @@ class AppBuffer(BrowserBuffer):
             self.handle_commit_all_files(result_content)
         elif callback_tag == "commit_and_push":
             self.handle_commit_and_push(result_content)
+        elif callback_tag == "status_push":
+            self.handle_status_push_execute(result_content)
         elif callback_tag == "checkout_all_files":
             self.handle_checkout_all_files()
         elif callback_tag == "new_branch":
@@ -1312,13 +1314,17 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot()
     def status_push(self):
-        message_to_emacs("Git push {}...".format(self.repo.head.name))
-        thread = GitPushThread(self.repo, self.repo_root)
-        thread.push_result.connect(self.handle_status_push)
+        remote_branch_names = self.repo.listall_branches(GIT_BRANCH_REMOTE)
+        self.send_input_message("Push remote: ", "status_push", "list", completion_list=remote_branch_names)
+
+    def handle_status_push_execute(self, remote):
+        message_to_emacs("Git push {} to {}...".format(self.repo.head.name, remote))
+        thread = GitPushThread(self.repo, self.repo_root, remote)
+        thread.push_result.connect(self.handle_status_push_report)
         self.thread_reference_list.append(thread)
         thread.start()
 
-    def handle_status_push(self, message):
+    def handle_status_push_report(self, message):
         self.fetch_unpush_info()
         self.fetch_log_info()
 
@@ -1982,14 +1988,15 @@ class GitPushThread(QThread):
 
     push_result = QtCore.pyqtSignal(str)
 
-    def __init__(self, repo, repo_root):
+    def __init__(self, repo, repo_root, remote):
         QThread.__init__(self)
 
         self.repo = repo
         self.repo_root = repo_root
+        [self.remote, self.remote_branch] = remote
 
     def run(self):
-        result = get_command_result("cd {}; git push".format(self.repo_root)).strip()
+        result = get_command_result("cd {}; git push {} {}".format(self.repo_root, self.remote, self.remote_branch)).strip()
         if result == "":
             result = "Git push {} successfully.".format(self.repo.head.name)
         self.push_result.emit(result)
