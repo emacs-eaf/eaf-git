@@ -1094,8 +1094,12 @@ class AppBuffer(BrowserBuffer):
         stage_status = self.stage_status
 
         delete_file_number = len(self.untrack_status)
-        
-        get_command_result("cd {}; git clean -fd".format(self.repo_root))
+
+        for untrack_file in self.untrack_status:
+            untrack_path = os.path.join(self.repo_root, untrack_file["file"])
+            parent_dir = os.path.dirname(untrack_path)
+            os.remove(untrack_path)
+            self.clean_dir_without_files(untrack_path)
 
         untrack_status = []
 
@@ -1212,6 +1216,18 @@ class AppBuffer(BrowserBuffer):
         self.handle_commit_all_files(message)
         self.status_push()
 
+    def clean_dir_without_files(self, begin_path):
+        # only clean directory inside repo directory.
+        begin_path = os.path.abspath(begin_path)
+        if begin_path.startswith(self.repo_root) and begin_path != self.repo_root:
+            begin_dir = os.path.dirname(begin_path) if os.path.isfile(begin_path) else begin_path
+            if os.path.exists(begin_dir):
+                for _, _, files in os.walk(begin_dir, topdown=False):
+                    if files:
+                        return
+                shutil.rmtree(begin_dir, ignore_errors=True)
+            self.clean_dir_without_files(os.path.dirname(begin_dir))
+
     def handle_delete_untrack_file(self):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
@@ -1219,8 +1235,10 @@ class AppBuffer(BrowserBuffer):
 
         untrack_file_index = untrack_status.index(self.delete_untrack_mark_file)
         untrack_status.remove(self.delete_untrack_mark_file)
-        
-        get_command_result("cd {}; git clean -fd {}".format(self.repo_root, self.delete_untrack_mark_file["file"]))
+        untrack_path = os.path.join(self.repo_root, self.delete_untrack_mark_file["file"])
+        parent_dir = os.path.dirname(untrack_path)
+        os.remove(untrack_path)
+        self.clean_dir_without_files(untrack_path)
 
         select_item_type = ""
         select_item_index = -1
@@ -1524,7 +1542,6 @@ class AppBuffer(BrowserBuffer):
 
     def handle_submodule_remove(self):
         import subprocess
-        import shutil
         import configparser
 
         # Remove submodule path if submodule path exists in index.
