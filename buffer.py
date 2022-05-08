@@ -1686,8 +1686,7 @@ class AppBuffer(BrowserBuffer):
     
     @QtCore.pyqtSlot()
     def exit(self):
-        eval_in_emacs('kill-buffer-and-window', [])
-        message_to_emacs("Exit git repository {}".format(self.repo_path))
+        eval_in_emacs('eaf-git-exit', [self.repo_root])
         
 class AddSubmoduleCallback(pygit2.RemoteCallbacks, QtCore.QObject):
 

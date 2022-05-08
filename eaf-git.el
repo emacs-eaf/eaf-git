@@ -90,6 +90,8 @@
   (if (and (executable-find "git")
            (string-equal (car (split-string (shell-command-to-string "git rev-parse --is-inside-work-tree"))) "true"))
       (let ((repo-root (car (split-string (shell-command-to-string "git rev-parse --show-toplevel")))))
+        (eaf-git-save-window-configuration)
+        (delete-other-windows)
         (eaf-open repo-root "git"))
     (message "%s is not a git repository." default-directory)))
 
@@ -237,6 +239,21 @@ will be added if not present."
 
 (setq eaf-git-module-path (concat (file-name-directory load-file-name) "buffer.py"))
 (add-to-list 'eaf-app-module-path-alist '("git" . eaf-git-module-path))
+
+(defvar eaf-git-window-configuration nil)
+
+(defun eaf-git-save-window-configuration ()
+  (setq eaf-git-window-configuration (current-window-configuration)))
+
+(defun eaf-git-exit (repo-path)
+  (kill-buffer)
+  (eaf-git-restore-window-configuration)
+  (message "Exit git repository %s" repo-path))
+
+(defun eaf-git-restore-window-configuration ()
+  (when eaf-git-window-configuration
+    (set-window-configuration eaf-git-window-configuration)
+    (setq eaf-git-window-configuration nil)))
 
 (defun eaf-git-list-intersect-p (list1 list2)
   "Return non-nil if any elements of LIST1 appear in LIST2.
