@@ -405,6 +405,14 @@ This assumes that `eaf-git-in-string-p' has already returned true, i.e.
     (beginning-of-defun)
     (parse-partial-sexp (point) point)))
 
+(defun eaf-git-checkout-files (checkout-files)
+  (save-excursion
+    (dolist (filepath checkout-files)
+      (let ((buffer (get-file-buffer filepath)))
+        (when buffer
+          (with-current-buffer buffer
+            (revert-buffer :ignore-auto :noconfirm)))))))
+
 (provide 'eaf-git)
 
 ;;; eaf-git.el ends here
