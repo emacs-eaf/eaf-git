@@ -1,6 +1,8 @@
 <template>
   <div class="box">
-    <Dialog title="Stash">
+    <Dialog
+      title="Stash"
+      :backgroundColor="backgroundColor">
       <div
         v-if="stashStatusInfo.length > 0"
         class="list"
@@ -180,7 +182,6 @@
 
  .list {
    z-index: 100;
-   max-height: calc(100vh - 100px);
    overflow-y: scroll;
  }
  

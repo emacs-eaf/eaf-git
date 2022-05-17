@@ -1,6 +1,7 @@
 <template>
   <div class="branch-area">
     <Dialog
+      :backgroundColor="backgroundColor"
       class="local-branch"
       title="Local Branch">
       <virtual-list
@@ -13,6 +14,7 @@
         :data-component="localBranchItemComponent"/>
     </Dialog>
     <Dialog
+      :backgroundColor="backgroundColor"
       class="remote-branch"
       title="Remote Branch">
       <virtual-list
@@ -96,14 +98,12 @@
    
    display: flex;
    flex-direction: row;
-   
-   max-height: calc(100vh - 110px);
  }
 
  .list {
    z-index: 100;
-   max-height: calc(100vh - 150px);
    overflow-y: scroll;
+   height: 100%;
  }
  
  .local-branch {

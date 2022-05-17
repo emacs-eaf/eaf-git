@@ -1,6 +1,7 @@
 <template>
   <div class="box">
     <Dialog
+      :backgroundColor="backgroundColor"
       :title="dialogTitle">
       <virtual-list
         v-if="submoduleInfo.length > 0"
@@ -150,7 +151,7 @@
 
  .list {
    z-index: 100;
-   max-height: calc(100vh - 150px);
    overflow-y: scroll;
+   height: 100%;
  }
 </style>

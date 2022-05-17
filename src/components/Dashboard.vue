@@ -2,6 +2,7 @@
   <div class="box">
     <Dialog
       v-if="isCleanWorkspace"
+      :backgroundColor="backgroundColor"
       title="Welcome">
       <div class="clean-workspace">
         No file need submitted, clean workspace.
@@ -12,6 +13,7 @@
       class="status-area">
       <div class="status-left-panel">
         <Dialog
+          :backgroundColor="backgroundColor"
           class="flex-expand"
           title="Status">
           <div
@@ -121,6 +123,7 @@
 
         <Dialog
           v-if="stashStatusInfo != ''"
+          :backgroundColor="backgroundColor"
           title="Stash"
           class="stash-dialog">
           <div class="stash-info-area">
@@ -147,6 +150,7 @@
 
         <Dialog
           v-if="unpushStatusInfo.length > 0"
+          :backgroundColor="backgroundColor"
           title="Unpush"
           class="unpush-dialog">
           <div
@@ -161,6 +165,7 @@
       <div class="status-right-panel">
         <Dialog
           v-if="patchSetNumber() > 0"
+          :backgroundColor="backgroundColor"
           title="Preview"
           hasScrollchild="true">
           <div
@@ -182,6 +187,7 @@
         </Dialog>
         <Dialog
           v-else
+          :backgroundColor="backgroundColor"
           title="Preview"
           hasScrollChild="true">
           <div
@@ -525,7 +531,6 @@
    overflow: hidden;
    white-space: nowrap;
    text-overflow: ellipsis;
-
    width: calc(30vw - 400px);
  }
 
@@ -593,7 +598,6 @@
 
  .status-right-panel {
    width: 70%;
-   max-height: calc(100vh - 110px);
    height: 100%;
  }
 
@@ -639,7 +643,7 @@
    padding-left: 10px;
    padding-right: 10px;
    font-size: 16px;
-   height: 95%;
+   height: 100%;
  }
 
  .status-preview-area {
@@ -690,6 +694,5 @@
 
  .untrack-area {
    overflow-y: scroll;
-   max-height: calc(100vh - 190px);
  }
 </style>

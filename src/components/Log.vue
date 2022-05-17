@@ -2,6 +2,7 @@
   <div class="log-box">
     <Dialog
       class="flex-expand"
+      :backgroundColor="backgroundColor"
       :title="logTitle"
       hasScrollChild="true">
       <virtual-list
@@ -16,6 +17,7 @@
 
     <Dialog
       v-if="compareLogInfo.length > 0"
+      :backgroundColor="backgroundColor"
       class="compare-log-list"
       :title="compareLogTitle"
       hasScrollChild="true">
@@ -265,8 +267,8 @@
 
  .list {
    z-index: 100;
-   max-height: calc(100vh - 150px);
    overflow-y: scroll;
+   height: 100%
  }
 
  .compare-log-list {

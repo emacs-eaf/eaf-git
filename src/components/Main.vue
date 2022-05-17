@@ -1044,13 +1044,13 @@
 
  .help-area {
    display: flex;
+   flex-wrap: wrap;
+   line-height: 1.5;
+   
    flex-direction: row;
    align-items: center;
 
-   overflow-x: scroll;
-
-   padding-top: 10px;
-   padding-bottom: 20px;
+   padding-bottom: 10px;
  }
 
  .help-item {

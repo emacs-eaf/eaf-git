@@ -1,11 +1,13 @@
 <template>
-  <div
-    class="dialog-box"
-    :style="{ 'height': dialogBoxHeight() }">
-    <fieldset class="dialog-fieldset">
-      <legend class="dialog-title">{{ title }}</legend>
+  <div class="dialog">
+    <div
+      class="title"
+      :style="{ 'background': backgroundColor }">
+      {{ title }}
+    </div>
+    <div class="frame">
       <slot/>
-    </fieldset>
+    </div>
   </div>
 </template>
 
@@ -14,6 +16,7 @@
    name: 'Dialog',
    props: {
      title: String,
+     backgroundColor: String,
      hasScrollChild: Boolean
    },
    methods: {
@@ -30,29 +33,39 @@
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
- .dialog-box {
-   padding: 10px;
+ .dialog {
+   position: relative;
+
+   width: 100%;
+   height: 100%;
  }
 
- .dialog-fieldset {
+ .frame {
+   position: absolute;
+   left: 10px;
+   top: 10px;
+   right: 10px;
+   bottom: 10px;
+
    border: 1px solid;
    border-radius: 5px;
-   height: 100%;
-   width: 100%;
+
+   padding-left: 10px;
+   padding-right: 10px;
+   padding-top: 20px;
+   padding-bottom: 20px;
+
+   overflow-y: scroll;
  }
 
- .dialog-title {
-   margin-left: 1em;
-   padding: 0.2em 0.8em
- }
- 
- fieldset {
-   margin-inline-start: 0;
-   margin-inline-end: 0;
-   padding-block-start: 0;
-   padding-inline-start: 0;
-   padding-inline-end: 0;
-   padding-block-end: 0;
-   min-inline-size: min-content;   
+ .title {
+   position: absolute;
+   left: 30px;
+   top: 0px;
+
+   padding-left: 5px;
+   padding-right: 5px;
+
+   z-index: 999;
  }
 </style>
