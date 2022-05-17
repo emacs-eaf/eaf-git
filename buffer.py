@@ -955,7 +955,7 @@ class AppBuffer(BrowserBuffer):
         new_entry = IndexEntry(path, new_id, pygit2.GIT_FILEMODE_BLOB)
         index.add(new_entry)
         index.write()
-        self.fetch_status_info()
+        self.fetch_status_info(True)
 
     def stage_untrack_files(self):
         untrack_status = self.untrack_status
