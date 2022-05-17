@@ -114,7 +114,7 @@
       ("u"  ("py_status_push" "Push"))
       ("U"  ("py_status_push_branch" "Push branch"))
       ("s"  ("js_status_stage_file" "Stage file"))
-      ("S"  ("js_status_stage_hunk" "Stage hunk"))
+      ("S"  ("js_status_manage_hunk" "Stage/Unstage hunk"))
       ("d"  ("js_status_delete_file" "Delete"))
       ("y"  ("py_status_commit_and_push" "Commit and push"))
       ("C"  ("py_status_commit_all" "Commit all"))

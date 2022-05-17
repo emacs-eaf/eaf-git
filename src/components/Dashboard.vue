@@ -290,8 +290,8 @@
 
      var that = this;
 
-     this.$root.$on("status_stage_hunk", function() {
-       that.pyobject.status_stage_hunk(that.selectItemType, that.selectPatchIndex, that.selectHunkIndex);
+     this.$root.$on("status_manage_hunk", function() {
+       that.pyobject.status_manage_hunk(that.selectItemType, that.selectPatchIndex, that.selectHunkIndex);
      });
 
      this.$root.$on("status_stage_file", function () {
@@ -319,7 +319,7 @@
      });
    },
    beforeDestroy() {
-     this.$root.$off("status_stage_hunk");
+     this.$root.$off("status_manage_hunk");
      this.$root.$off("status_stage_file");
      this.$root.$off("status_delete_file");
      this.$root.$off("status_preview_scroll_down");

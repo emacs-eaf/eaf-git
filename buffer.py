@@ -45,7 +45,8 @@ from pygit2 import (Repository, IndexEntry, Oid,
                     GIT_STATUS_CONFLICTED,
                     GIT_CHECKOUT_FORCE,
                     discover_repository)
-from unidiff import PatchSet
+from unidiff import PatchSet, Hunk, LINE_TYPE_ADDED, LINE_TYPE_REMOVED, LINE_TYPE_CONTEXT
+from copy import copy
 from datetime import datetime
 from pathlib import Path
 from io import StringIO
@@ -873,24 +874,24 @@ class AppBuffer(BrowserBuffer):
                 self.unstage_staged_file(self.stage_status[file_index])
 
     @QtCore.pyqtSlot(str, int, int)
-    def status_stage_hunk(self, type, patch_index, hunk_index):
-        if type == "unstage":
-            if patch_index >= 0 and hunk_index >= 0:
+    def status_manage_hunk(self, type, patch_index, hunk_index):
+        if patch_index >= 0 and hunk_index >= 0:
+            if type == "unstage":
                 self.stage_unstage_hunk(patch_index, hunk_index)
-            else:
-                message_to_emacs("Please select an valid hunk.")
+            elif type == "stage":
+                self.unstage_stage_hunk(patch_index, hunk_index)
         else:
-            message_to_emacs("Please select an unstage hunk.")
+            message_to_emacs("Please select an valid hunk.")
 
     def git_add_file(self, path):
         index = self.repo.index
-        
+
         expand_path = os.path.join(self.repo_root, path)
         if os.path.exists(expand_path):
             index.add(path)
         else:
             index.remove(path)
-            
+
         index.write()
 
     def git_reset_file(self, path):
@@ -919,15 +920,35 @@ class AppBuffer(BrowserBuffer):
         self.repo.checkout(ref)
 
     def stage_unstage_hunk(self, patch_index, hunk_index):
+        self.apply_hunk(patch_index, hunk_index)
+
+    def unstage_stage_hunk(self, patch_index, hunk_index):
+        self.apply_hunk(patch_index, hunk_index, revert=True)
+
+    def apply_hunk(self, patch_index, hunk_index, revert=False):
         index = self.repo.index
         path = self.raw_patch_set[patch_index].path
         blob_id = index[path].id
         blob_data = self.repo[blob_id].data
+
+        hunk = self.raw_patch_set[patch_index][hunk_index]
+
+        if revert:
+            revert_hunk = Hunk(
+                src_start=hunk.target_start,
+                src_len=hunk.target_length,
+                tgt_start=hunk.source_start,
+                tgt_len=hunk.source_length,
+                section_header=hunk.section_header)
+            for line in hunk:
+                new_line = copy(line)
+                new_line.source_line_no, new_line.target_line_no = new_line.target_line_no, new_line.source_line_no
+                new_line.line_type = LINE_TYPE_ADDED if line.is_removed else LINE_TYPE_REMOVED if line.is_added else LINE_TYPE_CONTEXT
+                revert_hunk.append(new_line)
+            hunk = revert_hunk
+
         new_content = StringIO()
-        new_content.writelines(patch_stream(
-            StringIO(bytes_decode(blob_data)),
-            [self.raw_patch_set[patch_index][hunk_index]]
-        ))
+        new_content.writelines(patch_stream(StringIO(bytes_decode(blob_data)), [hunk]))
         new_id = self.repo.write(pygit2.GIT_OBJ_BLOB, new_content.getvalue())
         new_entry = IndexEntry(path, new_id, pygit2.GIT_FILEMODE_BLOB)
         index.add(new_entry)
