@@ -3,8 +3,7 @@
     <Dialog
       class="flex-expand"
       :backgroundColor="backgroundColor"
-      :title="logTitle"
-      hasScrollChild="true">
+      :title="logTitle">
       <virtual-list
         ref="loglist"
         class="list"
@@ -19,8 +18,7 @@
       v-if="compareLogInfo.length > 0"
       :backgroundColor="backgroundColor"
       class="compare-log-list"
-      :title="compareLogTitle"
-      hasScrollChild="true">
+      :title="compareLogTitle">
       <virtual-list
         class="list"
         :keeps="50"
@@ -105,7 +103,7 @@
    },
    mounted() {
      var that = this;
-
+     
      this.$root.$on("log_view_diff", function () {
        that.logViewDiff();
      });

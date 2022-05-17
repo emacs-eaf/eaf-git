@@ -188,8 +188,7 @@
         <Dialog
           v-else
           :backgroundColor="backgroundColor"
-          title="Preview"
-          hasScrollChild="true">
+          title="Preview">
           <div
             ref="scrollArea"
             class="status-preview-area"

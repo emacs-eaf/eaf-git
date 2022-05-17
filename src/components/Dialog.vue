@@ -16,17 +16,9 @@
    name: 'Dialog',
    props: {
      title: String,
-     backgroundColor: String,
-     hasScrollChild: Boolean
+     backgroundColor: String
    },
    methods: {
-     dialogBoxHeight() {
-       if (this.hasScrollChild) {
-         return "";
-       } else {
-         return "100%";
-       }
-     }
    }
  }
 </script>
