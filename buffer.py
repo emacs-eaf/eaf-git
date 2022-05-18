@@ -147,11 +147,16 @@ def is_binary(filename_or_bytes):
                 return True
             return False
 
-def get_command_result(command_string):
+def get_command_result(command_string, input_text=None):
     import subprocess
-    process = subprocess.Popen(command_string, shell=True, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    ret = process.wait()
-    return "".join((process.stdout if ret == 0 else process.stderr).readlines())
+    process = subprocess.Popen(command_string, shell=True, text=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if input_text:
+        out, err = process.communicate(input=input_text)
+        ret = process.returncode
+        return out if ret == 0 else err
+    else:
+        ret = process.wait()
+        return "".join((process.stdout if ret == 0 else process.stderr).readlines())
 
 def patch_stream(instream, hunks):
     hunks = iter(hunks)
@@ -590,6 +595,10 @@ class AppBuffer(BrowserBuffer):
             self.handle_branch_fetch_all()
         elif callback_tag == "branch_create_from_remote":
             self.handle_branch_create_from_remote(result_content)
+        elif callback_tag == "discard_unstage_hunk":
+            self.handle_discard_unstage_hunk()
+        elif callback_tag == "discard_stage_hunk":
+            self.handle_discard_stage_hunk()
 
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
@@ -874,6 +883,50 @@ class AppBuffer(BrowserBuffer):
                 self.unstage_staged_file(self.stage_status[file_index])
 
     @QtCore.pyqtSlot(str, int, int)
+    def status_delete_hunk(self, type, patch_index, hunk_index):
+        if patch_index >= 0 and hunk_index >= 0:
+            self.patch_index = patch_index
+            self.hunk_index = hunk_index
+            if type == "unstage":
+                self.send_input_message("Discard this unstage hunk", "discard_unstage_hunk", "yes-or-no")
+            elif type == "stage":
+                self.send_input_message("Discard this stage hunk", "discard_stage_hunk", "yes-or-no")
+        else:
+            message_to_emacs("Please select an valid hunk.")
+
+    def handle_discard_unstage_hunk(self):
+        patch = copy(self.raw_patch_set[self.patch_index])
+        for index, hunk in enumerate(patch):
+            if index != self.hunk_index:
+                patch.remove(hunk)
+        result = get_command_result("cd {}; git apply --reverse".format(self.repo_root), str(patch))
+
+        if result == "":
+            message_to_emacs("Discard unstage hunk successfully!")
+        else:
+            message_to_emacs("Failed to discard this unstage hunk! {}".format(result))
+
+        self.fetch_status_info(True)
+
+    def handle_discard_stage_hunk(self):
+        patch = copy(self.raw_patch_set[self.patch_index])
+        for index, hunk in enumerate(patch):
+            if index != self.hunk_index:
+                patch.remove(hunk)
+
+        result = get_command_result("cd {}; git apply --reverse --cached".format(self.repo_root), str(patch))
+        if result == "":
+            get_command_result("cd {}; git update-index --refresh")
+            result = get_command_result("cd {}; git apply --reverse".format(self.repo_root), str(patch))
+
+        if result == "":
+            message_to_emacs("Discard this stage hunk successfully!")
+        else:
+            message_to_emacs("Failed to discard this stage hunk! {}".format(result))
+
+        self.fetch_status_info(True)
+
+    @QtCore.pyqtSlot(str, int, int)
     def status_manage_hunk(self, type, patch_index, hunk_index):
         if patch_index >= 0 and hunk_index >= 0:
             if type == "unstage":
@@ -1043,7 +1096,7 @@ class AppBuffer(BrowserBuffer):
         untrack_status = self.untrack_status
         unstage_status = self.unstage_status
         stage_status = self.stage_status
-        refresh_status == False
+        refresh_status = False
 
         self.git_reset_file(file_info["file"])
 

@@ -299,6 +299,10 @@
        that.pyobject.status_manage_hunk(that.selectItemType, that.selectPatchIndex, that.selectHunkIndex);
      });
 
+     this.$root.$on("status_delete_hunk", function() {
+       that.pyobject.status_delete_hunk(that.selectItemType, that.selectPatchIndex, that.selectHunkIndex);
+     })
+
      this.$root.$on("status_stage_file", function () {
        that.pyobject.status_stage_file(that.selectItemType, that.selectItemIndex);
      });
@@ -325,6 +329,7 @@
    },
    beforeDestroy() {
      this.$root.$off("status_manage_hunk");
+     this.$root.$off("status_delete_hunk");
      this.$root.$off("status_stage_file");
      this.$root.$off("status_delete_file");
      this.$root.$off("status_preview_scroll_down");
