@@ -565,6 +565,8 @@ class AppBuffer(BrowserBuffer):
             self.handle_log_hide_compare_branch(result_content)
         elif callback_tag == "log_revert_commit":
             self.handle_log_revert_commit()
+        elif callback_tag == "log_revert_to_commit":
+            self.handle_log_revert_to_commit()
         elif callback_tag == "log_reset_last":
             self.handle_log_reset_last(result_content)
         elif callback_tag == "log_reset_to":
@@ -635,22 +637,37 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot(str)
     def log_revert_commit(self, commit_id):
-        self.commit_to_revert = self.repo.revparse_single(commit_id)
-        self.send_input_message("Revert commit '{}' {}".format(commit_id, self.commit_to_revert.message), "log_revert_commit", "yes-or-no")
+        self.revert_commit = self.repo.revparse_single(commit_id)
+        self.send_input_message("Revert commit '{}' {}".format(commit_id, self.revert_commit.message), "log_revert_commit", "yes-or-no")
 
     def handle_log_revert_commit(self):
         head = self.repo.head.peel()
-        revert_index = self.repo.revert_commit(self.commit_to_revert, head)
+        revert_index = self.repo.revert_commit(self.revert_commit, head)
         parent, ref = self.repo.resolve_refish(refish=self.repo.head.name)
         self.repo.create_commit(
             ref.name,
             self.repo.default_signature,
             self.repo.default_signature,
-            "Revert {}".format(self.commit_to_revert.message),
+            "Revert {}".format(self.revert_commit.message),
             revert_index.write_tree(),
             [parent.oid])
+        self.fetch_status_info()
         self.fetch_log_info()
-        message_to_emacs("Revert commit: {} {} ".format(self.commit_to_revert.id, self.commit_to_revert.message))
+        message_to_emacs("Revert commit: {} {} ".format(self.revert_commit.id, self.revert_commit.message))
+        
+    @QtCore.pyqtSlot(str, int)
+    def log_revert_to(self, commit_id, commit_index):
+        self.revert_to_commit = self.repo.revparse_single(commit_id)
+        self.revert_to_commit_index = commit_index
+        self.send_input_message("Revert to commit '{}' {}".format(commit_id, self.revert_to_commit.message.splitlines()[0]), "log_revert_to_commit", "yes-or-no")
+
+    def handle_log_revert_to_commit(self):
+        get_command_result("cd {}; git revert --no-commit HEAD~{}..".format(self.repo_root, self.revert_to_commit_index + 1))
+        
+        self.fetch_status_info()
+        self.fetch_log_info()
+        
+        message_to_emacs("Revert to commit: {} {} ".format(self.revert_to_commit.id, self.revert_to_commit.message.splitlines()[0]))
 
     @QtCore.pyqtSlot(str, str)
     def log_reset_last(self, commit_id, commit_message):

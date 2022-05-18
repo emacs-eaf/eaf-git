@@ -112,6 +112,10 @@
        that.logRevertCommit();
      });
 
+     this.$root.$on("log_revert_to", function () {
+       that.logRevertTo();
+     });
+     
      this.$root.$on("log_reset_last", function () {
        that.logResetLast();
      });
@@ -144,6 +148,7 @@
    beforeDestroy() {
      this.$root.$off("log_view_diff");
      this.$root.$off("log_revert_commit");
+     this.$root.$off("log_revert_to");
      this.$root.$off("log_reset_last");
      this.$root.$off("log_reset_to");
      this.$root.$off("log_cherry_pick");
@@ -161,6 +166,10 @@
        this.pyobject.log_revert_commit(this.logInfo[this.currentLogIndex].id);
      },
 
+     logRevertTo() {
+       this.pyobject.log_revert_to(this.logInfo[this.currentLogIndex].id, this.currentLogIndex);
+     },
+     
      logResetLast() {
        this.pyobject.log_reset_last(this.logInfo[0].id, this.logInfo[0].message);
      },
