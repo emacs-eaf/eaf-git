@@ -104,13 +104,13 @@
 (defcustom eaf-git-js-keybinding
   '(("Global"
      (
+      ("L"  ("py_status_pull" "Pull"))
       ("h" ("js_page_select_prev" "Left page"))
       ("l" ("js_page_select_next" "Right page"))
       ("q" ("py_exit" "Exit"))
       ))
     ("Dashboard"
      (
-      ("L"  ("py_status_pull" "Pull"))
       ("u"  ("py_status_push" "Push"))
       ("U"  ("py_status_push_branch" "Push branch"))
       ("s"  ("js_status_stage_file" "Stage file"))
