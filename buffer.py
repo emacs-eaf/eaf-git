@@ -651,6 +651,7 @@ class AppBuffer(BrowserBuffer):
             "Revert {}".format(self.revert_commit.message),
             revert_index.write_tree(),
             [parent.oid])
+        self.fetch_unpush_info()
         self.fetch_status_info()
         self.fetch_log_info()
         message_to_emacs("Revert commit: {} {} ".format(self.revert_commit.id, self.revert_commit.message))
@@ -664,6 +665,7 @@ class AppBuffer(BrowserBuffer):
     def handle_log_revert_to_commit(self):
         get_command_result("cd {}; git revert --no-commit HEAD~{}..".format(self.repo_root, self.revert_to_commit_index + 1))
         
+        self.fetch_unpush_info()
         self.fetch_status_info()
         self.fetch_log_info()
         
