@@ -167,7 +167,7 @@
      },
 
      logRevertTo() {
-       this.pyobject.log_revert_to(this.logInfo[this.currentLogIndex].id, this.currentLogIndex);
+       this.pyobject.log_revert_to(this.logInfo[this.currentLogIndex].id);
      },
      
      logResetLast() {
