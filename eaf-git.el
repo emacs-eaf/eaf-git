@@ -113,6 +113,7 @@
      (
       ("u"  ("py_status_push" "Push"))
       ("U"  ("py_status_push_branch" "Push branch"))
+      ("f"  ("js_status_view_file" "View file"))
       ("s"  ("js_status_stage_file" "Stage file"))
       ("S"  ("js_status_manage_hunk" "Stage/Unstage hunk"))
       ("d"  ("js_status_delete_file" "Delete"))
