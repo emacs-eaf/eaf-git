@@ -995,7 +995,8 @@ class AppBuffer(BrowserBuffer):
         index = self.repo.index
 
         # Remove path from the index
-        index.remove(path)
+        if path in index:
+            index.remove(path)
 
         # Restore object from db
         # Use try because the file can be untrack, so there's no HEAD info for it
