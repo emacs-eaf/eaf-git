@@ -517,6 +517,23 @@ class AppBuffer(BrowserBuffer):
             self.send_input_message("Copy changes file to: ", "copy_changes_file_to_mirror", "file", self.repo_root)
         else:
             message_to_emacs("No file need submitted, nothing to copy.")
+            
+    @QtCore.pyqtSlot()
+    def status_fetch_pr(self):
+        self.send_input_message("Fetch pull request, please input PR number: ", "fetch_pr")
+        
+    def handle_fetch_pr(self, pr_number):
+        message_to_emacs("Fetch PR {} ...".format(pr_number))
+        
+        result = get_command_result("cd {}; git fetch origin pull/{}/head:pr_{} && git checkout pr_{}".format(
+            self.repo_root, 
+            pr_number,
+            pr_number,
+            pr_number))
+        
+        self.update_git_info()
+        
+        message_to_emacs("Fetch PR {} done.".format(pr_number))
 
     @QtCore.pyqtSlot(str)
     def send_message_to_emacs(self, message):
@@ -601,6 +618,8 @@ class AppBuffer(BrowserBuffer):
             self.handle_discard_unstage_hunk()
         elif callback_tag == "discard_stage_hunk":
             self.handle_discard_stage_hunk()
+        elif callback_tag == "fetch_pr":
+            self.handle_fetch_pr(result_content)
 
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
