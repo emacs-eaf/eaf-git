@@ -165,6 +165,7 @@
       ("f"     ("py_branch_fetch" "Fetch"))
       ("F"     ("py_branch_fetch_all" "Fetch all"))
       ("c"     ("py_branch_create_from_remote" "Create from remote"))
+      ("x"     ("py_remote_copy_url" "Copy remote url"))
       ("j"     ("js_branch_select_next" "Next"))
       ("k"     ("js_branch_select_prev" "Prev"))
       ("J"     ("js_branch_select_last" "Last"))

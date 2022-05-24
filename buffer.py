@@ -535,6 +535,17 @@ class AppBuffer(BrowserBuffer):
         
         message_to_emacs("Fetch PR {} done.".format(pr_number))
 
+    @QtCore.pyqtSlot()
+    def remote_copy_url(self):
+        from giturlparse import parse
+        
+        origin_url = parse(self.repo.remotes["origin"].url).url2https
+        if origin_url.endswith(".git"):
+            origin_url = origin_url[:-len(".git")]
+        
+        eval_in_emacs('kill-new', [origin_url])
+        message_to_emacs("Copy {}".format(origin_url))
+    
     @QtCore.pyqtSlot(str)
     def send_message_to_emacs(self, message):
         message_to_emacs(message)
