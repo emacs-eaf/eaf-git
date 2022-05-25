@@ -538,14 +538,16 @@ class AppBuffer(BrowserBuffer):
     @QtCore.pyqtSlot()
     def remote_copy_url(self):
         from giturlparse import parse
-        
-        origin_url = parse(self.repo.remotes["origin"].url).url2https
+
+        remote_default = next(self.repo.config.get_multivar("remote.pushdefault"), "origin")
+        origin_url = parse(self.repo.remotes[remote_default].url).url2https
+
         if origin_url.endswith(".git"):
             origin_url = origin_url[:-len(".git")]
-        
+
         eval_in_emacs('kill-new', [origin_url])
         message_to_emacs("Copy {}".format(origin_url))
-    
+
     @QtCore.pyqtSlot(str)
     def send_message_to_emacs(self, message):
         message_to_emacs(message)
@@ -1813,28 +1815,30 @@ class AppBuffer(BrowserBuffer):
     def branch_create_from_remote(self):
         remote_branch_names = self.repo.listall_branches(GIT_BRANCH_REMOTE)
         self.send_input_message("Create branch from remote branch: ", "branch_create_from_remote", "list", completion_list=remote_branch_names)
-        
+
     def handle_branch_create_from_remote(self, remote_branch):
         remote_branch = remote_branch.split("/")[-1]
-        
+
         get_command_result("cd {}; git switch {}".format(self.repo_root, remote_branch))
-        
+
         message_to_emacs("Create local branch {} finish.".format(remote_branch))
         self.update_git_info()
-        
+
     @QtCore.pyqtSlot(str)
     def copy_commit_url(self, commit_id):
         from giturlparse import parse
-        
-        origin_url = parse(self.repo.remotes["origin"].url).url2https
+
+        remote_default = next(self.repo.config.get_multivar("remote.pushdefault"), "origin")
+        origin_url = parse(self.repo.remotes[remote_default].url).url2https
+
         if origin_url.endswith(".git"):
             origin_url = origin_url[:-len(".git")]
-            
+
         commit_url = "{}/commit/{}".format(origin_url, commit_id)
-        
+
         eval_in_emacs('kill-new', [commit_url])
         message_to_emacs("Copy {}".format(commit_url))
-    
+
     @QtCore.pyqtSlot()
     def exit(self):
         eval_in_emacs('eaf-git-exit', [self.repo_root])
