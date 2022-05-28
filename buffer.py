@@ -652,7 +652,11 @@ class AppBuffer(BrowserBuffer):
                 if file_type == GIT_STATUS_WT_DELETED:
                     os.remove(os.path.join(target_repo_dir, file))
                 else:
-                    shutil.copy(os.path.join(self.repo_root, file), os.path.join(target_repo_dir, file))
+                    target_file = os.path.join(target_repo_dir, file)
+                    if not os.path.exists(target_file):
+                        os.makedirs(os.path.dirname(target_file), exist_ok=True)
+                    
+                    shutil.copy(os.path.join(self.repo_root, file), target_file)
 
             message_to_emacs("Update {} files to {}".format(len(status), os.path.join(target_repo_dir)))
         else:
