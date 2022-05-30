@@ -72,6 +72,10 @@
      var that = this;
      
      this.selectBranchName = this.localBranchInfo[this.selectBranchIndex].name;
+
+     this.$root.$on("branch_rename", function () {
+       window.pyobject.branch_rename(that.selectBranchName);
+     });
      
      this.$root.$on("branch_delete", function () {
        window.pyobject.branch_delete(that.selectBranchName);
@@ -82,6 +86,7 @@
      });
    },
    beforeDestroy() {
+     this.$root.$off("branch_rename");
      this.$root.$off("branch_delete");
      this.$root.$off("branch_switch");
    },

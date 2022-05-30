@@ -579,6 +579,8 @@ class AppBuffer(BrowserBuffer):
             self.handle_checkout_all_files()
         elif callback_tag == "new_branch":
             self.handle_new_branch(result_content)
+        elif callback_tag == "rename_branch":
+            self.handle_rename_branch(result_content)
         elif callback_tag == "delete_branch":
             self.handle_delete_branch()
         elif callback_tag == "stash_push":
@@ -1606,7 +1608,7 @@ class AppBuffer(BrowserBuffer):
 
     def handle_new_branch(self, branch_name):
         if branch_name in self.branch_status:
-            message_to_emacs("Branch '{}' has exists.".format(branch_name))
+            message_to_emacs("Branch '{}' already exists.".format(branch_name))
         else:
             branch_list = self.branch_status
             branch_list.append({
@@ -1620,6 +1622,25 @@ class AppBuffer(BrowserBuffer):
             self.update_local_branch_list(branch_list)
 
             message_to_emacs("Create branch '{}'.".format(branch_name))
+
+    @QtCore.pyqtSlot(str)
+    def branch_rename(self, branch_name):
+        self.old_branch_name = branch_name
+        self.send_input_message("Rename branch '{}' to: ".format(branch_name), "rename_branch", "string", branch_name)
+
+    def handle_rename_branch(self, new_branch_name):
+        if new_branch_name in self.branch_status:
+            message_to_emacs("Branch '{}' already exists.".format(new_branch_name))
+        else:
+            old_branch = self.repo.branches.local.get(self.old_branch_name)
+            if old_branch:
+                old_branch.rename(new_branch_name)
+                # After renaming branch, branch list need resort by branch name and date.
+                # So fetch branch list again would better than update branch list dynamically.
+                self.fetch_branch_info()
+                message_to_emacs("Rename branch '{}' to '{}'.".format(self.old_branch_name, new_branch_name))
+            else:
+                message_to_emacs("Branch '{}' not found.".format(self.old_branch_name))
 
     @QtCore.pyqtSlot(str)
     def branch_delete(self, branch_name):

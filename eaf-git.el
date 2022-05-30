@@ -161,6 +161,7 @@
      (
       ("Enter" ("js_branch_switch" "Switch"))
       ("n"     ("py_branch_new" "New"))
+      ("m"     ("js_branch_rename" "Rename"))
       ("d"     ("js_branch_delete" "Delete"))
       ("f"     ("py_branch_fetch" "Fetch"))
       ("F"     ("py_branch_fetch_all" "Fetch all"))
