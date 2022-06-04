@@ -934,17 +934,25 @@ class AppBuffer(BrowserBuffer):
             if file_index == -1:
                 message_to_emacs("Please select file to view.")
             else:
-                eval_in_emacs("find-file", [self.untrack_status[file_index]["file"]])
+                self.status_open_file(self.untrack_status[file_index]["file"])
         elif type == "unstage":
             if file_index == -1:
                 message_to_emacs("Please select file to view.")
             else:
-                eval_in_emacs("find-file", [self.unstage_status[file_index]["file"]])
+                self.status_open_file(self.unstage_status[file_index]["file"])
         elif type == "stage":
             if file_index == -1:
                 message_to_emacs("Please select file to view.")
             else:
-                eval_in_emacs("find-file", [self.stage_status[file_index]["file"]])
+                self.status_open_file(self.stage_status[file_index]["file"])
+                
+    def status_open_file(self, filename):
+        filepath = os.path.join(self.repo_root, filename)
+        
+        if os.path.isdir(filepath):
+            eval_in_emacs('eaf-open-in-file-manager', [filepath])
+        else:
+            eval_in_emacs("find-file", [filepath])
         
     @QtCore.pyqtSlot(str, int)
     def status_stage_file(self, type, file_index):
