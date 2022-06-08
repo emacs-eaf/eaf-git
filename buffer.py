@@ -83,7 +83,7 @@ GIT_STATUS_INDEX_CHANGES = [
 
 NO_PREVIEW = "Previewing binary data is not supported now. \n"
 
-def pretty_date(time=False):
+def pretty_date(time):
     """
     Get a datetime object or a int() Epoch timestamp and return a
     pretty string like 'an hour ago', 'Yesterday', '3 months ago',
@@ -91,12 +91,15 @@ def pretty_date(time=False):
     """
     from datetime import datetime
     now = datetime.now()
+    diff = 0
+    
     if type(time) is int:
         diff = now - datetime.fromtimestamp(time)
     elif isinstance(time, datetime):
         diff = now - time
-    elif not time:
-        diff = 0
+    else:
+        return ""
+        
     second_diff = diff.seconds
     day_diff = diff.days
 
@@ -1933,9 +1936,9 @@ class FetchLogThread(QThread):
             self.cache_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
             self.cache_file_path = self.cache_file.name
 
+        cache_lines = []
         try:
             index = 0
-            cache_lines = []
 
             for commit in self.repo.walk(self.branch.target):
                 id = str(commit.id)
