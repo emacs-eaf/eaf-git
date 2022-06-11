@@ -637,6 +637,8 @@
  .status-right-panel {
    /* 70% */
    flex-grow: 7;
+
+   display: flex;
  }
 
  .files-dialog {
