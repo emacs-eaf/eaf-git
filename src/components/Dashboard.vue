@@ -436,7 +436,7 @@
        if (this.selectItemType === "unstage" && this.selectItemIndex === index) {
          /* Use nextTick wait DOM update, then make sure current file in visible area. */
          this.$nextTick(function() {
-           var selectUnstage = this.$refs.ununstagelist.children[index + 1]
+           var selectUnstage = this.$refs.unstagelist.children[index + 1]
            if (selectUnstage !== undefined) {
              selectUnstage.scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
            }
@@ -452,7 +452,7 @@
        if (this.selectItemType === "stage" && this.selectItemIndex === index) {
          /* Use nextTick wait DOM update, then make sure current file in visible area. */
          this.$nextTick(function() {
-           var selectStage = this.$refs.unstagelist.children[index + 1]
+           var selectStage = this.$refs.stagelist.children[index + 1]
            if (selectStage !== undefined) {
              selectStage.scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
            }
