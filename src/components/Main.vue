@@ -21,6 +21,7 @@
       :style="{ 'padding-top': navbarHeight }">
       <Dashboard
         v-if="navCurrentItem == 'Dashboard'"
+        :layout="layout"
         :diffs="diffs"
         :diffsType="diffsType"
         :patchSet="patchSet"
@@ -216,6 +217,7 @@
    },
    data() {
      return {
+       layout: "V",
        navbarHeight: "40px",
        navItems: ["Dashboard", "Log", "Branch", "Stash", "Submodule"],
        navCurrentItem: "Dashboard",
@@ -319,6 +321,10 @@
      }
 
      let that = this;
+
+     this.$root.$on("toggle_layout", function () {
+       that.toggleLayout();
+     });
 
      this.$root.$on("status_select_next", function () {
        that.statusSelectNext();
@@ -462,9 +468,11 @@
      });
    },
    methods: {
-     init(backgroundColor, foregroundColor, selectColor, panelColor, textColor, navItemActiveColor, infoColor,
+     init(layout, 
+          backgroundColor, foregroundColor, selectColor, panelColor, textColor, navItemActiveColor, infoColor,
           dateColor, idColor, authorColor, matchColor,
           repoPath, repoLastCommitId, repoLastCommitMessage, keybindingInfo) {
+       this.layout = layout;
        this.backgroundColor = backgroundColor;
        this.foregroundColor = foregroundColor;
        this.selectColor = selectColor;
@@ -494,6 +502,14 @@
 
      navItemBackgroundColor() {
        return "";
+     },
+
+     toggleLayout() {
+       if (this.layout === "V") {
+         this.layout = "H";
+       } else {
+         this.layout = "V";
+       }
      },
 
      changePage(pageName) {

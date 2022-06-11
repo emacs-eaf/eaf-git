@@ -104,6 +104,7 @@
 (defcustom eaf-git-js-keybinding
   '(("Global"
      (
+      ("T"  ("js_toggle_layout" "Toggle Layout"))
       ("L"  ("py_status_pull" "Pull"))
       ("h" ("js_page_select_prev" "Left page"))
       ("l" ("js_page_select_next" "Right page"))
@@ -240,6 +241,11 @@ will be added if not present."
 (defcustom eaf-git-dark-highlight-style "monokai"
   "The default dark syntax highlight style."
   :type 'string)
+
+(defcustom eaf-git-layout "H"
+  "The default dark syntax highlight style."
+  :type '(choice (const :tag "Horizontal" "H")
+                 (const :tag "Vertical" "V")))
 
 (add-to-list 'eaf-app-binding-alist '("git" . eaf-git-keybinding))
 

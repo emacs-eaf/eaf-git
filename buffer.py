@@ -263,6 +263,8 @@ class AppBuffer(BrowserBuffer):
 
         self.highlight_style = "monokai"
 
+        self.layout = "H"
+
         self.load_index_html(__file__)
 
     def init_app(self):
@@ -278,6 +280,8 @@ class AppBuffer(BrowserBuffer):
         self.fetch_branch_info()
 
     def init_vars(self):
+        self.layout = get_emacs_var("eaf-git-layout")
+
         if self.theme_mode == "dark":
             if self.theme_background_color == "#000000":
                 select_color = "#333333"
@@ -303,7 +307,8 @@ class AppBuffer(BrowserBuffer):
              "font-lock-string-face",
              "font-lock-negation-char-face"])
 
-        self.buffer_widget.eval_js_function("init", 
+        self.buffer_widget.eval_js_function("init",
+            self.layout,
             self.theme_background_color, self.theme_foreground_color, select_color, QColor(self.theme_background_color).darker(110).name(),
             text_color, nav_item_color, info_color,
             date_color, id_color, author_color, match_color,
