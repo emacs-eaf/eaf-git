@@ -47,3 +47,11 @@ export function updateListIndex(list, index) {
     return index;
   }
 }
+
+/**
+ * Layout, same as the Elisp custom variable "eaf-git-layout"
+ */
+export const Layout = {
+  Horizontal: "H",
+  Vertical: "V"
+};

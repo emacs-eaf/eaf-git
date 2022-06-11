@@ -117,7 +117,7 @@
  import Branch from "./Branch.vue"
  import Stash from "./Stash.vue"
 
- import { updateListItemBackground, updateListItemMatchColor, updateListIndex } from "./utils.js"
+ import { Layout, updateListItemBackground, updateListItemMatchColor, updateListIndex } from "./utils.js"
 
  export default {
    name: 'Main',
@@ -218,7 +218,7 @@
    },
    data() {
      return {
-       layout: "V",
+       layout: Layout.Horizontal,
        navbarHeight: "40px",
        navItems: ["Dashboard", "Log", "Branch", "Stash", "Submodule"],
        navCurrentItem: "Dashboard",
@@ -469,7 +469,7 @@
      });
    },
    methods: {
-     init(layout, 
+     init(layout,
           backgroundColor, foregroundColor, selectColor, panelColor, textColor, navItemActiveColor, infoColor,
           dateColor, idColor, authorColor, matchColor,
           repoPath, repoLastCommitId, repoLastCommitMessage, keybindingInfo) {
@@ -506,10 +506,10 @@
      },
 
      toggleLayout() {
-       if (this.layout === "V") {
-         this.layout = "H";
+       if (this.layout === Layout.Horizontal) {
+         this.layout = Layout.Vertical;
        } else {
-         this.layout = "V";
+         this.layout = Layout.Horizontal;
        }
      },
 
