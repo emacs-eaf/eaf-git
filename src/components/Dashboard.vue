@@ -10,7 +10,7 @@
     </Dialog>
     <div
       v-else
-      :class="[ statusAreaClass ]"
+      :class="[ layoutClass ]"
       class="status-area">
       <div class="status-left-panel">
         <Dialog
@@ -207,7 +207,6 @@
 
 <script>
  import Dialog from "./Dialog.vue"
- import { Layout } from "./utils.js"
 
  export default {
    name: 'Dashboard',
@@ -215,7 +214,7 @@
      Dialog
    },
    props: {
-     layout: String,
+     layoutClass: String,
      selectItemType: String,
      selectItemIndex: Number,
      selectPatchIndex: Number,
@@ -271,10 +270,6 @@
 
      isCleanWorkspace() {
        return this.unstageStatusNumber() + this.stageStatusNumber() + this.untrackStatusNumber() + this.stashStatusNumber() + this.unpushStatusNumber() === 0;
-     },
-
-     statusAreaClass() {
-       return this.layout === Layout.Vertical ? "status-area-vertical" : "status-area-horizontal";
      },
 
      noFileChanged() {
@@ -615,14 +610,6 @@
    display: flex;
    width: 100%;
    height: 100%;
- }
-
- .status-area-horizontal {
-   flex-direction: row;
- }
-
- .status-area-vertical {
-   flex-direction: column;
  }
 
  .status-left-panel {

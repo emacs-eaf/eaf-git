@@ -33,4 +33,12 @@
    margin: 0;
    padding: 0;
  }
+
+ .layout-horizontal {
+   flex-direction: row;
+ }
+
+ .layout-vertical {
+   flex-direction: column;
+ }
 </style>

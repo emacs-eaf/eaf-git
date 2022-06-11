@@ -1,6 +1,6 @@
 <template>
   <div class="branch-area"
-    :class="[ branchAreaClass ]">
+    :class="[ layoutClass ]">
     <Dialog
       :backgroundColor="backgroundColor"
       class="local-branch"
@@ -35,7 +35,7 @@
  import RemoteBranchItem from './RemoteBranchItem'
  import VirtualList from 'vue-virtual-scroll-list'
 
- import { Layout, keepSelectVisible } from "./utils.js"
+ import { keepSelectVisible } from "./utils.js"
  
  export default {
    name: 'Branch',
@@ -44,7 +44,7 @@
      Dialog
    },
    props: {
-     layout: String,
+     layoutClass: String,
      selectBranchIndex: Number,
      currentColor: String,
      backgroundColor: String,
@@ -71,9 +71,6 @@
      }
    },
    computed: {
-     branchAreaClass() {
-       return this.layout === Layout.Vertical ? "branch-area-vertical" : "branch-area-horizontal";
-     }
    },
    mounted() {
      var that = this;
@@ -109,14 +106,6 @@
    height: 100%;
    
    display: flex;
- }
-
- .branch-area-horizontal {
-   flex-direction: row;
- }
-
- .branch-area-vertical {
-   flex-direction: column;
  }
 
  .list {

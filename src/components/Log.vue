@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="[ logboxClass ]"
+    :class="[ layoutClass ]"
     class="log-box">
     <Dialog
       class="local-log"
@@ -39,7 +39,7 @@
  import CompareLogItem from './CompareLogItem'
  import VirtualList from 'vue-virtual-scroll-list'
  
- import { Layout, keepSelectVisible, getListPageElementNumber } from "./utils.js"
+ import { keepSelectVisible, getListPageElementNumber } from "./utils.js"
 
  export default {
    name: 'Log',
@@ -48,7 +48,7 @@
      Dialog
    },
    props: {
-     layout: String,
+     layoutClass: String,
      logBranch: String,
      logInfo: Array,
      compareLogBranch: String,
@@ -103,10 +103,6 @@
          return "";
        }
      },
-
-     logboxClass() {
-       return this.layout === Layout.Vertical ? "log-box-vertical" : "log-box-horizontal";
-     }
    },
    mounted() {
      var that = this;
@@ -226,14 +222,6 @@
    height: 100%;
 
    display: flex;
- }
-
- .log-box-horizontal {
-   flex-direction: row;
- }
-
- .log-box-vertical {
-   flex-direction: column;
  }
 
  .local-log {

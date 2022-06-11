@@ -21,7 +21,7 @@
       :style="{ 'padding-top': navbarHeight }">
       <Dashboard
         v-if="navCurrentItem == 'Dashboard'"
-        :layout="layout"
+        :layoutClass="layoutClass"
         :diffs="diffs"
         :diffsType="diffsType"
         :patchSet="patchSet"
@@ -41,7 +41,7 @@
         :selectColor="selectColor"/>
       <Log
         v-if="navCurrentItem == 'Log'"
-        :layout="layout"
+        :layoutClass="layoutClass"
         :pyobject="pyobject"
         :currentLogIndex="currentLogIndex"
         :logBranch="logBranch"
@@ -72,7 +72,7 @@
         v-on:updateSubmoduleIndex="updateSubmoduleIndex"/>
       <Branch
         v-if="navCurrentItem == 'Branch'"
-        :layout="layout"
+        :layoutClass="layoutClass"
         :selectBranchIndex="selectBranchIndex"
         :selectColor="selectColor"
         :backgroundColor="backgroundColor"
@@ -468,6 +468,11 @@
        window.pyobject = channel.objects.pyobject;
        this.pyobject = window.pyobject;
      });
+   },
+   computed: {
+     layoutClass() {
+       return this.layout === Layout.Vertical ? "layout-vertical" : "layout-horizontal";
+     },
    },
    methods: {
      init(layout,
