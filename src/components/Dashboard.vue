@@ -27,6 +27,7 @@
             ref="untracklist"
             v-if="untrackStatusNumber() > 0">
             <div
+              ref="untrackTitle"
               class="untrack-title"
               :style="{ 'background': untrackTitleBackground() }">
               Untrackd changes ({{ untrackStatusInfo.length }})
@@ -60,6 +61,7 @@
             v-if="unstageStatusNumber() > 0"
             ref="unstagelist">
             <div
+              ref="unstageTitle"
               class="unstaged-title"
               :style="{ 'background': unstageTitleBackground() }">
               Unstaged changes ({{ unstageStatusInfo.length }})
@@ -93,6 +95,7 @@
             v-if="stageStatusNumber() > 0"
             ref="stagelist">
             <div
+              ref="stageTitle"
               class="staged-title"
               :style="{ 'background': stageTitleBackground() }">
               Staged changes ({{ stageStatusInfo.length }})
@@ -400,6 +403,10 @@
 
      untrackTitleBackground() {
        if (this.selectItemType === "untrack" && this.selectItemIndex === -1) {
+         this.$nextTick(function() {
+           this.$refs.untrackTitle.scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
+         })
+
          return this.selectColor;
        } else {
          return this.backgroundColor;
@@ -408,6 +415,10 @@
 
      unstageTitleBackground() {
        if (this.selectItemType === "unstage" && this.selectItemIndex === -1) {
+         this.$nextTick(function() {
+           this.$refs.unstageTitle.scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
+         })
+
          return this.selectColor;
        } else {
          return this.backgroundColor;
@@ -416,6 +427,10 @@
 
      stageTitleBackground() {
        if (this.selectItemType === "stage" && this.selectItemIndex === -1) {
+         this.$nextTick(function() {
+           this.$refs.stageTitle.scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
+         })
+
          return this.selectColor;
        } else {
          return this.backgroundColor;
