@@ -1,5 +1,6 @@
 <template>
-  <div class="branch-area">
+  <div class="branch-area"
+    :class="[ branchAreaClass ]">
     <Dialog
       :backgroundColor="backgroundColor"
       class="local-branch"
@@ -43,6 +44,7 @@
      Dialog
    },
    props: {
+     layout: String,
      selectBranchIndex: Number,
      currentColor: String,
      backgroundColor: String,
@@ -66,6 +68,11 @@
        localBranchItemComponent: LocalBranchItem,
        remoteBranchItemComponent: RemoteBranchItem,
        selectBranchName: ""
+     }
+   },
+   computed: {
+     branchAreaClass() {
+       return this.layout === "V" ? "branch-area-vertical" : "branch-area-horizontal";
      }
    },
    mounted() {
@@ -102,7 +109,14 @@
    height: 100%;
    
    display: flex;
+ }
+
+ .branch-area-horizontal {
    flex-direction: row;
+ }
+
+ .branch-area-vertical {
+   flex-direction: column;
  }
 
  .list {
@@ -112,10 +126,12 @@
  }
  
  .local-branch {
-   width: 70%;
+   /* 70% */
+   flex-grow: 7;
  }
 
  .remote-branch {
-   width: 30%;
+   /* 30% */
+   flex-grow: 3;
  }
 </style>
