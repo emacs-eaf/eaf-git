@@ -10,11 +10,12 @@
     </Dialog>
     <div
       v-else
+      :class="[ statusAreaClass ]"
       class="status-area">
       <div class="status-left-panel">
         <Dialog
           :backgroundColor="backgroundColor"
-          class="flex-expand"
+          class="files-dialog"
           title="Status">
           <div
             v-if="noFileChanged"
@@ -210,6 +211,7 @@
      Dialog
    },
    props: {
+     layout: String,
      selectItemType: String,
      selectItemIndex: Number,
      selectPatchIndex: Number,
@@ -265,6 +267,10 @@
 
      isCleanWorkspace() {
        return this.unstageStatusNumber() + this.stageStatusNumber() + this.untrackStatusNumber() + this.stashStatusNumber() + this.unpushStatusNumber() === 0;
+     },
+
+     statusAreaClass() {
+       return this.layout === "V" ? "status-area-vertical" : "status-area-horizontal";
      },
 
      noFileChanged() {
@@ -591,27 +597,34 @@
 
  .status-area {
    display: flex;
-   flex-direction: row;
    width: 100%;
    height: 100%;
+ }
+
+ .status-area-horizontal {
+   flex-direction: row;
+ }
+
+ .status-area-vertical {
+   flex-direction: column;
  }
 
  .status-left-panel {
    display: flex;
    flex-direction: column;
 
-   width: 30%;
-   height: 100%;
+   /* 30% */
+   flex-grow: 3;
 
    overflow-y: scroll;
  }
 
  .status-right-panel {
-   width: 70%;
-   height: 100%;
+   /* 70% */
+   flex-grow: 7;
  }
 
- .flex-expand {
+ .files-dialog {
    flex: 1;
  }
 
@@ -703,6 +716,6 @@
  }
 
  .untrack-area {
-   overflow-y: scroll;
+   /* overflow-y: scroll; */
  }
 </style>
