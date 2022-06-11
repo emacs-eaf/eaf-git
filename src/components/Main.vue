@@ -41,6 +41,7 @@
         :selectColor="selectColor"/>
       <Log
         v-if="navCurrentItem == 'Log'"
+        :layout="layout"
         :pyobject="pyobject"
         :currentLogIndex="currentLogIndex"
         :logBranch="logBranch"
@@ -1057,6 +1058,8 @@
    position: relative;
    z-index: 99;
    width: 100%;
+
+   display: flex;
  }
 
  .help-area {
