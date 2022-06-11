@@ -184,6 +184,7 @@
                 v-html="hunk">
               </div>
             </div>
+          </div>
         </Dialog>
         <Dialog
           v-else
