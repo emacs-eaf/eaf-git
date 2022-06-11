@@ -207,6 +207,7 @@
 
 <script>
  import Dialog from "./Dialog.vue"
+ import { Layout } from "./utils.js"
 
  export default {
    name: 'Dashboard',
@@ -273,7 +274,7 @@
      },
 
      statusAreaClass() {
-       return this.layout === "V" ? "status-area-vertical" : "status-area-horizontal";
+       return this.layout === Layout.Vertical ? "status-area-vertical" : "status-area-horizontal";
      },
 
      noFileChanged() {

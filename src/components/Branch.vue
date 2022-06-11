@@ -35,7 +35,7 @@
  import RemoteBranchItem from './RemoteBranchItem'
  import VirtualList from 'vue-virtual-scroll-list'
 
- import { keepSelectVisible } from "./utils.js"
+ import { Layout, keepSelectVisible } from "./utils.js"
  
  export default {
    name: 'Branch',
@@ -72,7 +72,7 @@
    },
    computed: {
      branchAreaClass() {
-       return this.layout === "V" ? "branch-area-vertical" : "branch-area-horizontal";
+       return this.layout === Layout.Vertical ? "branch-area-vertical" : "branch-area-horizontal";
      }
    },
    mounted() {
