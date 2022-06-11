@@ -71,6 +71,7 @@
         v-on:updateSubmoduleIndex="updateSubmoduleIndex"/>
       <Branch
         v-if="navCurrentItem == 'Branch'"
+        :layout="layout"
         :selectBranchIndex="selectBranchIndex"
         :selectColor="selectColor"
         :backgroundColor="backgroundColor"
