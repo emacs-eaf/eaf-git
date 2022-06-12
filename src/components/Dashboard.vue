@@ -16,7 +16,7 @@
         <Dialog
           :backgroundColor="backgroundColor"
           class="files-dialog"
-          title="Status">
+          :title="`Status (Untracked: ${untrackStatusInfo.length}, Unstaged: ${unstageStatusInfo.length}, Staged: ${stageStatusInfo.length})`">
           <div
             v-if="noFileChanged"
             class="changed-count">
@@ -30,7 +30,7 @@
               ref="untrackTitle"
               class="untrack-title"
               :style="{ 'background': untrackTitleBackground() }">
-              Untrackd changes ({{ untrackStatusInfo.length }})
+              Untracked changes ({{ untrackStatusInfo.length }})
             </div>
             <div
               v-for="(info, index) in untrackStatusInfo"
@@ -128,7 +128,7 @@
         <Dialog
           v-if="stashStatusInfo != ''"
           :backgroundColor="backgroundColor"
-          title="Stash"
+          :title="`Stashes (${stashStatusInfo.length})`"
           class="stash-dialog">
           <div class="stash-info-area">
             <div
@@ -155,7 +155,7 @@
         <Dialog
           v-if="unpushStatusInfo.length > 0"
           :backgroundColor="backgroundColor"
-          title="Unpush"
+          :title="`Unpushed (${unpushStatusInfo.length})`"
           class="unpush-dialog">
           <div
             v-for="info in unpushStatusInfo"
