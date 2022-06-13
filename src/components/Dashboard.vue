@@ -15,8 +15,7 @@
       <div class="status-left-panel">
         <Dialog
           ref="statusDialog"
-          :backgroundColor="backgroundColor"
-          :style="{ 'background': getBackgroundColor('status', -1) }"
+          :backgroundColor="isSelected('status', -1) ? selectColor : backgroundColor"
           class="files-dialog"
           :title="`Status (Untracked: ${untrackStatusInfo.length}, Unstaged: ${unstageStatusInfo.length}, Staged: ${stageStatusInfo.length})`">
           <div
@@ -31,14 +30,14 @@
             <div
               ref="untrackTitle"
               class="untrack-title"
-              :style="{ 'background': getBackgroundColor('untrack', -1) }">
+              :class="{ selected: isSelected('untrack', -1) }">
               Untracked changes ({{ untrackStatusInfo.length }})
             </div>
             <div
               v-for="(info, index) in untrackStatusInfo"
               :key="info"
               class="item"
-              :style="{ 'background': getBackgroundColor('untrack', index) }">
+              :class="{ selected: isSelected('untrack', index) }">
               <div class="type">
                 {{ info.type }}
               </div>
@@ -65,14 +64,14 @@
             <div
               ref="unstageTitle"
               class="unstaged-title"
-              :style="{ 'background': getBackgroundColor('unstage', -1) }">
+              :class="{ selected: isSelected('unstage', -1) }">
               Unstaged changes ({{ unstageStatusInfo.length }})
             </div>
             <div
               v-for="(info, index) in unstageStatusInfo"
               :key="info"
               class="item"
-              :style="{ 'background': getBackgroundColor('unstage', index) }">
+              :class="{ selected: isSelected('unstage', index) }">
               <div class="type">
                 {{ info.type }}
               </div>
@@ -99,14 +98,14 @@
             <div
               ref="stageTitle"
               class="staged-title"
-              :style="{ 'background': getBackgroundColor('stage', -1) }">
+              :class="{ selected: isSelected('stage', -1) }">
               Staged changes ({{ stageStatusInfo.length }})
             </div>
             <div
               v-for="(info, index) in stageStatusInfo"
               :key="info"
               class="item"
-              :style="{ 'background': getBackgroundColor('stage', index) }">
+              :class="{ selected: isSelected('stage', index) }">
               <div class="type">
                 {{ info.type }}
               </div>
@@ -130,8 +129,7 @@
         <Dialog
           v-if="stashStatusInfo != ''"
           ref="stashDialog"
-          :backgroundColor="backgroundColor"
-          :style="{ 'background': getBackgroundColor('stash', -1) }"
+          :backgroundColor="isSelected('stash', -1) ? selectColor : backgroundColor"
           :title="`Stashes (${stashStatusInfo.length})`"
           class="stash-dialog">
           <div
@@ -141,7 +139,7 @@
               class="stash-item"
               v-for="info in stashStatusInfo"
               :key="info.index">
-              :style="{ 'background': getBackgroundColor('stash', info.index) }">
+              :class="{ selected: isSelected('stash', info.index) }">
               <div
                 class="stash-id"
                 :style="{ 'color': idColor }">
@@ -162,8 +160,7 @@
         <Dialog
           v-if="unpushStatusInfo.length > 0"
           ref="unpushDialog"
-          :backgroundColor="backgroundColor"
-          :style="{ 'background': getBackgroundColor('unpush', -1) }"
+          :backgroundColor="isSelected('unpush', -1) ? selectColor : backgroundColor"
           :title="`Unpushed (${unpushStatusInfo.length})`"
           class="unpush-dialog">
           <div
@@ -172,7 +169,7 @@
             <div
               v-for="(info, index) in unpushStatusInfo"
               :key="info"
-              :style="{ 'background': getBackgroundColor('unpush', index) }"
+              :class="{ selected: isSelected('unpush', index) }"
               class="unpush-info-item">
               {{ info }}
             </div>
@@ -415,15 +412,15 @@
        return unpush_files_number;
      },
 
-     getBackgroundColor(type, index) {
+     isSelected(type, index) {
        if (!this.statusState["states"]) {
-         return this.backgroundColor;
+         return false;
        }
 
        let dataRef = this.statusState.dataRef[type];
        if (dataRef.stateStartIndex < 0) {
          // not displayed
-         return this.backgroundColor;
+         return false;
        }
 
        let stateIndex = dataRef.stateStartIndex + index + 1;
@@ -481,14 +478,11 @@
                ref = this.$refs[refData.list].children[dataIndex + 1];
              }
            }
-           console.log(ref);
            ref.scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
          });
-
-         return this.selectColor;
-       } else {
-         return this.backgroundColor;
        }
+
+       return selected;
      },
 
      selectHunkBackgroud(patchIndex, hunkIndex) {

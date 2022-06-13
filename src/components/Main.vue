@@ -1,6 +1,6 @@
 
 <template>
-  <div class="box">
+  <div class="box" :style="cssVars">
     <div
       class="nav-bar"
       :style="{ 'height': navbarHeight, 'background': backgroundColor }">
@@ -480,6 +480,11 @@
      });
    },
    computed: {
+     cssVars() {
+       return {
+         '--select-color': this.selectColor
+       };
+     },
      layoutClass() {
        return this.layout === Layout.Vertical ? "layout-vertical" : "layout-horizontal";
      },
@@ -1175,6 +1180,10 @@
 
  .help-description {
    padding-left: 5px;
+ }
+
+ /deep/ .selected {
+   background-color: var(--select-color);
  }
 </style>
 
