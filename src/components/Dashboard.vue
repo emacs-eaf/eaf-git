@@ -14,7 +14,9 @@
       class="status-area">
       <div class="status-left-panel">
         <Dialog
+          ref="statusDialog"
           :backgroundColor="backgroundColor"
+          :style="{ 'background': getBackgroundColor('status', -1) }"
           class="files-dialog"
           :title="`Status (Untracked: ${untrackStatusInfo.length}, Unstaged: ${unstageStatusInfo.length}, Staged: ${stageStatusInfo.length})`">
           <div
@@ -29,14 +31,14 @@
             <div
               ref="untrackTitle"
               class="untrack-title"
-              :style="{ 'background': untrackTitleBackground() }">
+              :style="{ 'background': getBackgroundColor('untrack', -1) }">
               Untracked changes ({{ untrackStatusInfo.length }})
             </div>
             <div
               v-for="(info, index) in untrackStatusInfo"
               :key="info"
               class="item"
-              :style="{ 'background': untrackItemBackground(index) }">
+              :style="{ 'background': getBackgroundColor('untrack', index) }">
               <div class="type">
                 {{ info.type }}
               </div>
@@ -63,14 +65,14 @@
             <div
               ref="unstageTitle"
               class="unstaged-title"
-              :style="{ 'background': unstageTitleBackground() }">
+              :style="{ 'background': getBackgroundColor('unstage', -1) }">
               Unstaged changes ({{ unstageStatusInfo.length }})
             </div>
             <div
               v-for="(info, index) in unstageStatusInfo"
               :key="info"
               class="item"
-              :style="{ 'background': unstageItemBackground(index) }">
+              :style="{ 'background': getBackgroundColor('unstage', index) }">
               <div class="type">
                 {{ info.type }}
               </div>
@@ -97,14 +99,14 @@
             <div
               ref="stageTitle"
               class="staged-title"
-              :style="{ 'background': stageTitleBackground() }">
+              :style="{ 'background': getBackgroundColor('stage', -1) }">
               Staged changes ({{ stageStatusInfo.length }})
             </div>
             <div
               v-for="(info, index) in stageStatusInfo"
               :key="info"
               class="item"
-              :style="{ 'background': stageItemBackground(index) }">
+              :style="{ 'background': getBackgroundColor('stage', index) }">
               <div class="type">
                 {{ info.type }}
               </div>
@@ -127,14 +129,19 @@
 
         <Dialog
           v-if="stashStatusInfo != ''"
+          ref="stashDialog"
           :backgroundColor="backgroundColor"
+          :style="{ 'background': getBackgroundColor('stash', -1) }"
           :title="`Stashes (${stashStatusInfo.length})`"
           class="stash-dialog">
-          <div class="stash-info-area">
+          <div
+            ref="stashlist"
+            class="stash-info-area">
             <div
               class="stash-item"
               v-for="info in stashStatusInfo"
               :key="info.index">
+              :style="{ 'background': getBackgroundColor('stash', info.index) }">
               <div
                 class="stash-id"
                 :style="{ 'color': idColor }">
@@ -154,14 +161,21 @@
 
         <Dialog
           v-if="unpushStatusInfo.length > 0"
+          ref="unpushDialog"
           :backgroundColor="backgroundColor"
+          :style="{ 'background': getBackgroundColor('unpush', -1) }"
           :title="`Unpushed (${unpushStatusInfo.length})`"
           class="unpush-dialog">
           <div
-            v-for="info in unpushStatusInfo"
-            :key="info"
-            class="unpush-info-item">
-            {{ info }}
+            ref="unpushlist"
+            class="unpush-info-area">
+            <div
+              v-for="(info, index) in unpushStatusInfo"
+              :key="info"
+              :style="{ 'background': getBackgroundColor('unpush', index) }"
+              class="unpush-info-item">
+              {{ info }}
+            </div>
           </div>
         </Dialog>
       </div>
@@ -215,6 +229,7 @@
    },
    props: {
      layoutClass: String,
+
      selectItemType: String,
      selectItemIndex: Number,
      selectPatchIndex: Number,
@@ -224,6 +239,9 @@
      untrackStatusInfo: Array,
      unpushStatusInfo: String,
      stashStatusInfo: Array,
+
+     statusState: Object,
+
      diffs: String,
      patchSet: Array,
      diffsType: String,
@@ -395,6 +413,82 @@
        }
 
        return unpush_files_number;
+     },
+
+     getBackgroundColor(type, index) {
+       if (!this.statusState["states"]) {
+         return this.backgroundColor;
+       }
+
+       let dataRef = this.statusState.dataRef[type];
+       if (dataRef.stateStartIndex < 0) {
+         // not displayed
+         return this.backgroundColor;
+       }
+
+       let stateIndex = dataRef.stateStartIndex + index + 1;
+       let state = this.statusState.states[stateIndex];
+       let selected = state.selected;
+       let dataIndex = state.dataIndex;
+
+       if (selected) {
+         this.$nextTick(function() {
+           let typeToRef = {
+             status: {
+               type: "dialog",
+               parent: "statusDialog"
+             },
+             untrack: {
+               parent: "untrackTitle",
+               list: "untracklist"
+             },
+             unstage: {
+               parent: "unstageTitle",
+               list: "unstagelist"
+             },
+             stage: {
+               parent: "stageTitle",
+               list: "stagelist"
+             },
+             stash: {
+               type: "dialog",
+               parent: "stashDialog",
+               list: "stashlist"
+             },
+             unpush: {
+               type: "dialog",
+               parent: "unpushDialog",
+               list: "unpushlist"
+             }
+           };
+
+           // get element reference and scroll to view
+           let ref = null;
+           let refData = typeToRef[state.type];
+           if (dataIndex == -1) {
+             // parent
+             ref = this.$refs[refData.parent];
+             if (refData.type === "dialog") {
+               ref = ref.$el;
+             }
+           } else {
+             // item
+             if (refData.type === "dialog") {
+               // starting from the first
+               ref = this.$refs[refData.list].children[dataIndex];
+             } else {
+               // starting from the second
+               ref = this.$refs[refData.list].children[dataIndex + 1];
+             }
+           }
+           console.log(ref);
+           ref.scrollIntoView({behavior: "smooth", block: "end", inline: "end"});
+         });
+
+         return this.selectColor;
+       } else {
+         return this.backgroundColor;
+       }
      },
 
      untrackTitleBackground() {

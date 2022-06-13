@@ -1,3 +1,4 @@
+
 <template>
   <div class="box">
     <div
@@ -25,6 +26,7 @@
         :diffs="diffs"
         :diffsType="diffsType"
         :patchSet="patchSet"
+
         :selectItemType="selectItemType"
         :selectItemIndex="selectItemIndex"
         :selectPatchIndex="selectPatchIndex"
@@ -32,6 +34,9 @@
         :stageStatusInfo="stageStatusInfo"
         :unstageStatusInfo="unstageStatusInfo"
         :untrackStatusInfo="untrackStatusInfo"
+
+        :statusState = "statusState"
+
         :pyobject="pyobject"
         :unpushStatusInfo="unpushStatusInfo"
         :stashStatusInfo="stashStatusInfo"
@@ -243,6 +248,10 @@
        diffs: "",
        patchSet: [],
        diffsType: "",
+
+       // untracked, unstaged, staged, stash, unpushed
+       statusState: {},
+
        selectPatchType: "",
        selectPatchIndex: -1,
        selectHunkType: "",
@@ -253,6 +262,7 @@
        unstageStatusInfo: [],
        untrackStatusInfo: [],
        unpushStatusInfo: "",
+
        logBranch: "",
        selectBranchIndex: 0,
        logInfo: [],
@@ -541,18 +551,104 @@
        }
      },
 
+     /**
+      * Add state for the data list
+      */
+     addStateForStatusInfo(states, type, dataList) {
+       let stateStartIndex = -1;
+
+       // only when there are data in the list
+       if (dataList.length > 0) {
+         stateStartIndex = states.length;
+
+         // list container
+         states.push({
+           type: type,
+           dataIndex: -1,
+           selected: false
+         });
+
+         // list item
+         for (let index = 0; index < dataList.length; index++) {
+           states.push({
+             type: type,
+             dataIndex: index,
+             selected: false
+           });
+         }
+       }
+
+       return stateStartIndex;
+     },
+     /**
+      * Create status state for selection
+      */
+     createStatusState() {
+       // initialize the status info
+       let statusState = {};
+
+       // data references
+       let dataRef = {
+         "status": {
+           stateStartIndex: 0
+         },
+         "untrack": {},
+         "unstage": {},
+         "stage": {},
+         "stash": {},
+         "unpush": {}
+       };
+       statusState.dataRef = dataRef;
+
+       // selection state
+       let states = [];
+       statusState.states = states;
+
+       states.push({
+         type: "status",
+         dataIndex: -1,
+         selected: false
+       });
+
+       // untracked
+       dataRef.untrack.stateStartIndex = this.addStateForStatusInfo(states, "untrack", this.untrackStatusInfo);
+       // unstaged
+       dataRef.unstage.stateStartIndex = this.addStateForStatusInfo(states, "unstage", this.unstageStatusInfo);
+       // staged
+       dataRef.stage.stateStartIndex = this.addStateForStatusInfo(states, "stage", this.stageStatusInfo);
+       // stashes
+       dataRef.stash.stateStartIndex = this.addStateForStatusInfo(states, "stash", this.stashStatusInfo);
+       // unpushed
+       dataRef.unpush.stateStartIndex = this.addStateForStatusInfo(states, "unpush", this.unpushStatusInfo);
+
+       if (!this.selectItemType) {
+         this.selectItemType = "status";
+       }
+
+       let selectedData = dataRef[this.selectItemType];
+       let selectIndex = selectedData.stateStartIndex + this.selectItemIndex + 1;
+       states[selectIndex].selected = true;
+       statusState.selectIndex = selectIndex;
+
+       this.statusState = statusState;
+     },
+
      updateSelectInfo(stageStatusInfo, unstageStatusInfo, untrackStatusInfo, selectItemType, selectItemIndex) {
        this.stageStatusInfo = stageStatusInfo;
        this.unstageStatusInfo = unstageStatusInfo;
        this.untrackStatusInfo = untrackStatusInfo;
        this.selectItemIndex = selectItemIndex;
        this.selectItemType = selectItemType;
+
+       this.createStatusState();
      },
 
      updateStatusInfo(stageStatusInfo, unstageStatusInfo, untrackStatusInfo) {
        this.stageStatusInfo = stageStatusInfo;
        this.unstageStatusInfo = unstageStatusInfo;
        this.untrackStatusInfo = untrackStatusInfo;
+
+       this.createStatusState();
      },
 
      updateUnpushInfo(unpushStatusInfo) {
@@ -650,7 +746,7 @@
            this.pyobject.update_diff(this.selectItemType, this.untrackStatusInfo[this.selectItemIndex].file);
          } else if (this.selectItemType === "unstage") {
            this.pyobject.update_diff(this.selectItemType, this.unstageStatusInfo[this.selectItemIndex].file);
-         } else {
+         } else if (this.selectItemType === "stage") {
            this.pyobject.update_diff(this.selectItemType, this.stageStatusInfo[this.selectItemIndex].file);
          }
        }
@@ -774,30 +870,26 @@
        var oldSelectItemType = this.selectItemType;
        var oldSelectItemIndex = this.selectItemIndex;
 
-       if (this.selectItemType == "untrack") {
-         if (this.selectItemIndex < this.untrackStatusInfo.length - 1) {
-           this.selectItemIndex += 1;
-         } else if (this.unstageStatusInfo.length > 0) {
-           this.selectItemType = "unstage";
-           this.selectItemIndex = -1;
-         } else if (this.stageStatusInfo.length > 0) {
-           this.selectItemType = "stage";
-           this.selectItemIndex = -1;
-         }
-       } else if (this.selectItemType == "unstage") {
-         if (this.selectItemIndex < this.unstageStatusInfo.length - 1) {
-           this.selectItemIndex += 1;
-         } else if (this.stageStatusInfo.length > 0) {
-           this.selectItemType = "stage";
-           this.selectItemIndex = -1;
-         }
-       } else if (this.selectItemType == "stage") {
-         if (this.selectItemIndex == -1) {
-           this.selectItemIndex = 0;
-         } else if (this.selectItemIndex < this.stageStatusInfo.length - 1) {
-           this.selectItemIndex += 1;
-         }
+       let selectIndex = this.statusState.selectIndex;
+       let states = this.statusState.states;
+       let lastState = states[selectIndex];
+       // unselect last state
+       lastState.selected = false;
+
+       if (selectIndex == states.length - 1) {
+         // selectIndex = 0;
+       } else {
+         selectIndex++;
        }
+
+       // new state
+       let state = states[selectIndex];
+       state.selected = true;
+
+       // new index and new type / item
+       this.statusState.selectIndex = selectIndex;
+       this.selectItemType = state.type;
+       this.selectItemIndex = state.dataIndex;
 
        if (oldSelectItemType != this.selectItemType ||
            oldSelectItemIndex != this.selectItemIndex) {
@@ -811,34 +903,26 @@
        var oldSelectItemType = this.selectItemType;
        var oldSelectItemIndex = this.selectItemIndex;
 
-       if (this.selectItemType == "stage") {
-         if (this.selectItemIndex > 0) {
-           this.selectItemIndex -= 1;
-         } else if (this.selectItemIndex == 0) {
-           this.selectItemIndex = -1;
-         } else if (this.unstageStatusInfo.length > 0) {
-           this.selectItemType = "unstage";
-           this.selectItemIndex = this.unstageStatusInfo.length - 1;
-         } else if (this.untrackStatusInfo.length > 0) {
-           this.selectItemType = "untrack";
-           this.selectItemIndex = this.untrackStatusInfo.length - 1;
-         }
-       } else if (this.selectItemType == "unstage") {
-         if (this.selectItemIndex > 0) {
-           this.selectItemIndex -= 1;
-         } else if (this.selectItemIndex == 0) {
-           this.selectItemIndex = -1;
-         } else if (this.untrackStatusInfo.length > 0) {
-           this.selectItemType = "untrack";
-           this.selectItemIndex = this.untrackStatusInfo.length - 1;
-         }
-       } else if (this.selectItemType == "untrack") {
-         if (this.selectItemIndex > 0) {
-           this.selectItemIndex -= 1;
-         } else if (this.selectItemIndex == 0) {
-           this.selectItemIndex = -1;
-         }
+       let selectIndex = this.statusState.selectIndex;
+       let states = this.statusState.states;
+       let lastState = states[selectIndex];
+       // unselect last state
+       lastState.selected = false;
+
+       if (selectIndex == 0) {
+         // selectIndex = 0;
+       } else {
+         selectIndex--;
        }
+
+       // new state
+       let state = states[selectIndex];
+       state.selected = true;
+
+       // new index and new type / item
+       this.statusState.selectIndex = selectIndex;
+       this.selectItemType = state.type;
+       this.selectItemIndex = state.dataIndex;
 
        if (oldSelectItemType != this.selectItemType ||
            oldSelectItemIndex != this.selectItemIndex) {
@@ -1093,3 +1177,4 @@
    padding-left: 5px;
  }
 </style>
+
