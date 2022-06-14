@@ -18,8 +18,7 @@
       </div>
     </div>
     <div
-      class="page"
-      :style="{ 'padding-top': navbarHeight }">
+      class="page">
       <Dashboard
         v-if="navCurrentItem == 'Dashboard'"
         :layoutClass="layoutClass"
@@ -1111,22 +1110,16 @@
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
  .box {
+   flex: 1;
    display: flex;
    flex-direction: column;
-   width: 100%;
-   height: 100%;
  }
 
  .nav-bar {
    display: flex;
    flex-direction: row;
-   width: 100%;
    align-items: center;
    font-size: 18px;
-
-   position: fixed;
-   z-index: 999;
-   top: 0;
  }
 
  .nav-item {
@@ -1149,11 +1142,9 @@
 
  .page {
    flex: 1;
-   position: relative;
-   z-index: 99;
-   width: 100%;
 
    display: flex;
+   flex-direction: column;
  }
 
  .help-area {

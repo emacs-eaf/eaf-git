@@ -1,14 +1,14 @@
 <template>
-  <div class="dialog">
-    <div
+  <fieldset class="dialog">
+    <legend
       class="title"
       :style="{ 'background': backgroundColor }">
       {{ title }}
-    </div>
-    <div class="frame">
+    </legend>
+    <div class="frame collapsible">
       <slot/>
     </div>
-  </div>
+  </fieldset>
 </template>
 
 <script>
@@ -26,18 +26,6 @@
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
  .dialog {
-   position: relative;
-
-   flex: 1;
- }
-
- .frame {
-   position: absolute;
-   left: 10px;
-   top: 10px;
-   right: 10px;
-   bottom: 10px;
-
    border: 1px solid;
    border-radius: 5px;
 
@@ -46,17 +34,21 @@
    padding-top: 20px;
    padding-bottom: 20px;
 
+   flex: 1;
+   display: flex;
+   flex-direction: column;
+ }
+
+ .frame {
+   flex: 1;
    overflow-y: scroll;
  }
 
  .title {
-   position: absolute;
    left: 30px;
    top: 0px;
 
    padding-left: 5px;
    padding-right: 5px;
-
-   z-index: 999;
  }
 </style>

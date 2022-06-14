@@ -18,6 +18,12 @@
 </script>
 
 <style>
+ /* to fix some weird flex isues */
+ * {
+   min-height: 0px;
+   min-width: 0px;
+ }
+
  #app {
    display: flex;
    flex-direction: column;

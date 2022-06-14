@@ -211,9 +211,9 @@
             v-html="prettyHtml">
           </div>
         </Dialog>
-          </div>
       </div>
     </div>
+  </div>
 </template>
 
 <script>
@@ -611,9 +611,8 @@
  }
 
  .status-area {
+   flex: 1;
    display: flex;
-   width: 100%;
-   height: 100%;
  }
 
  .status-left-panel {
@@ -621,20 +620,21 @@
    flex-direction: column;
 
    /* 30% */
-   flex-grow: 3;
+   flex: 3;
 
    overflow-y: scroll;
  }
 
  .status-right-panel {
    /* 70% */
-   flex-grow: 7;
+   flex: 7;
 
    display: flex;
+   flex-direction: column;
  }
 
  .files-dialog {
-   flex: 1;
+   flex: 2;
  }
 
  .unpush-info-item {
