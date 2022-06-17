@@ -337,6 +337,10 @@
        that.toggleLayout();
      });
 
+     this.$root.$on("toggle_selection_state", function () {
+       that.toggleSelectionState();
+     });
+
      this.$root.$on("status_select_next", function () {
        that.statusSelectNext();
      });
@@ -510,6 +514,7 @@
        this.repoLastCommitMessage = repoLastCommitMessage["lastCommit"];
        this.keybindingInfo = keybindingInfo;
 
+       this.selectColor = "red";
        this.updateKeyDescriptionList();
      },
 
@@ -556,20 +561,36 @@
      },
 
      /**
+      * Expand / Collapse current selection if applicable
+      */
+     toggleSelectionState() {
+       let selectIndex = this.statusState.selectIndex;
+       let state = this.statusState.states[selectIndex];
+       if (state.state === "collapsed") {
+         state.state = "expanded";
+       } else {
+         state.state = "collapsed";
+       }
+     },
+
+     /**
       * Add state for the data list
       */
-     addStateForStatusInfo(states, type, dataList) {
-       let stateStartIndex = -1;
+     addStateForStatusInfo(states, type, dataRef, dataList) {
+       dataRef.stateStartIndex = -1;
+       dataRef.size = 0;
 
        // only when there are data in the list
        if (dataList.length > 0) {
-         stateStartIndex = states.length;
+         dataRef.stateStartIndex = states.length;
 
          // list container
          states.push({
            type: type,
            dataIndex: -1,
-           selected: false
+           selected: false,
+           // TODO: saved state
+           state: "collapsed"
          });
 
          // list item
@@ -580,9 +601,9 @@
              selected: false
            });
          }
-       }
 
-       return stateStartIndex;
+         dataRef.size = dataList.length + 1;
+       }
      },
      /**
       * Create status state for selection
@@ -594,7 +615,10 @@
        // data references
        let dataRef = {
          "status": {
-           stateStartIndex: 0
+           // the start index of the section in states
+           stateStartIndex: 0,
+           // the total size of the section (data size + 1)
+           size: 1
          },
          "untrack": {},
          "unstage": {},
@@ -611,19 +635,21 @@
        states.push({
          type: "status",
          dataIndex: -1,
-         selected: false
+         selected: false,
+         state: "expanded"
        });
 
        // untracked
-       dataRef.untrack.stateStartIndex = this.addStateForStatusInfo(states, "untrack", this.untrackStatusInfo);
+       this.addStateForStatusInfo(states, "untrack", dataRef.untrack, this.untrackStatusInfo);
        // unstaged
-       dataRef.unstage.stateStartIndex = this.addStateForStatusInfo(states, "unstage", this.unstageStatusInfo);
+       this.addStateForStatusInfo(states, "unstage", dataRef.unstage, this.unstageStatusInfo);
        // staged
-       dataRef.stage.stateStartIndex = this.addStateForStatusInfo(states, "stage", this.stageStatusInfo);
+       this.addStateForStatusInfo(states, "stage", dataRef.stage, this.stageStatusInfo);
        // stashes
-       dataRef.stash.stateStartIndex = this.addStateForStatusInfo(states, "stash", this.stashStatusInfo);
+       this.addStateForStatusInfo(states, "stash", dataRef.stash, this.stashStatusInfo);
        // unpushed
-       dataRef.unpush.stateStartIndex = this.addStateForStatusInfo(states, "unpush", this.unpushStatusInfo);
+       this.addStateForStatusInfo(states, "unpush", dataRef.unpush, this.unpushStatusInfo);
+       dataRef.status.size = 1 + dataRef.untrack.size + dataRef.unstage.size + dataRef.stage.size;
 
        if (!this.selectItemType) {
          this.selectItemType = "status";
@@ -870,6 +896,9 @@
        this.searchSubmoduleMatchIndex = null;
      },
 
+     /**
+      * Select next visible section or item
+      */
      statusSelectNext() {
        var oldSelectItemType = this.selectItemType;
        var oldSelectItemIndex = this.selectItemIndex;
@@ -877,14 +906,26 @@
        let selectIndex = this.statusState.selectIndex;
        let states = this.statusState.states;
        let lastState = states[selectIndex];
-       // unselect last state
-       lastState.selected = false;
 
        if (selectIndex == states.length - 1) {
+         // TODO: cycling or not
          // selectIndex = 0;
-       } else {
-         selectIndex++;
+         return ;
        }
+
+       if (lastState["state"] === 'collapsed') {
+         // find next collapsible container
+         let currentDataRef = this.statusState.dataRef[lastState.type];
+         let nextCollapsibleIndex = currentDataRef.stateStartIndex + currentDataRef.size;
+         if (nextCollapsibleIndex < states.length) {
+           selectIndex = nextCollapsibleIndex;
+         }
+       } else {
+         selectIndex ++;
+       }
+
+       // unselect last state
+       lastState.selected = false;
 
        // new state
        let state = states[selectIndex];
@@ -903,6 +944,9 @@
        }
      },
 
+     /**
+      * Select previous visible section or item
+      */
      statusSelectPrev() {
        var oldSelectItemType = this.selectItemType;
        var oldSelectItemIndex = this.selectItemIndex;
@@ -910,14 +954,33 @@
        let selectIndex = this.statusState.selectIndex;
        let states = this.statusState.states;
        let lastState = states[selectIndex];
-       // unselect last state
-       lastState.selected = false;
 
        if (selectIndex == 0) {
-         // selectIndex = 0;
+         // no change
+         // TODO: cycling
+         return ;
        } else {
-         selectIndex--;
+         let newIndex = selectIndex - 1;
+         let newState = states[newIndex];
+         let parentStartIndex = this.statusState.dataRef[newState.type].stateStartIndex;
+         // check parent's state
+         if (states[parentStartIndex].state === "expanded") {
+           selectIndex = newIndex;
+         } else {
+           if (states[0].state === "collapsed"
+               && (newState.type === "untrack"
+                || newState.type === "unstage"
+                || newState.type === "stage")) {
+             // whole status is collapsed
+             selectIndex = 0;
+           } else {
+             selectIndex = parentStartIndex;
+           }
+         }
        }
+
+       // unselect last state
+       lastState.selected = false;
 
        // new state
        let state = states[selectIndex];

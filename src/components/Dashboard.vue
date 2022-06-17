@@ -17,6 +17,7 @@
           ref="statusDialog"
           :backgroundColor="isSelected('status', -1) ? selectColor : backgroundColor"
           class="files-dialog"
+          :collapsed="isCollapsed('status')"
           :title="`Status (Untracked: ${untrackStatusInfo.length}, Unstaged: ${unstageStatusInfo.length}, Staged: ${stageStatusInfo.length})`">
           <div
             v-if="noFileChanged"
@@ -24,7 +25,8 @@
             {{ changedCount }}
           </div>
           <div
-            class="untrack-area"
+            class="untrack-area collapsible-item collapsible"
+            :class="{ collapsed: isCollapsed('untrack') }"
             ref="untracklist"
             v-if="untrackStatusNumber() > 0">
             <div
@@ -36,7 +38,7 @@
             <div
               v-for="(info, index) in untrackStatusInfo"
               :key="info"
-              class="item"
+              class="item collapsible-item"
               :class="{ selected: isSelected('untrack', index) }">
               <div class="type">
                 {{ info.type }}
@@ -59,6 +61,8 @@
           </div>
 
           <div
+            class="collapsible-item collapsible"
+            :class="{ collapsed: isCollapsed('unstage') }"
             v-if="unstageStatusNumber() > 0"
             ref="unstagelist">
             <div
@@ -70,7 +74,7 @@
             <div
               v-for="(info, index) in unstageStatusInfo"
               :key="info"
-              class="item"
+              class="item collapsible-item"
               :class="{ selected: isSelected('unstage', index) }">
               <div class="type">
                 {{ info.type }}
@@ -93,6 +97,8 @@
           </div>
 
           <div
+            class="collapsible-item collapsible"
+            :class="{ collapsed: isCollapsed('stage') }"
             v-if="stageStatusNumber() > 0"
             ref="stagelist">
             <div
@@ -104,7 +110,7 @@
             <div
               v-for="(info, index) in stageStatusInfo"
               :key="info"
-              class="item"
+              class="item collapsible-item"
               :class="{ selected: isSelected('stage', index) }">
               <div class="type">
                 {{ info.type }}
@@ -131,10 +137,11 @@
           ref="stashDialog"
           :backgroundColor="isSelected('stash', -1) ? selectColor : backgroundColor"
           :title="`Stashes (${stashStatusInfo.length})`"
+          :collapsed="isCollapsed('stash')"
           class="stash-dialog">
           <div
             ref="stashlist"
-            class="stash-info-area">
+            class="stash-info-area collapsible-item">
             <div
               class="stash-item"
               v-for="info in stashStatusInfo"
@@ -162,10 +169,11 @@
           ref="unpushDialog"
           :backgroundColor="isSelected('unpush', -1) ? selectColor : backgroundColor"
           :title="`Unpushed (${unpushStatusInfo.length})`"
+          :collapsed="isCollapsed('unpush')"
           class="unpush-dialog">
           <div
             ref="unpushlist"
-            class="unpush-info-area">
+            class="unpush-info-area collapsible-item">
             <div
               v-for="(info, index) in unpushStatusInfo"
               :key="info"
@@ -310,7 +318,7 @@
        }
 
        return fileChangedNumber + " files changed, " + addCount + " insertions, " + deleteCount + " deletions";
-     }
+     },
    },
    mounted() {
 
@@ -412,6 +420,21 @@
        return unpush_files_number;
      },
 
+     /**
+      * Whether the section with the specified type is collapsed or expanded
+      */
+     isCollapsed(type) {
+       if (!this.statusState.dataRef) {
+         return false;
+       }
+
+       let startIndex = this.statusState.dataRef[type].stateStartIndex;
+       return this.statusState.states[startIndex].state === 'collapsed';
+     },
+
+     /**
+      * whether the item with the specified type and index is currently selected or not
+      */
      isSelected(type, index) {
        if (!this.statusState["states"]) {
          return false;
@@ -429,6 +452,7 @@
        let dataIndex = state.dataIndex;
 
        if (selected) {
+         // scroll into the view of the current selected item
          this.$nextTick(function() {
            let typeToRef = {
              status: {

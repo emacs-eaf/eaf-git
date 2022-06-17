@@ -47,4 +47,8 @@
  .layout-vertical {
    flex-direction: column;
  }
+
+ .collapsible.collapsed > .collapsible-item {
+   display: none;
+ }
 </style>

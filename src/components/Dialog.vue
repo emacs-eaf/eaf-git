@@ -5,7 +5,8 @@
       :style="{ 'background': backgroundColor }">
       {{ title }}
     </legend>
-    <div class="frame collapsible">
+    <div class="frame collapsible"
+      :class="{ collapsed: collapsed }">
       <slot/>
     </div>
   </fieldset>
@@ -16,7 +17,8 @@
    name: 'Dialog',
    props: {
      title: String,
-     backgroundColor: String
+     backgroundColor: String,
+     collapsed: Boolean,
    },
    methods: {
    }
