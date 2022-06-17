@@ -963,16 +963,17 @@
          let newIndex = selectIndex - 1;
          let newState = states[newIndex];
          let parentStartIndex = this.statusState.dataRef[newState.type].stateStartIndex;
-         // check parent's state
-         if (states[parentStartIndex].state === "expanded") {
-           selectIndex = newIndex;
+
+         if (states[0].state === "collapsed"
+             && (newState.type === "untrack"
+              || newState.type === "unstage"
+              || newState.type === "stage")) {
+           // whole status is collapsed
+           selectIndex = 0;
          } else {
-           if (states[0].state === "collapsed"
-               && (newState.type === "untrack"
-                || newState.type === "unstage"
-                || newState.type === "stage")) {
-             // whole status is collapsed
-             selectIndex = 0;
+           // check parent's state
+           if (states[parentStartIndex].state === "expanded") {
+             selectIndex = newIndex;
            } else {
              selectIndex = parentStartIndex;
            }
