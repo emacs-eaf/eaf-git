@@ -145,7 +145,7 @@
             <div
               class="stash-item"
               v-for="info in stashStatusInfo"
-              :key="info.index">
+              :key="info.index"
               :class="{ selected: isSelected('stash', info.index) }">
               <div
                 class="stash-id"
@@ -429,6 +429,10 @@
        }
 
        let startIndex = this.statusState.dataRef[type].stateStartIndex;
+       if (startIndex == -1) {
+         return false
+       }
+
        return this.statusState.states[startIndex].state === 'collapsed';
      },
 
