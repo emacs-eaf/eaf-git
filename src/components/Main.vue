@@ -590,7 +590,7 @@
            dataIndex: -1,
            selected: false,
            // TODO: saved state
-           state: "collapsed"
+           state: "expanded"
          });
 
          // list item
