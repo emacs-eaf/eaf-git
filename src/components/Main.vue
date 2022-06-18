@@ -514,7 +514,8 @@
        this.repoLastCommitMessage = repoLastCommitMessage["lastCommit"];
        this.keybindingInfo = keybindingInfo;
 
-       this.selectColor = "red";
+       // for testing
+       //this.selectColor = "red";
        this.updateKeyDescriptionList();
      },
 
