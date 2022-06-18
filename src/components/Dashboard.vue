@@ -37,7 +37,7 @@
             </div>
             <div
               v-for="(info, index) in untrackStatusInfo"
-              :key="info"
+              :key="index"
               class="item collapsible-item"
               :class="{ selected: isSelected('untrack', index) }">
               <div class="type">
@@ -73,7 +73,7 @@
             </div>
             <div
               v-for="(info, index) in unstageStatusInfo"
-              :key="info"
+              :key="index"
               class="item collapsible-item"
               :class="{ selected: isSelected('unstage', index) }">
               <div class="type">
@@ -109,7 +109,7 @@
             </div>
             <div
               v-for="(info, index) in stageStatusInfo"
-              :key="info"
+              :key="index"
               class="item collapsible-item"
               :class="{ selected: isSelected('stage', index) }">
               <div class="type">
@@ -176,7 +176,7 @@
             class="unpush-info-area collapsible-item">
             <div
               v-for="(info, index) in unpushStatusInfo"
-              :key="info"
+              :key="index"
               :class="{ selected: isSelected('unpush', index) }"
               class="unpush-info-item">
               {{ info }}
@@ -197,11 +197,11 @@
             <div
               ref="patchSets"
               v-for="(patch, pIndex) in patchSet"
-              :key="patch.path">
+              :key="pIndex">
               <strong> {{ patch.patch_info }} </strong>
               <div
                 v-for="(hunk, hIndex) in patch.diff_hunks"
-                :key="hunk"
+                :key="hIndex"
                 class="hunk"
                 :style="{ 'background': selectHunkBackgroud(pIndex, hIndex) }"
                 v-html="hunk">
