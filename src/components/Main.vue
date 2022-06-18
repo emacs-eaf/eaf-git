@@ -683,6 +683,8 @@
 
      updateUnpushInfo(unpushStatusInfo) {
        this.unpushStatusInfo = unpushStatusInfo;
+
+       this.createStatusState();
      },
 
      updateKeyDescriptionList() {
