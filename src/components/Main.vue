@@ -260,7 +260,7 @@
        stageStatusInfo: [],
        unstageStatusInfo: [],
        untrackStatusInfo: [],
-       unpushStatusInfo: "",
+       unpushStatusInfo: [],
 
        logBranch: "",
        selectBranchIndex: 0,

@@ -242,7 +242,7 @@
      stageStatusInfo: Array,
      unstageStatusInfo: Array,
      untrackStatusInfo: Array,
-     unpushStatusInfo: String,
+     unpushStatusInfo: Array,
      stashStatusInfo: Array,
 
      statusState: Object,
