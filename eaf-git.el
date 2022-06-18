@@ -105,6 +105,7 @@
   '(("Global"
      (
       ("T"  ("js_toggle_layout" "Toggle Layout"))
+      ("E"  ("js_toggle_selection_state" "Toggle State"))
       ("L"  ("py_status_pull" "Pull"))
       ("h" ("js_page_select_prev" "Left page"))
       ("l" ("js_page_select_next" "Right page"))
