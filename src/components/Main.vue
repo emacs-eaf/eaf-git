@@ -655,8 +655,14 @@
          this.selectItemType = "status";
        }
 
+       let selectIndex = 0;
        let selectedData = dataRef[this.selectItemType];
-       let selectIndex = selectedData.stateStartIndex + this.selectItemIndex + 1;
+       // during initialization, the select type may not have data
+       if (selectedData.stateStartIndex >= 0) {
+         selectIndex = selectedData.stateStartIndex + this.selectItemIndex + 1;
+       } else {
+         this.selectItemType = "status";
+       }
        states[selectIndex].selected = true;
        statusState.selectIndex = selectIndex;
 
