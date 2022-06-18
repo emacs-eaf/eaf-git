@@ -672,8 +672,6 @@
    padding-top: 3px;
    padding-bottom: 3px;
 
-   width: 25vw;
-
    overflow: hidden;
    white-space: nowrap;
    text-overflow: ellipsis;
