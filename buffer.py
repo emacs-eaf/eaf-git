@@ -23,7 +23,7 @@ from PyQt6 import QtCore
 from PyQt6.QtGui import QColor
 from PyQt6.QtCore import QThread, QTimer, QMimeDatabase
 from core.webengine import BrowserBuffer
-from core.utils import get_emacs_func_result, get_emacs_var, PostGui, message_to_emacs, eval_in_emacs, interactive
+from core.utils import get_emacs_func_result, get_emacs_var, get_emacs_vars, PostGui, message_to_emacs, eval_in_emacs, interactive
 from charset_normalizer import from_path, from_bytes
 from pygit2 import (Repository, IndexEntry, Oid,
                     GIT_BRANCH_REMOTE,
@@ -263,8 +263,6 @@ class AppBuffer(BrowserBuffer):
 
         self.highlight_style = "monokai"
 
-        self.layout = "H"
-
         self.load_index_html(__file__)
 
     def init_app(self):
@@ -280,7 +278,15 @@ class AppBuffer(BrowserBuffer):
         self.fetch_branch_info()
 
     def init_vars(self):
-        self.layout = get_emacs_var("eaf-git-layout")
+        (layout, statusState, untrackState, unstageState, stageState, stashState, unpushState) = get_emacs_vars([
+            "eaf-git-layout",
+            "eaf-git-status-initial-state",
+            "eaf-git-untracked-initial-state",
+            "eaf-git-unstaged-initial-state",
+            "eaf-git-staged-initial-state",
+            "eaf-git-stash-initial-state",
+            "eaf-git-unpushed-initial-state"
+        ])
 
         if self.theme_mode == "dark":
             if self.theme_background_color == "#000000":
@@ -308,7 +314,15 @@ class AppBuffer(BrowserBuffer):
              "font-lock-negation-char-face"])
 
         self.buffer_widget.eval_js_function("init",
-            self.layout,
+            layout,
+            {
+                "status": statusState,
+                "untrack": untrackState,
+                "unstage": unstageState,
+                "stage": stageState,
+                "stash": stashState,
+                "unpush": unpushState
+            },
             self.theme_background_color, self.theme_foreground_color, select_color, QColor(self.theme_background_color).darker(110).name(),
             text_color, nav_item_color, info_color,
             date_color, id_color, author_color, match_color,

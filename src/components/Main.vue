@@ -224,6 +224,8 @@
    data() {
      return {
        layout: Layout.Horizontal,
+       initialStatusState: {},
+
        navbarHeight: "40px",
        navItems: ["Dashboard", "Log", "Branch", "Stash", "Submodule"],
        navCurrentItem: "Dashboard",
@@ -493,11 +495,12 @@
      },
    },
    methods: {
-     init(layout,
+     init(layout, initialStatusState,
           backgroundColor, foregroundColor, selectColor, panelColor, textColor, navItemActiveColor, infoColor,
           dateColor, idColor, authorColor, matchColor,
           repoPath, repoLastCommitId, repoLastCommitMessage, keybindingInfo) {
        this.layout = layout;
+       this.initialStatusState = initialStatusState;
        this.backgroundColor = backgroundColor;
        this.foregroundColor = foregroundColor;
        this.selectColor = selectColor;
@@ -515,7 +518,7 @@
        this.keybindingInfo = keybindingInfo;
 
        // for testing
-       //this.selectColor = "red";
+       this.selectColor = "red";
        this.updateKeyDescriptionList();
      },
 
@@ -585,13 +588,14 @@
        if (dataList.length > 0) {
          dataRef.stateStartIndex = states.length;
 
+         let initialState = this.initialStatusState[type];
+
          // list container
          states.push({
            type: type,
            dataIndex: -1,
            selected: false,
-           // TODO: saved state
-           state: "expanded"
+           state: initialState ? initialState : "expanded"
          });
 
          // list item
@@ -633,11 +637,13 @@
        let states = [];
        statusState.states = states;
 
+       console.log(this.initialStatusState);
+       let initialState = this.initialStatusState["status"];
        states.push({
          type: "status",
          dataIndex: -1,
          selected: false,
-         state: "expanded"
+         state: initialState ? initialState : "expanded"
        });
 
        // untracked
