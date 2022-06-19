@@ -39,11 +39,15 @@
    flex: 1;
    display: flex;
    flex-direction: column;
+
+   overflow-y: scroll;
  }
 
  .frame {
    flex: 1;
+  /*
    overflow-y: scroll;
+  */
  }
 
  .title {

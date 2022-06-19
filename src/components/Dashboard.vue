@@ -648,21 +648,47 @@
    flex-direction: column;
 
    /* 30% */
-   flex: 3;
+   /*
+      flex: 3;
 
-   overflow-y: scroll;
+      overflow-y: scroll;
+    */
+ }
+
+ .status-left-panel .dialog {
+   /*
+   flex: initial;
+   */
+ }
+
+ .status-area.layout-horizontal .status-left-panel {
+   /* 30% */
+   flex: 3;
+ }
+
+ .status-area.layout-vertical .status-left-panel {
  }
 
  .status-right-panel {
-   /* 70% */
-   flex: 7;
-
    display: flex;
    flex-direction: column;
  }
 
+ .status-area.layout-horizontal .status-right-panel {
+   /* 70% */
+   flex: 7;
+ }
+
+ .status-area.layout-vertical .status-right-panel {
+   flex: 1;
+   min-height: 60%;
+ }
+
  .files-dialog {
-   flex: 2;
+   /*
+      flex: 2;
+    */
+   flex: auto;
  }
 
  .unpush-info-item {
@@ -678,8 +704,9 @@
  }
 
  .stash-info-area {
+   /*
    padding: 20px;
-   padding: 20px;
+   */
  }
 
  .stash-item {
@@ -730,11 +757,13 @@
  }
 
  .stash-dialog {
-   max-height: 30%;
+   flex: initial;
+   min-height: 24px;
  }
 
  .unpush-dialog {
-   max-height: 30%;
+   flex: initial;
+   min-height: 24px;
  }
 
  .changed-count {
