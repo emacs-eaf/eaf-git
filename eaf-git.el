@@ -245,9 +245,39 @@ will be added if not present."
   :type 'string)
 
 (defcustom eaf-git-layout "H"
-  "The default dark syntax highlight style."
+  "The default layout, Horizontal or Vertical."
   :type '(choice (const :tag "Horizontal" "H")
                  (const :tag "Vertical" "V")))
+
+(defcustom eaf-git-status-initial-state "expanded"
+  "The default state for the status covering Untracked, Unstaged and Staged files."
+  :type '(choice (const :tag "Expanded" "expanded")
+                 (const :tag "Collapsed" "collapsed")))
+
+(defcustom eaf-git-untracked-initial-state "expanded"
+  "The default state for the untracked files."
+  :type '(choice (const :tag "Expanded" "expanded")
+                 (const :tag "Collapsed" "collapsed")))
+
+(defcustom eaf-git-unstaged-initial-state "expanded"
+  "The default state for the unstaged files."
+  :type '(choice (const :tag "Expanded" "expanded")
+                 (const :tag "Collapsed" "collapsed")))
+
+(defcustom eaf-git-staged-initial-state "expanded"
+  "The default state for the staged files."
+  :type '(choice (const :tag "Expanded" "expanded")
+                 (const :tag "Collapsed" "collapsed")))
+
+(defcustom eaf-git-stash-initial-state "collapsed"
+  "The default state for the stashes."
+  :type '(choice (const :tag "Expanded" "expanded")
+                 (const :tag "Collapsed" "collapsed")))
+
+(defcustom eaf-git-unpushed-initial-state "collapsed"
+  "The default state for the unpushed commits."
+  :type '(choice (const :tag "Expanded" "expanded")
+                 (const :tag "Collapsed" "collapsed")))
 
 (add-to-list 'eaf-app-binding-alist '("git" . eaf-git-keybinding))
 
