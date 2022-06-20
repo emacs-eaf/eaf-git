@@ -2253,16 +2253,18 @@ class HighlightDiffThread(QThread):
 
         if self.type == "untrack" or self.target.repo.head_is_unborn:
             if self.file == "":
-                for status in self.target.untrack_status:
-                    path = os.path.join(self.target.repo_root, status["file"])
-                    if os.path.isfile(path):
-                        diff_string += "Untrack file: {}\n\n".format(status["file"])
-                        diff_string += str(NO_PREVIEW if is_binary(path) else from_path(path).best())
-                        diff_string += "\n"
-                    else:
-                        # submodule directory
-                        diff_string += "Untrack: {}\n\n".format(status["file"])
-                        diff_string += "\n"
+                show_whole_diff = get_emacs_var("eaf-git-show-whole-untracked-diff");
+                if show_whole_diff:
+                    for status in self.target.untrack_status:
+                        path = os.path.join(self.target.repo_root, status["file"])
+                        if os.path.isfile(path):
+                            diff_string += "Untrack file: {}\n\n".format(status["file"])
+                            diff_string += str(NO_PREVIEW if is_binary(path) else from_path(path).best())
+                            diff_string += "\n"
+                        else:
+                            # submodule directory
+                            diff_string += "Untrack: {}\n\n".format(status["file"])
+                            diff_string += "\n"
 
             else:
                 path = os.path.join(self.target.repo_root, self.file)

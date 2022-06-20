@@ -279,6 +279,10 @@ will be added if not present."
   :type '(choice (const :tag "Expanded" "expanded")
                  (const :tag "Collapsed" "collapsed")))
 
+(defcustom eaf-git-show-whole-untracked-diff nil
+  "Show the whole diff for all untracked files"
+  :type 'boolean) 
+
 (add-to-list 'eaf-app-binding-alist '("git" . eaf-git-keybinding))
 
 (setq eaf-git-module-path (concat (file-name-directory load-file-name) "buffer.py"))
