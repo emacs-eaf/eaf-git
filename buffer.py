@@ -882,58 +882,20 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot(str, str)
     def update_diff(self, type, file):
-
-        diff_string = ""
-        patch_set = []
-        parse_diff_and_color = lambda patch_set : parse_patch(patch_set, self.highlight_diff_strict)
-
-        if type == "untrack" or self.repo.head_is_unborn:
-            if file == "":
-                for status in self.untrack_status:
-                    path = os.path.join(self.repo_root, status["file"])
-                    if os.path.isfile(path):
-                        diff_string += "Untrack file: {}\n\n".format(status["file"])
-                        diff_string += str(NO_PREVIEW if is_binary(path) else from_path(path).best())
-                        diff_string += "\n"
-                    else:
-                        # submodule directory
-                        diff_string += "Untrack: {}\n\n".format(status["file"])
-                        diff_string += "\n"
-
-            else:
-                path = os.path.join(self.repo_root, file)
-                if os.path.isfile(path):
-                    diff_string = str(NO_PREVIEW if is_binary(path) else from_path(path).best())
-                else:
-                    diff_string = ""
-
-        elif type == "stage":
-            head_tree = self.repo.revparse_single("HEAD^{tree}")
-            stage_diff = self.repo.index.diff_to_tree(head_tree)
-            if file == "":
-                diff_string = stage_diff.patch
-                self.raw_patch_set = PatchSet(diff_string)
-                patch_set = parse_diff_and_color(self.raw_patch_set)
-            else:
-                patches = [patch for patch in stage_diff if patch.delta.new_file.path == file]
-                diff_string = "\n".join(map(lambda patch : NO_PREVIEW if is_binary(patch.data) else bytes_decode(patch.data), patches))
-                self.raw_patch_set = PatchSet(diff_string)
-                patch_set = parse_diff_and_color(self.raw_patch_set)
-
-        elif type == "unstage":
-            unstage_diff = self.repo.diff(cached=True)
-            if file == "":
-                diff_string = unstage_diff.patch
-                self.raw_patch_set = PatchSet(diff_string)
-                patch_set = parse_diff_and_color(self.raw_patch_set)
-            else:
-                patches = [patch for patch in unstage_diff if patch.delta.new_file.path == file]
-                diff_string = "\n".join(map(lambda patch : NO_PREVIEW if is_binary(patch.data) else bytes_decode(patch.data), patches))
-                self.raw_patch_set = PatchSet(diff_string)
-                patch_set = parse_diff_and_color(self.raw_patch_set)
-
-        diff_string = self.highlight_diff(diff_string)
-        self.buffer_widget.eval_js_function("updateChangeDiff", type, {"diff": diff_string, "patch_set": patch_set})
+        import time
+        tick = time.time()
+        
+        self.diff_type = type
+        self.diff_file = file
+        self.diff_tick = tick
+        thread = HighlightDiffThread(self, type, file, tick)
+        thread.fetch_result.connect(self.render_diff)
+        self.thread_reference_list.append(thread)
+        thread.start()
+        
+    def render_diff(self, type, file, tick, diff_string, patch_set):
+        if self.diff_type == type and self.diff_file == file and self.diff_tick == tick:
+            self.buffer_widget.eval_js_function("updateChangeDiff", type, {"diff": diff_string, "patch_set": patch_set})
 
     @QtCore.pyqtSlot()
     def status_commit_stage(self):
@@ -2271,3 +2233,68 @@ class FetchUnpushThread(QThread):
             shell=True, capture_output=True, text=True).stdout
         
         self.fetch_result.emit(list(filter(lambda x: x.strip() != "", result.split("\n"))))
+
+class HighlightDiffThread(QThread):
+
+    fetch_result = QtCore.pyqtSignal(str, str, float, str, list)
+
+    def __init__(self, target, type, file, tick):
+        QThread.__init__(self)
+        
+        self.target = target
+        self.type = type
+        self.file = file
+        self.tick = tick
+
+    def run(self):
+        diff_string = ""
+        patch_set = []
+        parse_diff_and_color = lambda patch_set : parse_patch(patch_set, self.target.highlight_diff_strict)
+
+        if self.type == "untrack" or self.target.repo.head_is_unborn:
+            if self.file == "":
+                for status in self.target.untrack_status:
+                    path = os.path.join(self.target.repo_root, status["file"])
+                    if os.path.isfile(path):
+                        diff_string += "Untrack file: {}\n\n".format(status["file"])
+                        diff_string += str(NO_PREVIEW if is_binary(path) else from_path(path).best())
+                        diff_string += "\n"
+                    else:
+                        # submodule directory
+                        diff_string += "Untrack: {}\n\n".format(status["file"])
+                        diff_string += "\n"
+
+            else:
+                path = os.path.join(self.target.repo_root, self.file)
+                if os.path.isfile(path):
+                    diff_string = str(NO_PREVIEW if is_binary(path) else from_path(path).best())
+                else:
+                    diff_string = ""
+
+        elif self.type == "stage":
+            head_tree = self.target.repo.revparse_single("HEAD^{tree}")
+            stage_diff = self.target.repo.index.diff_to_tree(head_tree)
+            if self.file == "":
+                diff_string = stage_diff.patch
+                self.target.raw_patch_set = PatchSet(diff_string)
+                patch_set = parse_diff_and_color(self.target.raw_patch_set)
+            else:
+                patches = [patch for patch in stage_diff if patch.delta.new_file.path == self.file]
+                diff_string = "\n".join(map(lambda patch : NO_PREVIEW if is_binary(patch.data) else bytes_decode(patch.data), patches))
+                self.target.raw_patch_set = PatchSet(diff_string)
+                patch_set = parse_diff_and_color(self.target.raw_patch_set)
+
+        elif self.type == "unstage":
+            unstage_diff = self.target.repo.diff(cached=True)
+            if self.file == "":
+                diff_string = unstage_diff.patch
+                self.target.raw_patch_set = PatchSet(diff_string)
+                patch_set = parse_diff_and_color(self.target.raw_patch_set)
+            else:
+                patches = [patch for patch in unstage_diff if patch.delta.new_file.path == self.file]
+                diff_string = "\n".join(map(lambda patch : NO_PREVIEW if is_binary(patch.data) else bytes_decode(patch.data), patches))
+                self.target.raw_patch_set = PatchSet(diff_string)
+                patch_set = parse_diff_and_color(self.target.raw_patch_set)
+
+        diff_string = self.target.highlight_diff(diff_string)
+        self.fetch_result.emit(self.type, self.file, self.tick, diff_string, patch_set)
