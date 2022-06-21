@@ -1236,6 +1236,7 @@
    flex-direction: row;
    align-items: center;
 
+   padding-top: 10px;
    padding-bottom: 10px;
  }
 
