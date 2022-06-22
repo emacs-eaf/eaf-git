@@ -281,7 +281,7 @@ will be added if not present."
 
 (defcustom eaf-git-show-whole-untracked-diff nil
   "Show the whole diff for all untracked files"
-  :type 'boolean) 
+  :type 'boolean)
 
 (add-to-list 'eaf-app-binding-alist '("git" . eaf-git-keybinding))
 
