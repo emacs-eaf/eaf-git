@@ -51,4 +51,12 @@
  .collapsible.collapsed > .collapsible-item {
    display: none;
  }
+ 
+ .layout-horizontal > *:not(:last-child) {
+   margin-right: 10px;
+ }
+
+ .layout-vertical > *:not(:last-child) {
+   margin-bottom: 10px;
+ }
 </style>
