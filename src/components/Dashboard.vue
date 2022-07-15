@@ -669,6 +669,10 @@
  .status-area.layout-vertical .status-left-panel {
  }
 
+ .status-left-panel > *:not(:last-child)  {
+   margin-bottom: 10px;
+ }
+
  .status-right-panel {
    display: flex;
    flex-direction: column;
