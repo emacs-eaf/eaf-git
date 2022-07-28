@@ -2158,7 +2158,7 @@ class FetchStatusThread(QThread):
         if type_key in [GIT_STATUS_WT_NEW] or head_unborn:
             if mime.startswith("text-"):
                 file_path =os.path.join(self.repo_root, file)
-                return (len(open(file_path).readlines()), 0)
+                return (len(open(file_path, "r", encoding="utf-8", errors="ignore").readlines()), 0)
             else:
                 return (0, 0)
         else:
