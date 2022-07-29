@@ -18,7 +18,7 @@ def get_project_path(filepath):
     else:
         return filepath
     
-def generate_file_permalink(file, line):
+def generate_file_permalink(file, start_line, end_line):
     repo = Repository(file)
     remote_default = next(repo.config.get_multivar("remote.pushdefault"), "origin")
     
@@ -29,7 +29,10 @@ def generate_file_permalink(file, line):
     head_tree = str(repo.head.target)
     repo_root = get_project_path(file)
         
-    return "{}/blob/{}/{}#L{}".format(origin_url, head_tree, file.split(repo_root)[1].lstrip('/'), line)
+    if end_line == "":
+        return "{}/blob/{}/{}#L{}".format(origin_url, head_tree, file.split(repo_root)[1].lstrip('/'), start_line)
+    else:
+        return "{}/blob/{}/{}#L{}-#L{}".format(origin_url, head_tree, file.split(repo_root)[1].lstrip('/'), start_line, end_line)
 
 if __name__ == "__main__":
     print(generate_file_permalink(*sys.argv[1:]), end='', flush=True)

@@ -409,7 +409,17 @@ The input buffer contents are expected to be raw git output."
 
 (defun eaf-git-get-permalink ()
   (interactive)
-  (let ((permalink (shell-command-to-string (format "python %s %s %s" eaf-git-permalink-path (buffer-file-name) (format-mode-line "%l")))))
+  (let* ((start-line (save-excursion
+                       (when (region-active-p)
+                         (goto-char (region-beginning)))
+                       (format-mode-line "%l")))
+         (end-line (save-excursion
+                     (if (region-active-p)
+                         (progn
+                           (goto-char (region-end))
+                           (format-mode-line "%l"))
+                       "")))
+         (permalink (shell-command-to-string (format "python %s %s %s '%s'" eaf-git-permalink-path (buffer-file-name) start-line end-line))))
     (kill-new permalink)
     (message "Copy permalink '%s'" permalink)))
 
