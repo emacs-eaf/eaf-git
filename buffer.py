@@ -627,8 +627,10 @@ class AppBuffer(BrowserBuffer):
             self.handle_log_reset_to(result_content)
         elif callback_tag == "log_cherry_pick":
             self.handle_log_cherry_pick(result_content)
-        elif callback_tag == "log_rebase_branch":
-            self.handle_log_rebase_branch(result_content)
+        elif callback_tag == "log_select_merge_method":
+            self.handle_log_select_merge_method(result_content)
+        elif callback_tag == "log_merge_branch":
+            self.handle_log_merge_branch(result_content)
         elif callback_tag == "search_log":
             self.handle_search_log(result_content)
         elif callback_tag == "search_submodule":
@@ -788,38 +790,70 @@ class AppBuffer(BrowserBuffer):
         message_to_emacs("Current HEAD is: {}".format(self.log_commit_reset_to_message))
 
     @QtCore.pyqtSlot()
-    def log_rebase_branch(self):
-        branches = self.repo.listall_branches()
-        self.send_input_message("Rebase from Branch: ", "log_rebase_branch", "list", completion_list=branches)
+    def log_merge_branch(self):
+        self.send_input_message("Select merge method: ", "log_select_merge_method", "list", completion_list=["merge", "rebase", "squash"])
 
-    def handle_log_rebase_branch(self, branch_name):
+    def handle_log_select_merge_method(self, method):
+        self.merge_method = method
+        branches = self.repo.listall_branches()
+        self.send_input_message("Merge in {} mode from Branch: ".format(self.merge_method), "log_merge_branch", "list", completion_list=branches)
+
+    def handle_log_merge_branch(self, branch_name):
         if branch_name == self.repo.head.shorthand:
-            message_to_emacs("Can't rebase branch self.")
+            message_to_emacs("Can't merge branch self.")
         else:
+            # normal merge a branch
             merge_branch = self.repo.lookup_branch(branch_name)
             current_branch = self.repo.lookup_branch(self.repo.head.shorthand)
-
-            merge_base = self.repo.merge_base(current_branch.target, merge_branch.target)
-            current_branch_tree = self.repo.get(current_branch.target).tree
-            merge_branch_tree = self.repo.get(merge_branch.target).tree
-            merge_base_tree = self.repo.get(merge_base).tree
-
-            self.repo.checkout(current_branch)
-
-            tree_id = self.repo.merge_trees(merge_base_tree, current_branch_tree, merge_branch_tree).write_tree(self.repo)
-            merge_message = self.repo.revparse_single(str(merge_branch.target)).message
-
-            self.repo.create_commit(
-                current_branch.name,
-                self.repo.default_signature,
-                self.repo.default_signature,
-                merge_message,
-                tree_id,
-                [current_branch.target])
-
+            result = "Merge commits in {} mode from branch {} to {}".format(
+                self.merge_method,
+                merge_branch.name,
+                current_branch.name
+            )
+            try:
+                if self.merge_method == "merge":
+                    self.repo.merge(merge_branch.target)
+                    tree = self.repo.index.write_tree()
+                    self.repo.create_commit(
+                        current_branch.name,
+                        self.repo.default_signature,
+                        self.repo.default_signature,
+                        "Merge branch {}".format(branch_name),
+                        tree,
+                        [current_branch.target, merge_branch.target])
+                elif self.merge_method == "rebase":
+                    # rebase and merge a branch.
+                    self.repo.checkout(current_branch)
+                    result = get_command_result("cd {}; git rebase {}".format(self.repo_root, merge_branch.name))
+                elif self.merge_method == "squash":
+                    # merge a branch and squash target all commits into one commit.
+                    merge_base = self.repo.merge_base(current_branch.target, merge_branch.target)
+                    current_branch_tree = self.repo.get(current_branch.target).tree
+                    merge_branch_tree = self.repo.get(merge_branch.target).tree
+                    merge_base_tree = self.repo.get(merge_base).tree
+                    self.repo.checkout(current_branch)
+                    index = self.repo.merge_trees(merge_base_tree, current_branch_tree, merge_branch_tree)
+                    tree = index.write_tree(self.repo)
+                    commit = self.repo.create_commit(
+                        current_branch.name,
+                        self.repo.default_signature,
+                        self.repo.default_signature,
+                        "Squash merge branch {}".format(branch_name),
+                        tree,
+                        [current_branch.target])
+                    self.repo.reset(commit, pygit2.GIT_RESET_HARD)
+                else:
+                    message_to_emacs("Unknown merge method.")
+                    return
+            except Exception as err:
+                result = "Failed to merge commits in {} mode from branch {} to {}, Error: {}".format(
+                    self.merge_method,
+                    merge_branch.name,
+                    current_branch.name,
+                    err
+                )
             self.fetch_log_info()
-
-            message_to_emacs("Rebase commits from branch {} to {}".format(merge_branch.name, current_branch.name))
+            message_to_emacs(result)
 
     @QtCore.pyqtSlot(int)
     def show_stash_diff(self, stash_index):
