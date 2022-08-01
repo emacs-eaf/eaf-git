@@ -147,7 +147,7 @@
       ("c"      ("js_log_cherry_pick" "Copyto branch"))
       ("x"      ("js_log_copy_commit_url" "Copy commit url"))
       ("X"      ("js_log_copy_commit_id" "Copy commit id"))
-      ("b"      ("py_log_rebase_branch" "Rebase and merge from other branch"))
+      ("b"      ("py_log_merge_branch" "Merge from other branch"))
       ("r"      ("js_log_revert_commit" "Revert current"))
       ("R"      ("js_log_revert_to" "Revert all commits above"))
       ("z"      ("js_log_reset_last" "Reset last"))
