@@ -274,7 +274,7 @@ will be added if not present."
   :type '(choice (const :tag "Expanded" "expanded")
                  (const :tag "Collapsed" "collapsed")))
 
-(defcustom eaf-git-unpushed-initial-state "collapsed"
+(defcustom eaf-git-unpushed-initial-state "expanded"
   "The default state for the unpushed commits."
   :type '(choice (const :tag "Expanded" "expanded")
                  (const :tag "Collapsed" "collapsed")))
