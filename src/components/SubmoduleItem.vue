@@ -53,7 +53,7 @@
  }
  
  .submodule-hash {
-   
+   width: 360px;
  }
 </style>
 
