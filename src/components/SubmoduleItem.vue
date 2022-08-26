@@ -54,6 +54,7 @@
  
  .submodule-hash {
    width: 400px;
+   text-align: end;
  }
 </style>
 
