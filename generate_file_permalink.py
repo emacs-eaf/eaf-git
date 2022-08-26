@@ -29,10 +29,17 @@ def generate_file_permalink(file, start_line, end_line):
     head_tree = str(repo.head.target)
     repo_root = get_project_path(file)
         
+    repo_info_list = file.split(repo_root)
+    permalink_file = ""
+    if len(repo_info_list) == 1:
+        permalink_file = os.path.basename(repo_info_list[0])
+    elif len(repo_info_list) == 2:
+        permalink_file = repo_info_list[1].lstrip("/")
+    
     if end_line == "":
-        return "{}/blob/{}/{}#L{}".format(origin_url, head_tree, file.split(repo_root)[1].lstrip('/'), start_line)
+        return "{}/blob/{}/{}#L{}".format(origin_url, head_tree, permalink_file, start_line)
     else:
-        return "{}/blob/{}/{}#L{}-#L{}".format(origin_url, head_tree, file.split(repo_root)[1].lstrip('/'), start_line, end_line)
+        return "{}/blob/{}/{}#L{}-#L{}".format(origin_url, head_tree, permalink_file, start_line, end_line)
 
 if __name__ == "__main__":
     print(generate_file_permalink(*sys.argv[1:]), end='', flush=True)
