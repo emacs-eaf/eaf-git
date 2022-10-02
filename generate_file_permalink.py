@@ -21,10 +21,7 @@ def get_project_path(filepath):
 def generate_file_permalink(file, start_line, end_line):
     repo = Repository(file)
     remote_default = next(repo.config.get_multivar("remote.pushdefault"), "origin")
-    
-    origin_url = parse(repo.remotes[remote_default].url).url2https
-    if origin_url.endswith(".git"):
-        origin_url = origin_url[:-len(".git")]
+    origin_url = get_git_https_url(repo.remotes[remote_default].url)
     
     head_tree = str(repo.head.target)
     repo_root = get_project_path(file)
@@ -40,6 +37,19 @@ def generate_file_permalink(file, start_line, end_line):
         return "{}/blob/{}/{}#L{}".format(origin_url, head_tree, permalink_file, start_line)
     else:
         return "{}/blob/{}/{}#L{}-#L{}".format(origin_url, head_tree, permalink_file, start_line, end_line)
-
+    
+def get_git_https_url(url: str):
+    from giturlparse import parse
+    
+    if url.startswith("git@") and not url.endswith(".git"):
+        url = url + ".git"
+        
+    https_url = parse(url).url2https
+    
+    if https_url.endswith(".git"):
+        https_url = https_url[:-len(".git")]
+        
+    return https_url
+        
 if __name__ == "__main__":
     print(generate_file_permalink(*sys.argv[1:]), end='', flush=True)

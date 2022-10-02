@@ -559,13 +559,8 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot()
     def remote_copy_url(self):
-        from giturlparse import parse
-
         remote_default = next(self.repo.config.get_multivar("remote.pushdefault"), "origin")
-        origin_url = parse(self.repo.remotes[remote_default].url).url2https
-
-        if origin_url.endswith(".git"):
-            origin_url = origin_url[:-len(".git")]
+        origin_url = get_git_https_url(self.repo.remotes[remote_default].url)
 
         eval_in_emacs('kill-new', [origin_url])
         message_to_emacs("Copy {}".format(origin_url))
@@ -1881,13 +1876,8 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot(str)
     def copy_commit_url(self, commit_id):
-        from giturlparse import parse
-
         remote_default = next(self.repo.config.get_multivar("remote.pushdefault"), "origin")
-        origin_url = parse(self.repo.remotes[remote_default].url).url2https
-
-        if origin_url.endswith(".git"):
-            origin_url = origin_url[:-len(".git")]
+        origin_url = get_git_https_url(self.repo.remotes[remote_default].url)
 
         commit_url = "{}/commit/{}".format(origin_url, commit_id)
 
@@ -2334,3 +2324,17 @@ class HighlightDiffThread(QThread):
 
         diff_string = self.target.highlight_diff(diff_string)
         self.fetch_result.emit(self.type, self.file, self.tick, diff_string, patch_set)
+
+def get_git_https_url(url: str):
+    from giturlparse import parse
+    
+    if url.startswith("git@") and not url.endswith(".git"):
+        url = url + ".git"
+        
+    https_url = parse(url).url2https
+    
+    if https_url.endswith(".git"):
+        https_url = https_url[:-len(".git")]
+        
+    return https_url
+        
