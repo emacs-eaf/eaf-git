@@ -1919,8 +1919,12 @@ class AddSubmoduleThread(QThread):
         self.callback = AddSubmoduleCallback(self.url)
         self.callback.finished.connect(lambda : self.finished.emit(self.url, self.path))
 
-        self.repo.add_submodule(self.url, self.path, callbacks=self.callback)
-        self.callback.finished.emit()
+        try:
+            self.repo.add_submodule(self.url, self.path, callbacks=self.callback)
+            self.callback.finished.emit()
+        except:
+            import traceback
+            message_to_emacs(traceback.format_exc())
 
 class FetchLogThread(QThread):
 
