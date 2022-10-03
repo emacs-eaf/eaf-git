@@ -50,6 +50,7 @@ from copy import copy
 from datetime import datetime
 from pathlib import Path
 from io import StringIO
+from app.git.utils import get_git_https_url
 import os
 import json
 import shutil
@@ -2325,16 +2326,3 @@ class HighlightDiffThread(QThread):
         diff_string = self.target.highlight_diff(diff_string)
         self.fetch_result.emit(self.type, self.file, self.tick, diff_string, patch_set)
 
-def get_git_https_url(url: str):
-    from giturlparse import parse
-    
-    if url.startswith("git@") and not url.endswith(".git"):
-        url = url + ".git"
-        
-    https_url = parse(url).url2https
-    
-    if https_url.endswith(".git"):
-        https_url = https_url[:-len(".git")]
-        
-    return https_url
-        
