@@ -5,6 +5,9 @@
     <div class="submodule-name">
       {{ source.name }}
     </div>
+    <div class="submodule-head">
+      {{ source.head }}
+    </div>
     <div class="submodule-date">
       {{ source.date }}
     </div>
@@ -45,9 +48,19 @@
 
  .submodule-name {
    flex: 1;
+   white-space: nowrap;
+ }
+ 
+ .submodule-head {
+   flex: 1;
+   
+   overflow: hidden;
+   white-space: nowrap;
+   text-overflow: ellipsis;
  }
  
  .submodule-date {
+   padding-left: 20px;
    padding-right: 20px;
    width: 150px;
  }

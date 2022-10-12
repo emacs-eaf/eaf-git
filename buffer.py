@@ -2040,16 +2040,20 @@ class FetchSubmoduleThread(QThread):
             
             submodule_path = os.path.join(self.repo_root, submodule_name)
             submodule_last_commit_date = ""
+            submodule_last_commit_message = ""
             
             try:
                 submodule_repo = Repository(submodule_path)
-                submodule_last_commit_date = pretty_date(int(submodule_repo.revparse_single(str(submodule_repo.head.target)).commit_time))
+                submodule_last_commit = submodule_repo.revparse_single(str(submodule_repo.head.target))
+                submodule_last_commit_date = pretty_date(int(submodule_last_commit.commit_time))
+                submodule_last_commit_message = bytes_decode(submodule_last_commit.raw_message).splitlines()[0]
             except:
                 print("Fetch last commit date failed on submodule {}".format(submodule_path))
 
             submodule_infos.append({
                 "index": index,
                 "name": submodule_name,
+                "head": submodule_last_commit_message,
                 "date": submodule_last_commit_date,
                 "head_id": head_id,
                 "foregroundColor": "",
