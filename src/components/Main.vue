@@ -315,6 +315,7 @@
      window.searchSubmodulesCancel = this.searchSubmodulesCancel;
      window.searchSubmodulesJumpNext = this.searchSubmodulesJumpNext;
      window.searchSubmodulesJumpPrev = this.searchSubmodulesJumpPrev;
+     window.fetchPrList = this.fetchPrList;
 
      if (this.untrackStatusInfo) {
        this.selectItemType = "untrack";
@@ -889,6 +890,24 @@
        this.searchSubmoduleMatchIndex = this.currentSubmoduleIndex;
      },
 
+     fetchPrList(url) {
+       fetch(url)
+         .then(function(response) {
+           // When the page is loaded convert it to text
+           return response.text()
+         })
+         .then(function(html) {
+           var parser = new DOMParser()
+           var doc = parser.parseFromString(html, "text/html")
+           var prList = Array.from(doc.getElementsByClassName('Link--primary'))
+
+           window.pyobject.read_pr(prList.map(pr => [pr.id, pr.innerHTML]))
+         })
+         .catch(function(err) {
+           console.log('Failed to fetch page: ', err);
+         });
+     },
+
      searchSubmodulesFinish() {
        this.searchSubmoduleStartIndex = -1;
        this.searchSubmoduleKeyword = "";
@@ -1232,7 +1251,7 @@
    display: flex;
    flex-wrap: wrap;
    line-height: 1.5;
-   
+
    flex-direction: row;
    align-items: center;
 
@@ -1259,4 +1278,3 @@
    background-color: var(--select-color);
  }
 </style>
-

@@ -543,20 +543,42 @@ class AppBuffer(BrowserBuffer):
             
     @QtCore.pyqtSlot()
     def status_fetch_pr(self):
-        self.send_input_message("Fetch pull request, please input PR number: ", "fetch_pr")
+        remote_default = next(self.repo.config.get_multivar("remote.pushdefault"), "origin")
+        origin_url = get_git_https_url(self.repo.remotes[remote_default].url)
         
-    def handle_fetch_pr(self, pr_number):
-        message_to_emacs("Fetch PR {} ...".format(pr_number))
+        message_to_emacs("Fetch PR list...")
+        self.buffer_widget.eval_js_function("fetchPrList", "{}/pulls".format(origin_url))
         
-        result = get_command_result("cd {}; git fetch origin pull/{}/head:pr_{} && git checkout pr_{}".format(
-            self.repo_root, 
-            pr_number,
-            pr_number,
-            pr_number))
+    @QtCore.pyqtSlot(list)
+    def read_pr(self, pr_list):
+        if len(pr_list) > 0:
+            self.pr_ids = []
+            self.pr_names = []
+            for pr in pr_list:
+                self.pr_ids.append(pr[0].split("_")[1])
+                self.pr_names.append(pr[1])
+            
+            self.send_input_message("Fetch pull request, please input PR number: ", "fetch_pr", "list", completion_list=self.pr_names)
+        else:
+            message_to_emacs("No PR found in repo.")
         
-        self.update_git_info()
-        
-        message_to_emacs("Fetch PR {} done.".format(pr_number))
+    def handle_fetch_pr(self, pr_name):
+        try:
+            pr_number = self.pr_ids[self.pr_names.index(pr_name)]
+            
+            message_to_emacs("Fetch PR {} ...".format(pr_number))
+            
+            result = get_command_result("cd {}; git fetch origin pull/{}/head:pr_{} && git checkout pr_{}".format(
+                self.repo_root, 
+                pr_number,
+                pr_number,
+                pr_number))
+            
+            self.update_git_info()
+            
+            message_to_emacs("Fetch PR {} done.".format(pr_number))
+        except:
+            message_to_emacs("Input wrong PR: {}".format(pr_name))
 
     @QtCore.pyqtSlot()
     def remote_copy_url(self):
