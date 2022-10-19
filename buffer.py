@@ -1386,17 +1386,25 @@ class AppBuffer(BrowserBuffer):
         message_to_emacs("Commit stage files with: {}".format(message))
 
     def handle_commit_all_files(self, message):
-        self.repo.index.add_all()
-        self.repo.index.write()
-        self.handle_commit(message)
-
-        self.fetch_unpush_info()
-        self.fetch_log_info()
-        self.fetch_submodule_info()
-
-        self.buffer_widget.eval_js_function("updateSelectInfo", [], [], [], "", -1)
-
-        message_to_emacs("Commit stage files with: {}".format(message))
+        try:
+            self.repo.index.add_all()
+            self.repo.index.write()
+            self.handle_commit(message)
+            
+            self.fetch_unpush_info()
+            self.fetch_log_info()
+            self.fetch_submodule_info()
+            
+            self.buffer_widget.eval_js_function("updateSelectInfo", [], [], [], "", -1)
+            
+            message_to_emacs("Commit stage files with: {}".format(message))
+            
+            return True
+        except pygit2.GitError:
+            import traceback
+            message_to_emacs(traceback.format_exc())
+            
+        return False
 
     def handle_commit(self, message):
         tree = self.repo.index.write_tree()
@@ -1420,8 +1428,8 @@ class AppBuffer(BrowserBuffer):
             parent)
 
     def handle_commit_and_push(self, message):
-        self.handle_commit_all_files(message)
-        self.status_push()
+        if self.handle_commit_all_files(message):
+            self.status_push()
 
     def clean_dir_without_files(self, begin_path):
         # only clean directory inside repo directory.
