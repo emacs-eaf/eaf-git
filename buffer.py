@@ -1100,7 +1100,7 @@ class AppBuffer(BrowserBuffer):
         
         self.repo.checkout(self.repo.lookup_reference(self.repo.head.name), paths=paths, strategy=GIT_CHECKOUT_FORCE)
         
-        eval_in_emacs("eaf-git-checkout-files", checkout_file_paths)
+        eval_in_emacs("eaf-git-checkout-files", [checkout_file_paths])
 
     def git_checkout_branch(self, branch_name):
         branch = self.repo.lookup_branch(branch_name)
