@@ -722,7 +722,12 @@ class AppBuffer(BrowserBuffer):
 
     def handle_log_revert_commit(self):
         head = self.repo.head.peel()
-        revert_index = self.repo.revert_commit(self.revert_commit, head)
+        try:
+            revert_index = self.repo.revert_commit(self.revert_commit, head)
+        except:
+            # When revert commit is merge commit, we need set mainline with 1 to make sure revert successfully.
+            revert_index = self.repo.revert_commit(self.revert_commit, head, 1)
+            
         parent, ref = self.repo.resolve_refish(refish=self.repo.head.name)
         commit_message = bytes_decode(self.revert_commit.raw_message)
         self.repo.create_commit(
