@@ -649,6 +649,8 @@ class AppBuffer(BrowserBuffer):
             self.handle_log_select_merge_method(result_content)
         elif callback_tag == "log_merge_branch":
             self.handle_log_merge_branch(result_content)
+        elif callback_tag == "log_commit_amend":
+            self.handle_log_commit_amend(result_content)
         elif callback_tag == "search_log":
             self.handle_search_log(result_content)
         elif callback_tag == "search_submodule":
@@ -1664,7 +1666,19 @@ class AppBuffer(BrowserBuffer):
         self.log_compare_branch = branch
         self.fetch_compare_log_info(branch)
         message_to_emacs("Show compare branch {}".format(branch))
-
+        
+    @QtCore.pyqtSlot(str)
+    def log_commit_amend(self, commit_amend_id):
+        self.commit_amend_id = commit_amend_id
+        self.send_input_message("Commit amend to: ", "log_commit_amend", "string")
+        
+    def handle_log_commit_amend(self, new_message):
+        self.repo.amend_commit(self.commit_amend_id, "HEAD", message=new_message)
+        message_to_emacs("Commit to: {}".format(new_message))
+        self.fetch_unpush_info()
+        self.fetch_status_info()
+        self.fetch_log_info()
+            
     @QtCore.pyqtSlot()
     def branch_new(self):
         self.send_input_message("New branch: ", "new_branch")

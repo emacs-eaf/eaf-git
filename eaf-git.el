@@ -152,6 +152,7 @@
       ("R"      ("js_log_revert_to" "Revert all commits above"))
       ("z"      ("js_log_reset_last" "Reset last"))
       ("Z"      ("js_log_reset_to" "Reset all commits above"))
+      ("a"      ("js_log_commit_amend" "Commit amend"))
       ("j"      ("js_log_select_next" "Next"))
       ("k"      ("js_log_select_prev" "Prev"))
       ("J"      ("js_log_select_last" "Last"))

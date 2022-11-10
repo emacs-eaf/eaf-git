@@ -135,6 +135,10 @@
        that.logCopyCommitID();
      });
 
+     this.$root.$on("log_commit_amend", function () {
+       that.logCommitAmend();
+     });
+     
      this.$root.$on("log_copy_commit_url", function () {
        that.logCopyCommitUrl();
      });
@@ -206,6 +210,10 @@
        }, () => {
          that.pyobject.send_message_to_emacs(`Copy ${commitId} failed.`);
        });
+     },
+     
+     logCommitAmend() {
+       this.pyobject.log_commit_amend(this.logInfo[this.currentLogIndex].id);
      },
      
      logCopyCommitUrl() {
