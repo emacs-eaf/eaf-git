@@ -593,93 +593,18 @@ class AppBuffer(BrowserBuffer):
         message_to_emacs(message)
 
     def handle_input_response(self, callback_tag, result_content):
-        if callback_tag == "copy_changes_file_to_mirror":
-            self.handle_copy_changes_file_to_mirror(result_content)
-        elif callback_tag == "delete_untrack_file":
-            self.handle_delete_untrack_file()
-        elif callback_tag == "delete_unstage_file":
-            self.handle_delete_unstage_file()
-        elif callback_tag == "delete_stage_file":
-            self.handle_delete_stage_file()
-        elif callback_tag == "delete_untrack_files":
-            self.handle_delete_untrack_files()
-        elif callback_tag == "delete_unstage_files":
-            self.handle_delete_unstage_files()
-        elif callback_tag == "delete_stage_files":
-            self.handle_delete_stage_files()
-        elif callback_tag == "commit_stage_files":
-            self.handle_commit_stage_files(result_content)
-        elif callback_tag == "commit_all_files":
-            self.handle_commit_all_files(result_content)
-        elif callback_tag == "commit_and_push":
-            self.handle_commit_and_push(result_content)
-        elif callback_tag == "status_push":
-            self.handle_status_push_execute(result_content)
-        elif callback_tag == "checkout_all_files":
-            self.handle_checkout_all_files()
-        elif callback_tag == "new_branch":
-            self.handle_new_branch(result_content)
-        elif callback_tag == "rename_branch":
-            self.handle_rename_branch(result_content)
-        elif callback_tag == "delete_branch":
-            self.handle_delete_branch()
-        elif callback_tag == "stash_push":
-            self.handle_stash_push(result_content)
-        elif callback_tag == "stash_apply":
-            self.handle_stash_apply()
-        elif callback_tag == "stash_drop":
-            self.handle_stash_drop()
-        elif callback_tag == "stash_pop":
-            self.handle_stash_pop()
-        elif callback_tag == "log_show_compare_branch":
-            self.handle_log_show_compare_branch(result_content)
-        elif callback_tag == "log_hide_compare_branch":
-            self.handle_log_hide_compare_branch(result_content)
-        elif callback_tag == "log_revert_commit":
-            self.handle_log_revert_commit()
-        elif callback_tag == "log_revert_to_commit":
-            self.handle_log_revert_to_commit()
-        elif callback_tag == "log_reset_last":
-            self.handle_log_reset_last(result_content)
-        elif callback_tag == "log_reset_to":
-            self.handle_log_reset_to(result_content)
-        elif callback_tag == "log_cherry_pick":
-            self.handle_log_cherry_pick(result_content)
-        elif callback_tag == "log_select_merge_method":
-            self.handle_log_select_merge_method(result_content)
-        elif callback_tag == "log_merge_branch":
-            self.handle_log_merge_branch(result_content)
-        elif callback_tag == "log_commit_amend":
-            self.handle_log_commit_amend(result_content)
-        elif callback_tag == "search_log":
-            self.handle_search_log(result_content)
-        elif callback_tag == "search_submodule":
-            self.handle_search_submodule(result_content)
-        elif callback_tag == "select_submodule_type":
-            self.handle_select_submodule_type(result_content)
-        elif callback_tag == "submodule_add_url":
-            self.handle_submodule_add_url(result_content)
-        elif callback_tag == "submodule_add_path":
-            self.handle_submodule_add_path(result_content)
-        elif callback_tag == "submodule_remove":
-            self.handle_submodule_remove()
-        elif callback_tag == "submodule_update":
-            self.handle_submodule_update()
-        elif callback_tag == "submodule_rollback":
-            self.handle_submodule_rollback()
-        elif callback_tag == "branch_fetch":
-            self.handle_branch_fetch(result_content)
-        elif callback_tag == "branch_fetch_all":
-            self.handle_branch_fetch_all()
-        elif callback_tag == "branch_create_from_remote":
-            self.handle_branch_create_from_remote(result_content)
-        elif callback_tag == "discard_unstage_hunk":
-            self.handle_discard_unstage_hunk()
-        elif callback_tag == "discard_stage_hunk":
-            self.handle_discard_stage_hunk()
-        elif callback_tag == "fetch_pr":
-            self.handle_fetch_pr(result_content)
-
+        from inspect import signature
+        
+        handle_function_name = "handle_{}".format(callback_tag)
+        if hasattr(self, handle_function_name):
+            handle_function = getattr(self, handle_function_name)
+            function_argument_number = len(signature(getattr(self, handle_function_name)).parameters)
+            
+            if function_argument_number == 1:
+                handle_function(result_content)
+            else:
+                handle_function()
+                
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
         if callback_tag == "search_log":
