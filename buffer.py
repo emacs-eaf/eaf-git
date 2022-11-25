@@ -1498,6 +1498,13 @@ class AppBuffer(BrowserBuffer):
         message_to_emacs(message)
         
     @QtCore.pyqtSlot()
+    def open_in_browser(self):
+        remote_default = next(self.repo.config.get_multivar("remote.pushdefault"), "origin")
+        origin_url = get_git_https_url(self.repo.remotes[remote_default].url)
+        
+        eval_in_emacs("eaf-open-browser", [origin_url])
+    
+    @QtCore.pyqtSlot()
     def status_push(self):
         self.handle_status_push_execute("origin/{}".format(self.repo.head.shorthand))
 

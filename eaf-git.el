@@ -113,6 +113,7 @@
       ))
     ("Dashboard"
      (
+      ("x"  ("py_open_in_browser" "Open in browser"))
       ("u"  ("py_status_push" "Push"))
       ("U"  ("py_status_push_branch" "Push branch"))
       ("f"  ("js_status_view_file" "View file"))
@@ -123,7 +124,7 @@
       ("y"  ("py_status_commit_and_push" "Commit and push"))
       ("C"  ("py_status_commit_all" "Commit all"))
       ("c"  ("py_status_commit_stage" "Commit stage"))
-      ("x"  ("py_status_stash_push" "Stash push"))
+      ("P"  ("py_status_stash_push" "Stash push"))
       ("z"  ("py_status_checkout_all" "Revoke changes"))
       ("m"  ("py_status_copy_change_files_to_mirror_repo" "Copy to mirror"))
       ("a"  ("py_status_fetch_pr" "Fetch PR"))
