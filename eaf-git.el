@@ -285,6 +285,10 @@ will be added if not present."
   "Show the whole diff for all untracked files"
   :type 'boolean)
 
+(defvar eaf-git-executable
+  (executable-find "git")
+  "Git executable.")
+
 (add-to-list 'eaf-app-binding-alist '("git" . eaf-git-keybinding))
 
 (setq eaf-git-module-path (concat (file-name-directory load-file-name) "buffer.py"))
@@ -384,23 +388,39 @@ The input buffer contents are expected to be raw git output."
     (select-window (get-buffer-window log-buffer))
     ))
 
+(defun eaf-git-error (string &rest args)
+  "Signal a GIT error.
+
+Signal an error with `eaf-git-error' type.
+
+STRING is a `format' string, and ARGS are the formatted objects."
+  (signal 'eaf-git-error (list (apply #'format string args))))
+
+(defun eaf-git-run (command &rest args)
+  "Run git COMMAND with ARGS."
+  (with-temp-buffer
+    (let ((exit-code
+           (apply
+            'call-process
+            (append
+             (list eaf-git-executable nil (current-buffer) nil)
+             (list command)
+             args))))
+      (if (zerop exit-code)
+          (buffer-string)
+        (eaf-git-error "git %s\n%s" (string-join args " ") (buffer-string))))))
+
 (defun eaf-git-push ()
   (interactive)
-  (message "Git push...")
-  (save-window-excursion
-    (async-shell-command "git push")))
+  (eaf-git-run "push"))
 
 (defun eaf-git-pull ()
   (interactive)
-  (message "Git pull...")
-  (save-window-excursion
-    (async-shell-command "git pull --rebase")))
+  (eaf-git-run "pull" "--rebase"))
 
 (defun eaf-git-clone (url)
   (interactive "sGit clone: ")
-  (message "Git %s clone..." url)
-  (save-window-excursion
-    (async-shell-command (format "git clone %s" url))))
+  (eaf-git-run "clone" url))
 
 (defun eaf-git-show-history ()
   (interactive)
