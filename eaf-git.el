@@ -1,4 +1,4 @@
-;;; eaf-git.el --- Git client
+;;; eaf-git.el --- Git client -*- lexical-binding: t; -*-
 
 ;; Filename: eaf-git.el
 ;; Description: Git client
@@ -384,23 +384,32 @@ The input buffer contents are expected to be raw git output."
     (select-window (get-buffer-window log-buffer))
     ))
 
+(defun eaf-git-run (prompt command)
+  (message prompt)
+  (save-window-excursion
+    (let ((output-content ""))
+      (make-process
+       :name "eaf-git-subprocess"
+       :command command
+       :filter (lambda (process output)
+                 (setq output-content (format "%s%s\n" output-content output)))
+       :sentinel (lambda (process event)
+                   (message (string-trim output-content))
+                   )))))
+
 (defun eaf-git-push ()
   (interactive)
-  (message "Git push...")
-  (save-window-excursion
-    (async-shell-command "git push")))
+  (eaf-git-run "Git push..." (list "git" "push")))
 
 (defun eaf-git-pull ()
   (interactive)
-  (message "Git pull...")
-  (save-window-excursion
-    (async-shell-command "git pull --rebase")))
+  (eaf-git-run "Git pull..." (list "git" "pull" "--rebase")))
 
 (defun eaf-git-clone (url)
   (interactive "sGit clone: ")
-  (message "Git %s clone..." url)
-  (save-window-excursion
-    (async-shell-command (format "git clone %s" url))))
+  (eaf-git-run
+   (format "Git %s clone..." url)
+   (list "git" "clone" url)))
 
 (defun eaf-git-show-history ()
   (interactive)
