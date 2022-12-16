@@ -205,6 +205,10 @@
   "The keybinding of EAF git client."
   :type 'cons)
 
+(defcustom eaf-git-diff-render-by-delta nil
+  "Render diff by `delta' program, default is disable."
+  :type 'bool)
+
 (defcustom eaf-git-delta-executable "delta"
   "The delta executable on your system to be used by eaf-git."
   :type 'string)
@@ -342,6 +346,7 @@ Comparison is done with `equal'."
          (in-hunk
           (add-text-properties (match-beginning 0) (match-end 0)
                                '(invisible t))))))))
+
 (defun eaf-git-call-delta-and-convert-ansi-escape-sequences ()
   "Call delta on buffer contents and convert ANSI escape sequences to overlays.
 
@@ -374,6 +379,7 @@ The input buffer contents are expected to be raw git output."
     (goto-char (point-min))
 
     (if (and
+         eaf-git-diff-render-by-delta
          (ignore-errors (require 'xterm-color))
          (executable-find eaf-git-delta-executable))
         (eaf-git-call-delta-and-convert-ansi-escape-sequences))
