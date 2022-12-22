@@ -1484,7 +1484,7 @@ class AppBuffer(BrowserBuffer):
         remote_branch_names = self.repo.listall_branches(GIT_BRANCH_REMOTE)
         self.send_input_message("Push remote: ", "status_push", "list", completion_list=remote_branch_names)
 
-    def handle_status_push_execute(self, remote):
+    def handle_status_push(self, remote):
         message_to_emacs("Git push {} to {}...".format(self.repo.head.name, remote))
         thread = GitPushThread(self.repo, self.repo_root, remote)
         thread.push_result.connect(self.handle_status_push_report)
@@ -1506,7 +1506,7 @@ class AppBuffer(BrowserBuffer):
     
     @QtCore.pyqtSlot()
     def status_push(self):
-        self.handle_status_push_execute("origin/{}".format(self.repo.head.shorthand))
+        self.handle_status_push("origin/{}".format(self.repo.head.shorthand))
 
     @QtCore.pyqtSlot()
     def status_checkout_all(self):
