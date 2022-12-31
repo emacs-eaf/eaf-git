@@ -300,6 +300,15 @@ will be added if not present."
   (setq eaf-git-window-configuration (current-window-configuration)))
 
 (defun eaf-git-exit (repo-path)
+  ;; Kill all diff buffers.
+  (dolist (filename eaf-git-diff-buffers)
+    (cl-dolist (buffer (buffer-list))
+      (when (string-equal (buffer-file-name buffer) filename)
+        (kill-buffer buffer)
+        (cl-return))))
+
+  (setq-local eaf-git-diff-buffers nil)
+
   (kill-buffer)
   (eaf-git-restore-window-configuration)
   (message "Exit git repository %s" repo-path))
@@ -359,9 +368,14 @@ The input buffer contents are expected to be raw git output."
     (if eaf-git-delta-hide-plus-minus-markers
         (eaf-git-delta-hide-plus-minus-markers))))
 
+(defvar-local eaf-git-diff-buffers nil)
+
 (defun eaf-git-show-commit-diff (diff-string)
   (let ((log-buffer (current-buffer))
         (diff-buffer (make-temp-file "eaf-git-commit-diff")))
+    ;; Add to diff buffer list.
+    (add-to-list 'eaf-git-diff-buffers diff-buffer t)
+
     ;; Split window.
     (when (< (length (cl-remove-if #'window-dedicated-p (window-list))) 2) ;we need remove dedicated window, such as sort-tab window
       (split-window-below))
