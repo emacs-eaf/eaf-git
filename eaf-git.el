@@ -242,7 +242,7 @@ will be added if not present."
   :type '(choice (const :tag "Hide" t)
                  (const :tag "Show" nil)))
 
-(defcustom eaf-git-light-highlight-style "stata-light"
+(defcustom eaf-git-light-highlight-style "emacs"
   "The default light syntax highlight style."
   :type 'string)
 
