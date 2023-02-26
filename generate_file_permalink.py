@@ -1,6 +1,5 @@
 import os
 import sys
-from giturlparse import parse
 from pygit2 import Repository
 from utils import get_git_https_url
 
