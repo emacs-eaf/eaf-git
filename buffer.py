@@ -27,8 +27,6 @@ from core.utils import get_emacs_func_result, get_emacs_var, get_emacs_vars, Pos
 from charset_normalizer import from_path, from_bytes
 from pygit2 import (Repository, IndexEntry, Oid,
                     GIT_BRANCH_REMOTE,
-                    GIT_CHECKOUT_ALLOW_CONFLICTS,
-                    GIT_SORT_TOPOLOGICAL,
                     GIT_STATUS_CURRENT,
                     GIT_STATUS_INDEX_NEW,
                     GIT_STATUS_INDEX_MODIFIED,
@@ -43,16 +41,12 @@ from pygit2 import (Repository, IndexEntry, Oid,
                     GIT_STATUS_WT_UNREADABLE,
                     GIT_STATUS_IGNORED,
                     GIT_STATUS_CONFLICTED,
-                    GIT_CHECKOUT_FORCE,
-                    discover_repository)
+                    GIT_CHECKOUT_FORCE)
 from unidiff import PatchSet, Hunk, LINE_TYPE_ADDED, LINE_TYPE_REMOVED, LINE_TYPE_CONTEXT
 from copy import copy
-from datetime import datetime
-from pathlib import Path
 from io import StringIO
 from app.git.utils import get_git_https_url
 import os
-import json
 import shutil
 import pygit2
 from pygit2._pygit2 import GitError
@@ -345,7 +339,7 @@ class AppBuffer(BrowserBuffer):
 
     @PostGui()
     def update_status_info(self, stage_status, unstage_status, untrack_status, select=None):
-        if select == None:
+        if select is None:
             self.buffer_widget.eval_js_function("updateStatusInfo", stage_status, unstage_status, untrack_status)
         else:
             select_item_index = -1
@@ -568,7 +562,7 @@ class AppBuffer(BrowserBuffer):
             
             message_to_emacs("Fetch PR {} ...".format(pr_number))
             
-            result = get_command_result("cd {}; git fetch origin pull/{}/head:pr_{} && git checkout pr_{}".format(
+            get_command_result("cd {}; git fetch origin pull/{}/head:pr_{} && git checkout pr_{}".format(
                 self.repo_root, 
                 pr_number,
                 pr_number,
@@ -851,8 +845,7 @@ class AppBuffer(BrowserBuffer):
 
     def highlight_diff(self, content):
         from pygments import highlight
-        from pygments.styles import get_all_styles
-        from pygments.lexers import PythonLexer, get_lexer_for_filename, html, guess_lexer
+        from pygments.lexers import guess_lexer
         from pygments.formatters import HtmlFormatter
 
         return highlight(content, guess_lexer(content), HtmlFormatter(full=True, style=self.highlight_style))
@@ -1107,9 +1100,7 @@ class AppBuffer(BrowserBuffer):
 
         self.git_add_file(file_info["file"])
 
-        if status_is_include(stage_status, file_info):
-            refersh_status = True
-        else:
+        if not status_is_include(stage_status, file_info):
             stage_status.append(file_info)
         untrack_file_index = untrack_status.index(file_info)
         untrack_status.remove(file_info)
@@ -1238,7 +1229,6 @@ class AppBuffer(BrowserBuffer):
 
         for untrack_file in self.untrack_status:
             untrack_path = os.path.join(self.repo_root, untrack_file["file"])
-            parent_dir = os.path.dirname(untrack_path)
             os.remove(untrack_path)
             self.clean_dir_without_files(untrack_path)
 
@@ -1385,7 +1375,6 @@ class AppBuffer(BrowserBuffer):
         untrack_file_index = untrack_status.index(self.delete_untrack_mark_file)
         untrack_status.remove(self.delete_untrack_mark_file)
         untrack_path = os.path.join(self.repo_root, self.delete_untrack_mark_file["file"])
-        parent_dir = os.path.dirname(untrack_path)
         os.remove(untrack_path)
         self.clean_dir_without_files(untrack_path)
 
@@ -1728,7 +1717,6 @@ class AppBuffer(BrowserBuffer):
         self.send_input_message("Remove submodule {} ?".format(module_path), "submodule_remove", "yes-or-no")
 
     def handle_submodule_remove(self):
-        import subprocess
         import configparser
 
         # Remove submodule path if submodule path exists in index.
@@ -2043,7 +2031,7 @@ class FetchSubmoduleThread(QThread):
                 "backgroundColor": ""
             })
             
-            cache_lines.append("{} {}\n".format(id, submodule_name, head_id))
+            cache_lines.append("{} {} {}\n".format(id, submodule_name, head_id))
 
             index += 1
 
@@ -2225,7 +2213,7 @@ class GitFetchThread(QThread):
 
     def run(self):
         command = "cd {}; git fetch".format(self.repo_root)
-        if self.remote_branch != None:
+        if self.remote_branch is not None:
             command = "cd {}; git fetch origin {}".format(self.repo_root, self.remote_branch)
         
         self.fetch_result.emit(self.remote_branch, get_command_result(command).strip())
@@ -2262,10 +2250,12 @@ class HighlightDiffThread(QThread):
         self.file = file
         self.tick = tick
 
+    def parse_diff_and_color(self, patch_set):
+        return parse_patch(patch_set, self.target.highlight_diff_strict)
+
     def run(self):
         diff_string = ""
         patch_set = []
-        parse_diff_and_color = lambda patch_set : parse_patch(patch_set, self.target.highlight_diff_strict)
 
         if self.type == "untrack" or self.target.repo.head_is_unborn:
             if self.file == "":
@@ -2295,24 +2285,24 @@ class HighlightDiffThread(QThread):
             if self.file == "":
                 diff_string = stage_diff.patch
                 self.target.raw_patch_set = PatchSet(diff_string)
-                patch_set = parse_diff_and_color(self.target.raw_patch_set)
+                patch_set = self.parse_diff_and_color(self.target.raw_patch_set)
             else:
                 patches = [patch for patch in stage_diff if patch.delta.new_file.path == self.file]
                 diff_string = "\n".join(map(lambda patch : NO_PREVIEW if is_binary(patch.data) else bytes_decode(patch.data), patches))
                 self.target.raw_patch_set = PatchSet(diff_string)
-                patch_set = parse_diff_and_color(self.target.raw_patch_set)
+                patch_set = self.parse_diff_and_color(self.target.raw_patch_set)
 
         elif self.type == "unstage":
             unstage_diff = self.target.repo.diff(cached=True)
             if self.file == "":
                 diff_string = unstage_diff.patch
                 self.target.raw_patch_set = PatchSet(diff_string)
-                patch_set = parse_diff_and_color(self.target.raw_patch_set)
+                patch_set = self.parse_diff_and_color(self.target.raw_patch_set)
             else:
                 patches = [patch for patch in unstage_diff if patch.delta.new_file.path == self.file]
                 diff_string = "\n".join(map(lambda patch : NO_PREVIEW if is_binary(patch.data) else bytes_decode(patch.data), patches))
                 self.target.raw_patch_set = PatchSet(diff_string)
-                patch_set = parse_diff_and_color(self.target.raw_patch_set)
+                patch_set = self.parse_diff_and_color(self.target.raw_patch_set)
 
         diff_string = self.target.highlight_diff(diff_string)
         self.fetch_result.emit(self.type, self.file, self.tick, diff_string, patch_set)
