@@ -23,7 +23,8 @@ from PyQt6 import QtCore
 from PyQt6.QtGui import QColor
 from PyQt6.QtCore import QThread, QTimer, QMimeDatabase
 from core.webengine import BrowserBuffer
-from core.utils import get_emacs_func_result, get_emacs_var, get_emacs_vars, PostGui, message_to_emacs, eval_in_emacs, interactive
+from core.utils import (get_emacs_func_result, get_emacs_var, get_emacs_vars, PostGui, message_to_emacs, eval_in_emacs, interactive,
+                        get_emacs_theme_foreground, get_emacs_theme_background)
 from charset_normalizer import from_path, from_bytes
 from pygit2 import (Repository, IndexEntry, Oid,
                     GIT_BRANCH_REMOTE,
@@ -325,6 +326,14 @@ class AppBuffer(BrowserBuffer):
             {"lastCommit": self.last_commit_message},
             self.get_keybinding_info())
         
+    @interactive
+    def update_theme(self):
+        self.theme_foreground_color = get_emacs_theme_foreground()
+        self.theme_background_color = get_emacs_theme_background()
+        self.buffer_widget.eval_js("document.body.style.background = '{}'; document.body.style.color = '{}'".format(
+            self.theme_background_color, self.theme_foreground_color))
+        self.init_vars()
+
     def fetch_status_info(self, adjust_selection=False):
         thread = FetchStatusThread(self.repo, self.repo_root, self.mime_db)
 
