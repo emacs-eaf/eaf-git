@@ -23,8 +23,7 @@ from PyQt6 import QtCore
 from PyQt6.QtGui import QColor
 from PyQt6.QtCore import QThread, QTimer, QMimeDatabase
 from core.webengine import BrowserBuffer
-from core.utils import (get_emacs_func_result, get_emacs_var, get_emacs_vars, PostGui, message_to_emacs, eval_in_emacs, interactive,
-                        get_emacs_theme_foreground, get_emacs_theme_background)
+from core.utils import (get_emacs_func_result, get_emacs_var, get_emacs_vars, PostGui, message_to_emacs, eval_in_emacs, interactive)
 from charset_normalizer import from_path, from_bytes
 from pygit2 import (Repository, IndexEntry, Oid,
                     GIT_BRANCH_REMOTE,
@@ -672,7 +671,9 @@ class AppBuffer(BrowserBuffer):
     @QtCore.pyqtSlot(str)
     def log_revert_to(self, commit_id):
         self.revert_to_commit = self.repo.revparse_single(commit_id)
-        self.send_input_message("Revert to commit '{}' {}".format(commit_id, bytes_decode(self.revert_to_commit.raw_message).splitlines()[0]), "log_revert_to_commit", "yes-or-no")
+        self.send_input_message("Revert to commit '{}' {}".format(
+            commit_id, 
+            bytes_decode(self.revert_to_commit.raw_message).splitlines()[0]), "log_revert_to_commit", "yes-or-no")
 
     def handle_log_revert_to_commit(self):
         short_commit_id = str(self.revert_to_commit.id)[:7]
@@ -1364,14 +1365,17 @@ class AppBuffer(BrowserBuffer):
     def clean_dir_without_files(self, begin_path):
         # only clean directory inside repo directory.
         begin_path = os.path.abspath(begin_path)
-        if begin_path.startswith(self.repo_root) and begin_path != self.repo_root:
-            begin_dir = os.path.dirname(begin_path) if os.path.isfile(begin_path) else begin_path
-            if os.path.exists(begin_dir):
-                for _, _, files in os.walk(begin_dir, topdown=False):
-                    if files:
-                        return
-                shutil.rmtree(begin_dir, ignore_errors=True)
-            self.clean_dir_without_files(os.path.dirname(begin_dir))
+        if not begin_path.startswith(self.repo_root) or begin_path == self.repo_root:
+            return
+
+        begin_dir = os.path.dirname(begin_path) if os.path.isfile(begin_path) else begin_path
+        if os.path.exists(begin_dir):
+            for _, _, files in os.walk(begin_dir, topdown=False):
+                if files:
+                    return
+            shutil.rmtree(begin_dir, ignore_errors=True)
+
+        self.clean_dir_without_files(os.path.dirname(begin_dir))
 
     def handle_delete_untrack_file(self):
         untrack_status = self.untrack_status
