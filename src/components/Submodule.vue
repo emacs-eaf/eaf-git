@@ -26,7 +26,7 @@
  import SubmoduleItem from './SubmoduleItem'
  import VirtualList from 'vue-virtual-scroll-list'
 
- import { keepSelectVisible, getListPageElementNumber } from "./utils.js"
+ import { keepSelectVisible, getListPageElementNumber, regsiterJsFunctions } from "./utils.js"
 
  export default {
    name: 'Submodule',
@@ -89,13 +89,7 @@
                                         that.submoduleInfo[that.currentSubmoduleIndex].head_id);
      });
 
-     this.$root.$on("submodule_select_pg_up", function () {
-       that.submoduleSelectPgUp();
-     });
-
-     this.$root.$on("submodule_select_pg_dn", function () {
-       that.submoduleSelectPgDn();
-     });
+     regsiterJsFunctions(this, ["submodule_select_pg_up", "submodule_select_pg_dn"]);
    },
    beforeDestroy() {
      this.$root.$off("submodule_view");

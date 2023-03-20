@@ -39,7 +39,7 @@
  import CompareLogItem from './CompareLogItem'
  import VirtualList from 'vue-virtual-scroll-list'
  
- import { keepSelectVisible, getListPageElementNumber } from "./utils.js"
+ import { keepSelectVisible, getListPageElementNumber, regsiterJsFunctions } from "./utils.js"
 
  export default {
    name: 'Log',
@@ -105,52 +105,17 @@
      },
    },
    mounted() {
-     var that = this;
-     
-     this.$root.$on("log_view_diff", function () {
-       that.logViewDiff();
-     });
-
-     this.$root.$on("log_revert_commit", function () {
-       that.logRevertCommit();
-     });
-
-     this.$root.$on("log_revert_to", function () {
-       that.logRevertTo();
-     });
-     
-     this.$root.$on("log_reset_last", function () {
-       that.logResetLast();
-     });
-
-     this.$root.$on("log_reset_to", function () {
-       that.logResetTo();
-     });
-
-     this.$root.$on("log_cherry_pick", function () {
-       that.logCherryPick();
-     });
-
-     this.$root.$on("log_copy_commit_id", function () {
-       that.logCopyCommitID();
-     });
-
-     this.$root.$on("log_commit_amend", function () {
-       that.logCommitAmend();
-     });
-     
-     this.$root.$on("log_copy_commit_url", function () {
-       that.logCopyCommitUrl();
-     });
-
-     this.$root.$on("log_select_pg_up", function () {
-       that.logSelectPgUp();
-     });
-
-     this.$root.$on("log_select_pg_dn", function () {
-       that.logSelectPgDn();
-     });
-
+     regsiterJsFunctions(this, ["log_view_diff",
+                                "log_revert_commit",
+                                "log_revert_to",
+                                "log_reset_last",
+                                "log_reset_to",
+                                "log_cherry_pick",
+                                "log_copy_commit_id",
+                                "log_commit_amend",
+                                "log_copy_commit_url",
+                                "log_select_pg_up",
+                                "log_select_pg_dn"])
    },
    beforeDestroy() {
      this.$root.$off("log_view_diff");

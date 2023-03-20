@@ -226,6 +226,7 @@
 
 <script>
  import Dialog from "./Dialog.vue"
+ import { regsiterJsFunctions } from "./utils.js"
 
  export default {
    name: 'Dashboard',
@@ -344,21 +345,10 @@
        that.pyobject.status_delete_file(that.selectItemType, that.selectItemIndex);
      });
 
-     this.$root.$on("status_preview_scroll_up_line", function () {
-       that.statusPreviewScrollUpLine();
-     });
-
-     this.$root.$on("status_preview_scroll_down_line", function () {
-       that.statusPreviewScrollDownLine();
-     });
-
-     this.$root.$on("status_preview_scroll_up", function () {
-       that.statusPreviewScrollUp();
-     });
-
-     this.$root.$on("status_preview_scroll_down", function () {
-       that.statusPreviewScrollDown();
-     });
+     regsiterJsFunctions(this, ["status_preview_scroll_up_line",
+                              "status_preview_scroll_down_line",
+                              "status_preview_scroll_up",
+                              "status_preview_scroll_down"]);
    },
    beforeDestroy() {
      this.$root.$off("status_manage_hunk");

@@ -79,14 +79,6 @@
        that.pyobject.show_stash_diff(that.stashStatusInfo[that.currentStashIndex].index);
      });
 
-     this.$root.$on("stashSearchForward", function () {
-       that.pyobject.stash_search_forward();
-     });
-
-     this.$root.$on("stashSearchBackward", function () {
-       that.pyobject.stash_search_backward();
-     });
-
      this.$root.$on("stash_apply", function () {
        that.pyobject.stash_apply(that.stashStatusInfo[that.currentStashIndex].index, that.stashStatusInfo[that.currentStashIndex].message);
      });
@@ -101,8 +93,6 @@
    },
    beforeDestroy() {
      this.$root.$off("stash_view_diff");
-     this.$root.$off("stashSearchForward");
-     this.$root.$off("stashSearchBackward");
      this.$root.$off("stash_apply");
      this.$root.$off("stash_pop");
      this.$root.$off("stash_drop");

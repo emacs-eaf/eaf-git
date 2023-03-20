@@ -122,7 +122,7 @@
  import Branch from "./Branch.vue"
  import Stash from "./Stash.vue"
 
- import { Layout, updateListItemBackground, updateListItemMatchColor, updateListIndex } from "./utils.js"
+ import { Layout, updateListItemBackground, updateListItemMatchColor, updateListIndex, regsiterJsFunctions } from "./utils.js"
 
  export default {
    name: 'Main',
@@ -334,120 +334,40 @@
        this.selectHunkIndex = -1;
      }
 
-     let that = this;
-
-     this.$root.$on("toggle_layout", function () {
-       that.toggleLayout();
-     });
-
-     this.$root.$on("toggle_selection_state", function () {
-       that.toggleSelectionState();
-     });
-
-     this.$root.$on("status_select_next", function () {
-       that.statusSelectNext();
-     });
-
-     this.$root.$on("status_select_prev", function () {
-       that.statusSelectPrev();
-     });
-
-     this.$root.$on("hunks_select_next", function () {
-       that.hunksSelectNext();
-     });
-
-     this.$root.$on("hunks_select_prev", function () {
-       that.hunksSelectPrev();
-     });
-
-     this.currentLogIndex = 0;
-     this.$root.$on("log_select_next", function () {
-       that.logSelectNext();
-     });
-
-     this.$root.$on("log_select_prev", function () {
-       that.logSelectPrev();
-     });
-
-     this.$root.$on("log_select_last", function () {
-       that.logSelectLast();
-     });
-
-     this.$root.$on("log_select_first", function () {
-       that.logSelectFirst();
-     });
-
      this.selectBranchIndex = this.localBranchInfo.indexOf(this.currentBranch);
-     this.$root.$on("branch_select_next", function () {
-       that.branchSelectNext();
-     });
-
-     this.$root.$on("branch_select_prev", function () {
-       that.branchSelectPrev();
-     });
-
-     this.$root.$on("branch_select_last", function () {
-       that.branchSelectLast();
-     });
-
-     this.$root.$on("branch_select_first", function () {
-       that.branchSelectFirst();
-     });
-
-     this.currentSubmoduleIndex = 0;
-     this.$root.$on("submodule_select_next", function () {
-       that.submoduleSelectNext();
-     });
-
-     this.$root.$on("submodule_select_prev", function () {
-       that.submoduleSelectPrev();
-     });
-
-     this.$root.$on("submodule_select_last", function () {
-       that.submoduleSelectLast();
-     });
-
-     this.$root.$on("submodule_select_first", function () {
-       that.submoduleSelectFirst();
-     });
-
      this.currentStashIndex = 0;
-     this.$root.$on("stash_select_next", function () {
-       that.stashSelectNext();
-     });
+     this.currentSubmoduleIndex = 0;
+     this.currentLogIndex = 0;
 
-     this.$root.$on("stash_select_prev", function () {
-       that.stashSelectPrev();
-     });
+     regsiterJsFunctions(this, ["toggle_layout",
+                                "toggle_selection_state",
+                                "status_select_next",
+                                "status_select_prev",
+                                "hunks_select_next",
+                                "hunks_select_prev",
+                                "log_select_next",
+                                "log_select_prev",
+                                "log_select_last",
+                                "log_select_first",
+                                "branch_select_next",
+                                "branch_select_prev",
+                                "branch_select_last",
+                                "branch_select_first",
+                                "submodule_select_next",
+                                "submodule_select_prev",
+                                "submodule_select_last",
+                                "submodule_select_first",
+                                "stash_select_next",
+                                "stash_select_prev",
+                                "stash_select_last",
+                                "stash_select_first",
+                                "page_select_prev",
+                                "page_select_next",
+                                "log_mark_file",
+                                "log_unmark_file",
+                                "log_unmark_all"]);
 
-     this.$root.$on("stash_select_last", function () {
-       that.stashSelectLast();
-     });
-
-     this.$root.$on("stash_select_first", function () {
-       that.stashSelectFirst();
-     });
-
-     this.$root.$on("page_select_prev", function () {
-       that.pageSelectPrev();
-     });
-
-     this.$root.$on("page_select_next", function () {
-       that.pageSelectNext();
-     });
-
-     this.$root.$on("log_mark_file", function () {
-       that.logMarkFile();
-     });
-
-     this.$root.$on("log_unmark_file", function () {
-       that.logUnmarkFile();
-     });
-
-     this.$root.$on("log_unmark_all", function () {
-       that.logUnmarkAll();
-     });
-
+     let that = this;
      window.addEventListener('keydown', function(event) {
        var event_key = event.key;
 
