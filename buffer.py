@@ -324,6 +324,10 @@ class AppBuffer(BrowserBuffer):
             self.repo_path, self.last_commit_id,
             {"lastCommit": self.last_commit_message},
             self.get_keybinding_info())
+
+    def some_view_show(self):
+        # Automatically refresh the Git status when the interface is displayed.
+        self.update_git_info()
         
     @interactive
     def update_theme(self):
