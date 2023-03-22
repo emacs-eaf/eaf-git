@@ -289,6 +289,10 @@ will be added if not present."
   "Show the whole diff for all untracked files"
   :type 'boolean)
 
+(defcustom eaf-git-commit-and-push-hook '()
+  "The hook running when call command `status_commit_and_push'."
+  :type 'hook)
+
 (add-to-list 'eaf-app-binding-alist '("git" . eaf-git-keybinding))
 
 (setq eaf-git-module-path (concat (file-name-directory load-file-name) "buffer.py"))
@@ -501,6 +505,9 @@ This assumes that `eaf-git-in-string-p' has already returned true, i.e.
         (when buffer
           (with-current-buffer buffer
             (revert-buffer :ignore-auto :noconfirm)))))))
+
+(defun eaf-git-run-commit-and-push-hook ()
+  (run-hooks 'eaf-git-commit-and-push-hook))
 
 (provide 'eaf-git)
 

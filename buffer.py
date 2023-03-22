@@ -896,6 +896,8 @@ class AppBuffer(BrowserBuffer):
     def status_commit_and_push(self):
         self.send_input_message("Commit all files and push with message: ", "commit_and_push")
 
+        eval_in_emacs("eaf-git-run-commit-and-push-hook", [])
+
     @QtCore.pyqtSlot(str, int)
     def status_view_file(self, type, file_index):
         if type == "untrack":
