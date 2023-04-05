@@ -87,14 +87,14 @@ def pretty_date(time):
     from datetime import datetime
     now = datetime.now()
     diff = 0
-    
+
     if type(time) is int:
         diff = now - datetime.fromtimestamp(time)
     elif isinstance(time, datetime):
         diff = now - time
     else:
         return ""
-        
+
     second_diff = diff.seconds
     day_diff = diff.days
 
@@ -227,7 +227,7 @@ class AppBuffer(BrowserBuffer):
         self.nav_current_item = "Dashboard"
 
         self.mime_db = QMimeDatabase()
-        
+
         self.search_log_cache_path = ""
         self.search_submodule_cache_path = ""
 
@@ -238,11 +238,11 @@ class AppBuffer(BrowserBuffer):
         self.url = os.path.expanduser(self.url)
         self.repo = Repository(self.url)
         self.repo_root = self.url
-        
+
         eval_in_emacs('eaf--change-default-directory', [self.buffer_id, self.url])
 
         self.repo_path = os.path.sep.join(list(filter(lambda x: x != '', self.repo_root.split(os.path.sep)))[-2:])
-        
+
         self.change_title("Git [{}]".format(self.repo_path))
 
         self.last_commit = None
@@ -328,7 +328,7 @@ class AppBuffer(BrowserBuffer):
     def some_view_show(self):
         # Automatically refresh the Git status when the interface is displayed.
         self.update_git_info()
-        
+
     @interactive
     def update_theme(self):
         super().update_theme()
@@ -362,7 +362,7 @@ class AppBuffer(BrowserBuffer):
                 select_item_type = "stage"
 
             self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
-        
+
         QTimer().singleShot(300, self.init_diff)
 
     def update_status_info_and_selection(self, stage_status, unstage_status, untrack_status):
@@ -403,7 +403,8 @@ class AppBuffer(BrowserBuffer):
     @PostGui()
     def update_unpush_info(self, unpush_list):
         self.buffer_widget.eval_js_function("updateUnpushInfo", unpush_list)
-        
+
+    @QtCore.pyqtSlot()
     def fetch_log_info(self):
         if self.repo.head_is_unborn: return
         thread = FetchLogThread(self.repo, self.repo.head, True)
@@ -430,6 +431,29 @@ class AppBuffer(BrowserBuffer):
     @PostGui()
     def update_compare_log_info(self, branch_name, log, search_cache_path):
         self.buffer_widget.eval_js_function("updateCompareLogInfo", branch_name, log)
+
+    @QtCore.pyqtSlot()
+    def grep_log_info(self):
+        self.send_input_message("Grep log with: ", "grep_log", "string")
+
+    def handle_grep_log(self, keyword):
+        if self.repo.head_is_unborn: return
+
+        message_to_emacs(f"Grep log with keyword: {keyword}...")
+
+        thread = GrepLogThread(self.repo, self.repo.head, keyword, True)
+        thread.fetch_result.connect(self.update_grep_log_info)
+        self.thread_reference_list.append(thread)
+        thread.start()
+
+    def update_grep_log_info(self, keyword, branch_name, log, search_cache_path):
+        if self.search_log_cache_path != "" and os.path.exists(self.search_log_cache_path):
+            os.remove(self.search_log_cache_path)
+
+        self.search_log_cache_path = search_cache_path
+        self.buffer_widget.eval_js_function("updateLogInfo", branch_name, log)
+
+        message_to_emacs(f"Find log match keyword: {keyword}")
 
     def fetch_stash_info(self):
         thread = FetchStashThread(self.repo)
@@ -481,7 +505,7 @@ class AppBuffer(BrowserBuffer):
         result = subprocess.run(command, shell=True, text=True, stdout=subprocess.PIPE)
 
         return list(map(lambda x: int(x[:-1]) - 1, result.stdout.split()))
-            
+
     def handle_search_log(self, search_string):
         in_minibuffer = get_emacs_func_result("minibufferp", [])
 
@@ -505,8 +529,8 @@ class AppBuffer(BrowserBuffer):
     def try_search_log(self, count, search_string):
         if count == self.search_log_count and search_string.strip() != "":
             if self.search_log_cache_path and os.path.exists(self.search_log_cache_path):
-                self.buffer_widget.eval_js_function("searchLogsStart", 
-                    search_string, 
+                self.buffer_widget.eval_js_function("searchLogsStart",
+                    search_string,
                     self.search_match_lines(search_string, self.search_log_cache_path))
 
     def try_search_submodule(self, count, search_string):
@@ -514,7 +538,7 @@ class AppBuffer(BrowserBuffer):
             if self.search_submodule_cache_path and os.path.exists(self.search_submodule_cache_path):
                 self.buffer_widget.eval_js_function(
                     "searchSubmodulesStart",
-                    search_string, 
+                    search_string,
                     self.search_match_lines(search_string, self.search_submodule_cache_path))
 
     def handle_search_forward(self, callback_tag):
@@ -543,15 +567,15 @@ class AppBuffer(BrowserBuffer):
             self.send_input_message("Copy changes file to: ", "copy_changes_file_to_mirror", "file", self.repo_root)
         else:
             message_to_emacs("No file need submitted, nothing to copy.")
-            
+
     @QtCore.pyqtSlot()
     def status_fetch_pr(self):
         remote_default = next(self.repo.config.get_multivar("remote.pushdefault"), "origin")
         origin_url = get_git_https_url(self.repo.remotes[remote_default].url)
-        
+
         message_to_emacs("Fetch PR list...")
         self.buffer_widget.eval_js_function("fetchPrList", "{}/pulls".format(origin_url))
-        
+
     @QtCore.pyqtSlot(list)
     def read_pr(self, pr_list):
         if len(pr_list) > 0:
@@ -560,25 +584,25 @@ class AppBuffer(BrowserBuffer):
             for pr in pr_list:
                 self.pr_ids.append(pr[0].split("_")[1])
                 self.pr_names.append(pr[1])
-            
+
             self.send_input_message("Fetch pull request, please input PR number: ", "fetch_pr", "list", completion_list=self.pr_names)
         else:
             message_to_emacs("No PR found in repo.")
-        
+
     def handle_fetch_pr(self, pr_name):
         try:
             pr_number = self.pr_ids[self.pr_names.index(pr_name)]
-            
+
             message_to_emacs("Fetch PR {} ...".format(pr_number))
-            
+
             get_command_result("cd {}; git fetch origin pull/{}/head:pr_{} && git checkout pr_{}".format(
-                self.repo_root, 
+                self.repo_root,
                 pr_number,
                 pr_number,
                 pr_number))
-            
+
             self.update_git_info()
-            
+
             message_to_emacs("Fetch PR {} done.".format(pr_number))
         except:
             message_to_emacs("Input wrong PR: {}".format(pr_name))
@@ -597,17 +621,17 @@ class AppBuffer(BrowserBuffer):
 
     def handle_input_response(self, callback_tag, result_content):
         from inspect import signature
-        
+
         handle_function_name = "handle_{}".format(callback_tag)
         if hasattr(self, handle_function_name):
             handle_function = getattr(self, handle_function_name)
             function_argument_number = len(signature(getattr(self, handle_function_name)).parameters)
-            
+
             if function_argument_number == 1:
                 handle_function(result_content)
             else:
                 handle_function()
-                
+
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
         if callback_tag == "search_log":
@@ -618,7 +642,7 @@ class AppBuffer(BrowserBuffer):
     def handle_copy_changes_file_to_mirror(self, target_repo_dir):
         current_repo_last_commit_id = self.last_commit_id
         target_repo_last_commit_id = str(Repository(target_repo_dir).head.target)
-        
+
         if target_repo_last_commit_id == current_repo_last_commit_id:
             status = list(filter(lambda info: info[1] != GIT_STATUS_IGNORED, list(self.repo.status().items())))
 
@@ -629,7 +653,7 @@ class AppBuffer(BrowserBuffer):
                     target_file = os.path.join(target_repo_dir, file)
                     if not os.path.exists(target_file):
                         os.makedirs(os.path.dirname(target_file), exist_ok=True)
-                    
+
                     shutil.copy(os.path.join(self.repo_root, file), target_file)
 
             message_to_emacs("Update {} files to {}".format(len(status), os.path.join(target_repo_dir)))
@@ -657,7 +681,7 @@ class AppBuffer(BrowserBuffer):
         except:
             # When revert commit is merge commit, we need set mainline with 1 to make sure revert successfully.
             revert_index = self.repo.revert_commit(self.revert_commit, head, 1)
-            
+
         parent, ref = self.repo.resolve_refish(refish=self.repo.head.name)
         commit_message = bytes_decode(self.revert_commit.raw_message)
         self.repo.create_commit(
@@ -676,7 +700,7 @@ class AppBuffer(BrowserBuffer):
     def log_revert_to(self, commit_id):
         self.revert_to_commit = self.repo.revparse_single(commit_id)
         self.send_input_message("Revert to commit '{}' {}".format(
-            commit_id, 
+            commit_id,
             bytes_decode(self.revert_to_commit.raw_message).splitlines()[0]), "log_revert_to_commit", "yes-or-no")
 
     def handle_log_revert_to_commit(self):
@@ -872,7 +896,7 @@ class AppBuffer(BrowserBuffer):
     def update_diff(self, type, file):
         import time
         tick = time.time()
-        
+
         self.diff_type = type
         self.diff_file = file
         self.diff_tick = tick
@@ -880,7 +904,7 @@ class AppBuffer(BrowserBuffer):
         thread.fetch_result.connect(self.render_diff)
         self.thread_reference_list.append(thread)
         thread.start()
-        
+
     def render_diff(self, type, file, tick, diff_string, patch_set):
         if self.diff_type == type and self.diff_file == file and self.diff_tick == tick:
             self.buffer_widget.eval_js_function("updateChangeDiff", type, {"diff": diff_string, "patch_set": patch_set})
@@ -919,15 +943,15 @@ class AppBuffer(BrowserBuffer):
                 message_to_emacs("Please select file to view.")
             else:
                 self.status_open_file(self.stage_status[file_index]["file"])
-                
+
     def status_open_file(self, filename):
         filepath = os.path.join(self.repo_root, filename)
-        
+
         if os.path.isdir(filepath):
             eval_in_emacs('eaf-open-in-file-manager', [filepath])
         else:
             eval_in_emacs("find-file", [filepath])
-        
+
     @QtCore.pyqtSlot(str, int)
     def status_stage_file(self, type, file_index):
         if type == "untrack":
@@ -1002,14 +1026,14 @@ class AppBuffer(BrowserBuffer):
 
     def git_add_file(self, path):
         index = self.repo.index
-        
+
         try:
             expand_path = os.path.join(self.repo_root, path)
             if os.path.exists(expand_path):
                 index.add(path)
             else:
                 index.remove(path)
-            
+
             index.write()
         except Exception:
             import traceback
@@ -1035,9 +1059,9 @@ class AppBuffer(BrowserBuffer):
 
     def git_checkout_file(self, paths=[]):
         checkout_file_paths = list(map(lambda p: os.path.join(self.repo_root, p), paths))
-        
+
         self.repo.checkout(self.repo.lookup_reference(self.repo.head.name), paths=paths, strategy=GIT_CHECKOUT_FORCE)
-        
+
         eval_in_emacs("eaf-git-checkout-files", [checkout_file_paths])
 
     def git_checkout_branch(self, branch_name):
@@ -1319,7 +1343,7 @@ class AppBuffer(BrowserBuffer):
             select_item_type = "untrack"
 
         self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
-        
+
         message_to_emacs("Commit stage files with: {}".format(message))
 
     def handle_commit_all_files(self, message):
@@ -1327,20 +1351,20 @@ class AppBuffer(BrowserBuffer):
             self.repo.index.add_all()
             self.repo.index.write()
             self.handle_commit(message)
-            
+
             self.fetch_unpush_info()
             self.fetch_log_info()
             self.fetch_submodule_info()
-            
+
             self.buffer_widget.eval_js_function("updateSelectInfo", [], [], [], "", -1)
-            
+
             message_to_emacs("Commit stage files with: {}".format(message))
-            
+
             return True
         except pygit2.GitError:
             import traceback
             message_to_emacs(traceback.format_exc())
-            
+
         return False
 
     def handle_commit(self, message):
@@ -1450,7 +1474,7 @@ class AppBuffer(BrowserBuffer):
             select_item_type = "untrack"
 
         self.buffer_widget.eval_js_function("updateSelectInfo", stage_status, unstage_status, untrack_status, select_item_type, select_item_index)
-        
+
     @QtCore.pyqtSlot(list)
     def vue_update_stage_status(self, stage_status):
         self.stage_status = stage_status
@@ -1501,14 +1525,14 @@ class AppBuffer(BrowserBuffer):
         self.fetch_log_info()
 
         message_to_emacs(message)
-        
+
     @QtCore.pyqtSlot()
     def open_in_browser(self):
         remote_default = next(self.repo.config.get_multivar("remote.pushdefault"), "origin")
         origin_url = get_git_https_url(self.repo.remotes[remote_default].url)
-        
+
         eval_in_emacs("eaf-open-browser", [origin_url])
-    
+
     @QtCore.pyqtSlot()
     def status_push(self):
         self.handle_status_push("origin/{}".format(self.repo.head.shorthand))
@@ -1586,11 +1610,11 @@ class AppBuffer(BrowserBuffer):
 
             try:
                 self.git_checkout_branch(current_branch_name)
-                
+
                 self.fetch_log_info()
                 if self.log_compare_branch != "":
                     self.handle_log_show_compare_branch(new_branch)
-                
+
                 if len(self.log_cherry_pick_commits) == 1:
                     message_to_emacs("Copy '{}' to branch {}".format(self.log_cherry_pick_commits[0]["message"], new_branch))
                 else:
@@ -1603,19 +1627,19 @@ class AppBuffer(BrowserBuffer):
         self.log_compare_branch = branch
         self.fetch_compare_log_info(branch)
         message_to_emacs("Show compare branch {}".format(branch))
-        
+
     @QtCore.pyqtSlot(str)
     def log_commit_amend(self, commit_amend_id):
         self.commit_amend_id = commit_amend_id
         self.send_input_message("Commit amend to: ", "log_commit_amend", "string")
-        
+
     def handle_log_commit_amend(self, new_message):
         self.repo.amend_commit(self.commit_amend_id, "HEAD", message=new_message)
         message_to_emacs("Commit to: {}".format(new_message))
         self.fetch_unpush_info()
         self.fetch_status_info()
         self.fetch_log_info()
-            
+
     @QtCore.pyqtSlot()
     def branch_new(self):
         self.send_input_message("New branch: ", "new_branch")
@@ -1678,7 +1702,7 @@ class AppBuffer(BrowserBuffer):
     def update_local_branch_list(self, local_branch_list):
         if not self.repo.head_is_unborn:
             self.buffer_widget.eval_js_function("updateLocalBranchInfo", self.repo.head.shorthand, local_branch_list)
-            
+
     def update_branch_list(self, local_branch_list, remote_branch_list=[]):
         if not self.repo.head_is_unborn:
             self.buffer_widget.eval_js_function("updateBranchInfo", self.repo.head.shorthand, local_branch_list, remote_branch_list)
@@ -1811,20 +1835,20 @@ class AppBuffer(BrowserBuffer):
 
         self.fetch_status_info()
         self.fetch_submodule_info()
-        
+
     @QtCore.pyqtSlot()
     def branch_fetch(self):
         remote_branch_names = self.repo.listall_branches(GIT_BRANCH_REMOTE)
         self.send_input_message("Fetch remote branch: ", "branch_fetch", "list", completion_list=remote_branch_names)
-        
+
     def handle_branch_fetch(self, remote_branch):
         remote_branch = remote_branch.split("/")[-1]
-        
+
         thread = GitFetchThread(self.repo_root, remote_branch)
         thread.fetch_result.connect(self.handle_branch_fetch_finish)
         self.thread_reference_list.append(thread)
         thread.start()
-        
+
     def handle_branch_fetch_finish(self, branch_name, result):
         if result == "":
             message_to_emacs("Fetch remote branch {} finish.".format(branch_name))
@@ -1835,7 +1859,7 @@ class AppBuffer(BrowserBuffer):
     @QtCore.pyqtSlot()
     def branch_fetch_all(self):
         self.send_input_message("Fetch all remote branches?", "branch_fetch_all", "yes-or-no")
-        
+
     def handle_branch_fetch_all(self):
         thread = GitFetchThread(self.repo_root)
         thread.fetch_result.connect(self.handle_branch_fetch_all_finish)
@@ -1848,7 +1872,7 @@ class AppBuffer(BrowserBuffer):
             self.fetch_branch_info()
         else:
             message_to_emacs(result)
-            
+
     @QtCore.pyqtSlot()
     def branch_create_from_remote(self):
         remote_branch_names = self.repo.listall_branches(GIT_BRANCH_REMOTE)
@@ -1875,7 +1899,7 @@ class AppBuffer(BrowserBuffer):
     @QtCore.pyqtSlot()
     def exit(self):
         eval_in_emacs('eaf-git-exit', [self.repo_root])
-        
+
 class AddSubmoduleCallback(pygit2.RemoteCallbacks, QtCore.QObject):
 
     finished = QtCore.pyqtSignal()
@@ -1972,6 +1996,68 @@ class FetchLogThread(QThread):
 
         self.fetch_result.emit(self.branch.shorthand, git_log, self.cache_file_path)
 
+class GrepLogThread(QThread):
+
+    fetch_result = QtCore.pyqtSignal(str, str, list, str)
+
+    def __init__(self, repo, branch, keyword, search_cache=False):
+        QThread.__init__(self)
+
+        self.repo = repo
+        self.branch = branch
+        self.keyword = keyword
+        self.search_cache = search_cache
+        self.cache_file_path = ""
+
+    def run(self):
+        git_log = []
+
+        if self.search_cache:
+            import tempfile
+            self.cache_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
+            self.cache_file_path = self.cache_file.name
+
+        cache_lines = []
+        try:
+            index = 0
+
+            for commit in self.repo.walk(self.branch.target):
+                if commit.parents:
+                    parent = commit.parents[0]
+                    diff = self.repo.diff(parent, commit)
+
+                    for patch in diff:
+                        if self.keyword in patch.text:
+                            id = str(commit.id)
+                            author = bytes_decode(commit.author.raw_name)
+                            message = bytes_decode(commit.raw_message).splitlines()[0]
+
+                            git_log.append({
+                                "id": id,
+                                "index": index,
+                                "time": pretty_date(int(commit.commit_time)),
+                                "author": author,
+                                "message": message,
+                                "marked": "",
+                                "foregroundColor": "",
+                                "backgroundColor": ""
+                            })
+
+                            if self.search_cache:
+                                cache_lines.append("{} {} {}\n".format(id, author, message))
+
+                            index += 1
+
+                            break
+        except KeyError:
+            import traceback
+            traceback.print_exc()
+
+        if self.search_cache:
+            self.cache_file.writelines(cache_lines)
+
+        self.fetch_result.emit(self.keyword, self.branch.shorthand, git_log, self.cache_file_path)
+
 class FetchStashThread(QThread):
 
     fetch_result = QtCore.pyqtSignal(list)
@@ -2018,17 +2104,17 @@ class FetchSubmoduleThread(QThread):
         import tempfile
         cache_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
         cache_file_path = cache_file.name
-        
+
         cache_lines = []
-        
+
         for submodule_name in submodule_names:
             submodule = self.repo.lookup_submodule(submodule_name)
             head_id = submodule.head_id.__str__()
-            
+
             submodule_path = os.path.join(self.repo_root, submodule_name)
             submodule_last_commit_date = ""
             submodule_last_commit_message = ""
-            
+
             try:
                 submodule_repo = Repository(submodule_path)
                 submodule_last_commit = submodule_repo.revparse_single(str(submodule_repo.head.target))
@@ -2046,7 +2132,7 @@ class FetchSubmoduleThread(QThread):
                 "foregroundColor": "",
                 "backgroundColor": ""
             })
-            
+
             cache_lines.append("{} {} {}\n".format(id, submodule_name, head_id))
 
             index += 1
@@ -2078,7 +2164,7 @@ class FetchBranchThread(QThread):
             })
 
             index += 1
-            
+
         index = 0
 
         remote_branch_infos = []
@@ -2138,9 +2224,9 @@ class FetchStatusThread(QThread):
         file = info[0]
         file_path =os.path.join(self.repo_root, file)
         mime = self.mime_db.mimeTypeForFile(file_path).name().replace("/", "-")
-        
+
         (add_count, delete_count) =self.get_line_info(file, type_key, mime)
-        
+
         status = {
             "file": file,
             "type": GIT_STATUS_DICT[type_key],
@@ -2158,7 +2244,7 @@ class FetchStatusThread(QThread):
         else:
             if status not in unstage_status:
                 unstage_status.append(status)
-                
+
     def get_line_info(self, file, type_key, mime):
         # Used to check if there's no commit in current repo.
         head_unborn = False
@@ -2167,14 +2253,14 @@ class FetchStatusThread(QThread):
             try:
                 head_tree = self.repo.revparse_single("HEAD^{tree}")
                 stage_diff = self.repo.index.diff_to_tree(head_tree)
-            
+
                 patches = [patch for patch in stage_diff if patch.delta.new_file.path == file]
                 for patch in patches:
                     (_, add_count, delete_count) = patch.line_stats
                     return (add_count, delete_count)
             except KeyError:
                 head_unborn = True
-            
+
         if type_key in [GIT_STATUS_WT_NEW] or head_unborn:
             if mime.startswith("text-"):
                 file_path =os.path.join(self.repo_root, file)
@@ -2231,7 +2317,7 @@ class GitFetchThread(QThread):
         command = "cd {}; git fetch".format(self.repo_root)
         if self.remote_branch is not None:
             command = "cd {}; git fetch origin {}".format(self.repo_root, self.remote_branch)
-        
+
         self.fetch_result.emit(self.remote_branch, get_command_result(command).strip())
 
 class FetchUnpushThread(QThread):
@@ -2246,12 +2332,12 @@ class FetchUnpushThread(QThread):
 
     def run(self):
         if self.repo.head_is_unborn: return
-        
+
         import subprocess
         result = subprocess.run(
-            "cd {}; git log origin/{}..HEAD --pretty=format:'%h %s'".format(self.repo_root, self.repo.head.shorthand), 
+            "cd {}; git log origin/{}..HEAD --pretty=format:'%h %s'".format(self.repo_root, self.repo.head.shorthand),
             shell=True, capture_output=True, text=True).stdout
-        
+
         self.fetch_result.emit(list(filter(lambda x: x.strip() != "", result.split("\n"))))
 
 class HighlightDiffThread(QThread):
@@ -2260,7 +2346,7 @@ class HighlightDiffThread(QThread):
 
     def __init__(self, target, type, file, tick):
         QThread.__init__(self)
-        
+
         self.target = target
         self.type = type
         self.file = file
@@ -2322,4 +2408,3 @@ class HighlightDiffThread(QThread):
 
         diff_string = self.target.highlight_diff(diff_string)
         self.fetch_result.emit(self.type, self.file, self.tick, diff_string, patch_set)
-

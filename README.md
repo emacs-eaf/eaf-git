@@ -23,3 +23,4 @@ The advantages of EAF Git are:
 (require 'eaf)
 (require 'eaf-git)
 ```
+

@@ -140,6 +140,8 @@
     ("Log"
      (
       ("Enter"  ("js_log_view_diff" "Diff"))
+      ("g"      ("py_grep_log_info" "Grep Log"))
+      ("G"      ("py_fetch_log_info" "View full log"))
       ("i"      ("py_log_show_compare_branch" "Show compare"))
       ("I"      ("py_log_hide_compare_branch" "Hide compare"))
       ("m"      ("js_log_mark_file" "Mark"))
