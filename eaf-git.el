@@ -420,7 +420,10 @@ The input buffer contents are expected to be raw git output."
        :filter (lambda (process output)
                  (setq output-content (format "%s%s\n" output-content output)))
        :sentinel (lambda (process event)
-                   (message "%s" (string-trim output-content))
+                   (message "%s" (replace-regexp-in-string
+                                  "\r"
+                                  ""
+                                  (string-trim output-content)))
                    )))))
 
 (defun eaf-git-push ()
