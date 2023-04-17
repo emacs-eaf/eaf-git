@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
 from PyQt6 import QtCore
 from PyQt6.QtGui import QColor
 from PyQt6.QtCore import QThread, QTimer, QMimeDatabase
@@ -1957,6 +1958,8 @@ class FetchLogThread(QThread):
             self.cache_file = tempfile.NamedTemporaryFile(mode="w", delete=False)
             self.cache_file_path = self.cache_file.name
 
+        start_time = datetime.datetime.now()
+
         cache_lines = []
         try:
             index = 0
@@ -1964,7 +1967,8 @@ class FetchLogThread(QThread):
             for commit in self.repo.walk(self.branch.target):
                 id = str(commit.id)
                 author = bytes_decode(commit.author.raw_name)
-                message = bytes_decode(commit.raw_message).splitlines()[0]
+                message_list = bytes_decode(commit.raw_message).splitlines()
+                message = message_list[0] if len(message_list) > 0 else ""
 
                 git_log.append({
                     "id": id,
@@ -1981,6 +1985,11 @@ class FetchLogThread(QThread):
                     cache_lines.append("{} {} {}\n".format(id, author, message))
 
                 index += 1
+
+                now = datetime.datetime.now()
+                if index == 50 or (now - start_time).total_seconds() > 30:
+                    start_time = now
+                    self.fetch_result.emit(self.branch.shorthand, git_log, self.cache_file_path)
 
         except KeyError:
             import traceback
