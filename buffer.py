@@ -414,12 +414,12 @@ class AppBuffer(BrowserBuffer):
         thread.start()
 
     @PostGui()
-    def update_log_info(self, branch_name, log, search_cache_path):
+    def update_log_info(self, branch_name, log, search_cache_path, append):
         if self.search_log_cache_path != "" and os.path.exists(self.search_log_cache_path):
             os.remove(self.search_log_cache_path)
 
         self.search_log_cache_path = search_cache_path
-        self.buffer_widget.eval_js_function("updateLogInfo", branch_name, log)
+        self.buffer_widget.eval_js_function("updateLogInfo", branch_name, log, append)
 
     def fetch_compare_log_info(self, branch_name):
         branch = self.repo.branches.get(branch_name)
@@ -430,8 +430,8 @@ class AppBuffer(BrowserBuffer):
         thread.start()
 
     @PostGui()
-    def update_compare_log_info(self, branch_name, log, search_cache_path):
-        self.buffer_widget.eval_js_function("updateCompareLogInfo", branch_name, log)
+    def update_compare_log_info(self, branch_name, log, search_cache_path, append):
+        self.buffer_widget.eval_js_function("updateCompareLogInfo", branch_name, log, append)
 
     @QtCore.pyqtSlot()
     def grep_log_info(self):
@@ -1940,7 +1940,7 @@ class AddSubmoduleThread(QThread):
 
 class FetchLogThread(QThread):
 
-    fetch_result = QtCore.pyqtSignal(str, list, str)
+    fetch_result = QtCore.pyqtSignal(str, list, str, bool)
 
     def __init__(self, repo, branch, search_cache=False):
         QThread.__init__(self)
@@ -1949,6 +1949,7 @@ class FetchLogThread(QThread):
         self.branch = branch
         self.search_cache = search_cache
         self.cache_file_path = ""
+        self.append = False
 
     def run(self):
         git_log = []
@@ -1989,7 +1990,12 @@ class FetchLogThread(QThread):
                 now = datetime.datetime.now()
                 if index == 50 or (now - start_time).total_seconds() > 30:
                     start_time = now
-                    self.fetch_result.emit(self.branch.shorthand, git_log, self.cache_file_path)
+                    self.fetch_result.emit(self.branch.shorthand, git_log, self.cache_file_path, self.append)
+
+                    # We need clean git_log after emit fetch_result signal,
+                    # make sure segmented sending log for super big project, such as, Emacs.
+                    git_log = []
+                    self.append = True
 
         except KeyError:
             import traceback
@@ -2003,7 +2009,7 @@ class FetchLogThread(QThread):
         if self.search_cache:
             self.cache_file.writelines(cache_lines)
 
-        self.fetch_result.emit(self.branch.shorthand, git_log, self.cache_file_path)
+        self.fetch_result.emit(self.branch.shorthand, git_log, self.cache_file_path, self.append)
 
 class GrepLogThread(QThread):
 

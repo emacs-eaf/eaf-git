@@ -645,18 +645,27 @@
        this.keyDescriptionList = [];
      },
 
-     updateLogInfo(logBranch, logInfo) {
+     updateLogInfo(logBranch, logInfo, append) {
        this.logBranch = logBranch;
-       this.logInfo = logInfo;
 
-       if (this.logInfo.length > 0) {
-         this.logInfo[0].backgroundColor = this.selectColor;
+       if (append) {
+         this.logInfo = this.logInfo.concat(logInfo);
+       } else {
+         this.logInfo = logInfo;
+         if (this.logInfo.length > 0) {
+           this.logInfo[0].backgroundColor = this.selectColor;
+         }
        }
      },
 
-     updateCompareLogInfo(compareLogBranch, compareLogInfo) {
+     updateCompareLogInfo(compareLogBranch, compareLogInfo, append) {
        this.compareLogBranch = compareLogBranch;
-       this.compareLogInfo = compareLogInfo;
+
+       if (append) {
+         this.compareLogInfo = this.compareLogInfo.concat(compareLogInfo);
+       } else {
+         this.compareLogInfo = compareLogInfo;
+       }
      },
 
      updateStashInfo(stashStatusInfo) {
