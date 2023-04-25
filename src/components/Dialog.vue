@@ -54,7 +54,10 @@
    left: 30px;
    top: 0px;
 
-   padding-left: 5px;
-   padding-right: 5px;
+   border-radius: 3px;
+   padding-top: 3px;
+   padding-bottom: 3px;
+   padding-left: 10px;
+   padding-right: 10px;
  }
 </style>
