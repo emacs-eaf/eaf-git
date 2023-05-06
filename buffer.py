@@ -232,6 +232,8 @@ class AppBuffer(BrowserBuffer):
         self.search_log_cache_path = ""
         self.search_submodule_cache_path = ""
 
+        self.temp_files = []
+
         self.thread_reference_list = []
 
         self.log_compare_branch = ""
@@ -416,7 +418,8 @@ class AppBuffer(BrowserBuffer):
     @PostGui()
     def update_log_info(self, branch_name, log, search_cache_path, append):
         if self.search_log_cache_path != "" and os.path.exists(self.search_log_cache_path):
-            os.remove(self.search_log_cache_path)
+            if self.search_log_cache_path not in self.temp_files:
+                self.temp_files.append(self.search_log_cache_path)
 
         self.search_log_cache_path = search_cache_path
         self.buffer_widget.eval_js_function("updateLogInfo", branch_name, log, append)
@@ -449,7 +452,8 @@ class AppBuffer(BrowserBuffer):
 
     def update_grep_log_info(self, keyword, branch_name, log, search_cache_path):
         if self.search_log_cache_path != "" and os.path.exists(self.search_log_cache_path):
-            os.remove(self.search_log_cache_path)
+            if self.search_log_cache_path not in self.temp_files:
+                self.temp_files.append(self.search_log_cache_path)
 
         self.search_log_cache_path = search_cache_path
         self.buffer_widget.eval_js_function("updateLogInfo", branch_name, log)
@@ -475,7 +479,8 @@ class AppBuffer(BrowserBuffer):
     @PostGui()
     def update_submodule_info(self, submodule, search_cache_path):
         if self.search_submodule_cache_path != "" and os.path.exists(self.search_submodule_cache_path):
-            os.remove(self.search_submodule_cache_path)
+            if self.search_submodule_cache_path not in self.temp_files:
+                self.temp_files.append(self.search_submodule_cache_path)
 
         self.search_submodule_cache_path = search_cache_path
         self.buffer_widget.eval_js_function("updateSubmoduleInfo", submodule)
@@ -1903,6 +1908,11 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot()
     def exit(self):
+        for file in self.temp_files:
+            if os.path.exists(file):
+                os.remove(file)
+        self.temp_files = []
+
         eval_in_emacs('eaf-git-exit', [self.repo_root])
 
 class AddSubmoduleCallback(pygit2.RemoteCallbacks, QtCore.QObject):
