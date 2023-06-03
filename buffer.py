@@ -51,6 +51,7 @@ import os
 import shutil
 import pygit2
 from pygit2._pygit2 import GitError
+import urllib.request
 
 GIT_STATUS_DICT = {
     GIT_STATUS_CURRENT: "Current",
@@ -580,7 +581,11 @@ class AppBuffer(BrowserBuffer):
         origin_url = get_git_https_url(self.repo.remotes[remote_default].url)
 
         message_to_emacs("Fetch PR list...")
-        self.buffer_widget.eval_js_function("fetchPrList", "{}/pulls".format(origin_url))
+
+        thread = FetchPrListThread(origin_url)
+        thread.fetch_result.connect(lambda html: self.buffer_widget.eval_js("fetchPrList(`{}`);".format(html.replace("`", ""))))
+        self.thread_reference_list.append(thread)
+        thread.start()
 
     @QtCore.pyqtSlot(list)
     def read_pr(self, pr_list):
@@ -2437,3 +2442,17 @@ class HighlightDiffThread(QThread):
 
         diff_string = self.target.highlight_diff(diff_string)
         self.fetch_result.emit(self.type, self.file, self.tick, diff_string, patch_set)
+
+class FetchPrListThread(QThread):
+    fetch_result = QtCore.pyqtSignal(str)
+
+    def __init__(self, url):
+        QThread.__init__(self)
+
+        self.url = url
+
+    def run(self):
+        req = urllib.request.Request(url="{}/pulls".format(self.url), method="GET")
+        with urllib.request.urlopen(req) as response:
+            response_data = response.read().decode("utf-8")
+            self.fetch_result.emit(response_data)
