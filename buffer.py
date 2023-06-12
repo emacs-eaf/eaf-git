@@ -1738,6 +1738,10 @@ class AppBuffer(BrowserBuffer):
     def submodule_view(self, module_path):
         eval_in_emacs('eaf-open-in-file-manager', [os.path.join(self.repo_root, module_path)])
 
+    @QtCore.pyqtSlot(str)
+    def submodule_open(self, module_path):
+        eval_in_emacs('eaf-open', [os.path.join(self.repo_root, module_path), "git"])
+
     @QtCore.pyqtSlot()
     def submodule_add(self):
         self.send_input_message("Input submodule type: ", "select_submodule_type", "list", completion_list=["path", "url"])

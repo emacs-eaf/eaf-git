@@ -76,6 +76,10 @@
        that.pyobject.submodule_view(that.submoduleInfo[that.currentSubmoduleIndex].name);
      });
 
+     this.$root.$on("submodule_open", function () {
+       that.pyobject.submodule_open(that.submoduleInfo[that.currentSubmoduleIndex].name);
+     });
+
      this.$root.$on("submodule_remove", function () {
        that.pyobject.submodule_remove(that.submoduleInfo[that.currentSubmoduleIndex].name);
      });
@@ -93,6 +97,7 @@
    },
    beforeDestroy() {
      this.$root.$off("submodule_view");
+     this.$root.$off("submodule_open");
      this.$root.$off("submodule_remove");
      this.$root.$off("submodule_update");
      this.$root.$off("submodule_rollback");

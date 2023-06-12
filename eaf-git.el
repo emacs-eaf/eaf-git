@@ -194,6 +194,7 @@
      (
       ("Enter"  ("js_submodule_view" "View"))
       ("f"      ("js_submodule_view" "View"))
+      ("o"      ("js_submodule_open" "Open"))
       ("a"      ("py_submodule_add" "Add"))
       ("d"      ("js_submodule_remove" "Remove"))
       ("u"      ("js_submodule_update" "Update"))
