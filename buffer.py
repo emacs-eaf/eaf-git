@@ -20,38 +20,23 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
-from PyQt6 import QtCore
-from PyQt6.QtGui import QColor
-from PyQt6.QtCore import QThread, QTimer, QMimeDatabase
-from core.webengine import BrowserBuffer
-from core.utils import (get_emacs_func_result, get_emacs_var, get_emacs_vars, PostGui, message_to_emacs, eval_in_emacs, interactive)
-from charset_normalizer import from_path, from_bytes
-from pygit2 import (Repository, IndexEntry, Oid,
-                    GIT_BRANCH_REMOTE,
-                    GIT_STATUS_CURRENT,
-                    GIT_STATUS_INDEX_NEW,
-                    GIT_STATUS_INDEX_MODIFIED,
-                    GIT_STATUS_INDEX_DELETED,
-                    GIT_STATUS_INDEX_RENAMED,
-                    GIT_STATUS_INDEX_TYPECHANGE,
-                    GIT_STATUS_WT_NEW,
-                    GIT_STATUS_WT_MODIFIED,
-                    GIT_STATUS_WT_DELETED,
-                    GIT_STATUS_WT_TYPECHANGE,
-                    GIT_STATUS_WT_RENAMED,
-                    GIT_STATUS_WT_UNREADABLE,
-                    GIT_STATUS_IGNORED,
-                    GIT_STATUS_CONFLICTED,
-                    GIT_CHECKOUT_FORCE)
-from unidiff import PatchSet, Hunk, LINE_TYPE_ADDED, LINE_TYPE_REMOVED, LINE_TYPE_CONTEXT
-from copy import copy
-from io import StringIO
-from app.git.utils import get_git_https_url
 import os
 import shutil
-import pygit2
-from pygit2._pygit2 import GitError
 import urllib.request
+from copy import copy
+from io import StringIO
+
+import pygit2
+from app.git.utils import get_git_https_url
+from charset_normalizer import from_bytes, from_path
+from core.utils import PostGui, eval_in_emacs, get_emacs_func_result, get_emacs_var, get_emacs_vars, interactive, message_to_emacs
+from core.webengine import BrowserBuffer
+from pygit2 import GIT_BRANCH_REMOTE, GIT_CHECKOUT_FORCE, GIT_STATUS_CONFLICTED, GIT_STATUS_CURRENT, GIT_STATUS_IGNORED, GIT_STATUS_INDEX_DELETED, GIT_STATUS_INDEX_MODIFIED, GIT_STATUS_INDEX_NEW, GIT_STATUS_INDEX_RENAMED, GIT_STATUS_INDEX_TYPECHANGE, GIT_STATUS_WT_DELETED, GIT_STATUS_WT_MODIFIED, GIT_STATUS_WT_NEW, GIT_STATUS_WT_RENAMED, GIT_STATUS_WT_TYPECHANGE, GIT_STATUS_WT_UNREADABLE, IndexEntry, Oid, Repository
+from pygit2._pygit2 import GitError
+from PyQt6 import QtCore
+from PyQt6.QtCore import QMimeDatabase, QThread, QTimer
+from PyQt6.QtGui import QColor
+from unidiff import LINE_TYPE_ADDED, LINE_TYPE_CONTEXT, LINE_TYPE_REMOVED, Hunk, PatchSet
 
 GIT_STATUS_DICT = {
     GIT_STATUS_CURRENT: "Current",
@@ -410,7 +395,7 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot()
     def fetch_log_info(self):
-        if self.repo.head_is_unborn: return
+        if self.repo.head_is_unborn: return  # noqa: E701
         thread = FetchLogThread(self.repo, self.repo.head, True)
         thread.fetch_result.connect(self.update_log_info)
         self.thread_reference_list.append(thread)
@@ -442,7 +427,7 @@ class AppBuffer(BrowserBuffer):
         self.send_input_message("Grep log with: ", "grep_log", "string")
 
     def handle_grep_log(self, keyword):
-        if self.repo.head_is_unborn: return
+        if self.repo.head_is_unborn: return  # noqa: E701
 
         message_to_emacs(f"Grep log with keyword: {keyword}...")
 
@@ -891,15 +876,15 @@ class AppBuffer(BrowserBuffer):
 
     def highlight_diff(self, content):
         from pygments import highlight
-        from pygments.lexers import guess_lexer
         from pygments.formatters import HtmlFormatter
+        from pygments.lexers import guess_lexer
 
         return highlight(content, guess_lexer(content), HtmlFormatter(full=True, style=self.highlight_style))
 
     def highlight_diff_strict(self, content):
         from pygments import highlight
-        from pygments.lexers import DiffLexer
         from pygments.formatters import HtmlFormatter
+        from pygments.lexers import DiffLexer
 
         return highlight(content, DiffLexer(), HtmlFormatter(full=True, style=self.highlight_style))
 
@@ -2369,7 +2354,7 @@ class FetchUnpushThread(QThread):
         self.repo_root = repo_root
 
     def run(self):
-        if self.repo.head_is_unborn: return
+        if self.repo.head_is_unborn: return  # noqa: E701
 
         import subprocess
         result = subprocess.run(
@@ -2399,7 +2384,7 @@ class HighlightDiffThread(QThread):
 
         if self.type == "untrack" or self.target.repo.head_is_unborn:
             if self.file == "":
-                show_whole_diff = get_emacs_var("eaf-git-show-whole-untracked-diff");
+                show_whole_diff = get_emacs_var("eaf-git-show-whole-untracked-diff")
                 if show_whole_diff:
                     for status in self.target.untrack_status:
                         path = os.path.join(self.target.repo_root, status["file"])
