@@ -533,18 +533,21 @@ class AppBuffer(BrowserBuffer):
                     search_string,
                     self.search_match_lines(search_string, self.search_submodule_cache_path))
 
+    @PostGui()
     def handle_search_forward(self, callback_tag):
         if callback_tag == "search_log":
             self.buffer_widget.eval_js_function("searchLogsJumpNext")
         elif callback_tag == "search_submodule":
             self.buffer_widget.eval_js_function("searchSubmodulesJumpNext")
 
+    @PostGui()
     def handle_search_backward(self, callback_tag):
         if callback_tag == "search_log":
             self.buffer_widget.eval_js_function("searchLogsJumpPrev")
         elif callback_tag == "search_submodule":
             self.buffer_widget.eval_js_function("searchSubmodulesJumpPrev")
 
+    @PostGui()
     def handle_search_finish(self, callback_tag):
         if callback_tag == "search_log":
             self.buffer_widget.eval_js_function("searchLogsFinish")
@@ -615,6 +618,7 @@ class AppBuffer(BrowserBuffer):
     def send_message_to_emacs(self, message):
         message_to_emacs(message)
 
+    @PostGui()
     def handle_input_response(self, callback_tag, result_content):
         from inspect import signature
 
@@ -628,6 +632,7 @@ class AppBuffer(BrowserBuffer):
             else:
                 handle_function()
 
+    @PostGui()
     def cancel_input_response(self, callback_tag):
         ''' Cancel input message.'''
         if callback_tag == "search_log":
