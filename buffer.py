@@ -243,7 +243,10 @@ class AppBuffer(BrowserBuffer):
         else:
             self.last_commit_id = str(self.repo.head.target)
             self.last_commit = self.repo.revparse_single(str(self.repo.head.target))
-            self.last_commit_message = bytes_decode(self.last_commit.raw_message).splitlines()[0]
+            try:
+                self.last_commit_message = bytes_decode(self.last_commit.raw_message).splitlines()[0]
+            except:
+                pass
 
         self.highlight_style = "monokai"
 
