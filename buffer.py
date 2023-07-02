@@ -357,6 +357,7 @@ class AppBuffer(BrowserBuffer):
 
         QTimer().singleShot(300, self.init_diff)
 
+    @PostGui()
     def update_status_info_and_selection(self, stage_status, unstage_status, untrack_status):
         self.update_status_info(stage_status, unstage_status, untrack_status, True)
 
@@ -439,6 +440,7 @@ class AppBuffer(BrowserBuffer):
         self.thread_reference_list.append(thread)
         thread.start()
 
+    @PostGui()
     def update_grep_log_info(self, keyword, branch_name, log, search_cache_path):
         if self.search_log_cache_path != "" and os.path.exists(self.search_log_cache_path):
             if self.search_log_cache_path not in self.temp_files:
@@ -574,9 +576,13 @@ class AppBuffer(BrowserBuffer):
         message_to_emacs("Fetch PR list...")
 
         thread = FetchPrListThread(origin_url)
-        thread.fetch_result.connect(lambda html: self.buffer_widget.eval_js("fetchPrList(`{}`);".format(html.replace("`", ""))))
+        thread.fetch_result.connect(self.handle_fetch_pr_list)
         self.thread_reference_list.append(thread)
         thread.start()
+
+    @PostGui()
+    def handle_fetch_pr_list(self, html):
+        self.buffer_widget.eval_js("fetchPrList(`{}`);".format(html.replace("`", "")))
 
     @QtCore.pyqtSlot(list)
     def read_pr(self, pr_list):
@@ -909,6 +915,7 @@ class AppBuffer(BrowserBuffer):
         self.thread_reference_list.append(thread)
         thread.start()
 
+    @PostGui()
     def render_diff(self, type, file, tick, diff_string, patch_set):
         if self.diff_type == type and self.diff_file == file and self.diff_tick == tick:
             self.buffer_widget.eval_js_function("updateChangeDiff", type, {"diff": diff_string, "patch_set": patch_set})
@@ -1512,6 +1519,7 @@ class AppBuffer(BrowserBuffer):
         self.thread_reference_list.append(thread)
         thread.start()
 
+    @PostGui()
     def handle_stash_pull(self, message):
         self.fetch_log_info()
         message_to_emacs(message)
@@ -1528,6 +1536,7 @@ class AppBuffer(BrowserBuffer):
         self.thread_reference_list.append(thread)
         thread.start()
 
+    @PostGui()
     def handle_status_push_report(self, message):
         self.fetch_unpush_info()
         self.fetch_log_info()
@@ -1757,6 +1766,7 @@ class AppBuffer(BrowserBuffer):
         self.thread_reference_list.append(thread)
         thread.start()
 
+    @PostGui()
     def handle_add_submodule_finish(self, url, path):
         message_to_emacs("Add submodule {} to {}".format(url, path))
 
@@ -1826,6 +1836,7 @@ class AppBuffer(BrowserBuffer):
         self.thread_reference_list.append(thread)
         thread.start()
 
+    @PostGui()
     def handle_submodule_update_finish(self, message):
         self.fetch_status_info()
         self.fetch_submodule_info()
@@ -1861,6 +1872,7 @@ class AppBuffer(BrowserBuffer):
         self.thread_reference_list.append(thread)
         thread.start()
 
+    @PostGui()
     def handle_branch_fetch_finish(self, branch_name, result):
         if result == "":
             message_to_emacs("Fetch remote branch {} finish.".format(branch_name))
@@ -1878,6 +1890,7 @@ class AppBuffer(BrowserBuffer):
         self.thread_reference_list.append(thread)
         thread.start()
 
+    @PostGui()
     def handle_branch_fetch_all_finish(self, branch_name, result):
         if result == "":
             message_to_emacs("Fetch all remote branches finish.")
@@ -2253,10 +2266,10 @@ class FetchStatusThread(QThread):
 
     def append_file_to_status_list(self, info, type_key, stage_status, unstage_status, untrack_status):
         file = info[0]
-        file_path =os.path.join(self.repo_root, file)
+        file_path = os.path.join(self.repo_root, file)
         mime = self.mime_db.mimeTypeForFile(file_path).name().replace("/", "-")
 
-        (add_count, delete_count) =self.get_line_info(file, type_key, mime)
+        (add_count, delete_count) = self.get_line_info(file, type_key, mime)
 
         status = {
             "file": file,
