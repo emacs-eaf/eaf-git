@@ -2462,7 +2462,11 @@ class FetchPrListThread(QThread):
         self.url = url
 
     def run(self):
-        req = urllib.request.Request(url="{}/pulls".format(self.url), method="GET")
-        with urllib.request.urlopen(req) as response:
-            response_data = response.read().decode("utf-8")
-            self.fetch_result.emit(response_data)
+        try:
+            req = urllib.request.Request(url="{}/pulls".format(self.url), method="GET")
+            with urllib.request.urlopen(req) as response:
+                response_data = response.read().decode("utf-8")
+                self.fetch_result.emit(response_data)
+        except:
+            import traceback
+            traceback.print_exc()
