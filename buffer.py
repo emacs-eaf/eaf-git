@@ -474,7 +474,7 @@ class AppBuffer(BrowserBuffer):
                 self.temp_files.append(self.search_submodule_cache_path)
 
         self.search_submodule_cache_path = search_cache_path
-        self.buffer_widget.eval_js_function("updateSubmoduleInfo", submodule)
+        self.buffer_widget.eval_js_function("updateSubmoduleInfo", submodule, True)
 
     def fetch_branch_info(self):
         thread = FetchBranchThread(self.repo)
