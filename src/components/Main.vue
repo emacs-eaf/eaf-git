@@ -672,11 +672,14 @@
        this.stashStatusInfo = stashStatusInfo;
      },
 
-     updateSubmoduleInfo(submoduleInfo) {
+     updateSubmoduleInfo(submoduleInfo, keepSelection=false) {
        this.submoduleInfo = submoduleInfo;
 
        if (this.submoduleInfo.length > 0) {
-         this.submoduleInfo[0].backgroundColor = this.selectColor;
+         let selectIndex = 0
+         if (keepSelection) selectIndex = this.currentSubmoduleIndex
+
+         this.submoduleInfo[selectIndex].backgroundColor = this.selectColor;
        }
      },
 
