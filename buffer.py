@@ -22,7 +22,6 @@
 import datetime
 import os
 import shutil
-import urllib.request
 from copy import copy
 from io import StringIO
 
