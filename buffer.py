@@ -2461,7 +2461,7 @@ class FetchPrListThread(QThread):
             import requests
             from bs4 import BeautifulSoup
 
-            html = requests.get("https://github.com/manateelazycat/holo-layer/pulls").content.decode("utf-8")
+            html = requests.get("{}/pulls".format(self.url)).content.decode("utf-8")
             soup = BeautifulSoup(html, 'html.parser')
             elements = soup.find_all(class_='Link--primary')
 
