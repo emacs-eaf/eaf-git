@@ -315,7 +315,6 @@
      window.searchSubmodulesCancel = this.searchSubmodulesCancel;
      window.searchSubmodulesJumpNext = this.searchSubmodulesJumpNext;
      window.searchSubmodulesJumpPrev = this.searchSubmodulesJumpPrev;
-     window.fetchPrList = this.fetchPrList;
 
      if (this.untrackStatusInfo) {
        this.selectItemType = "untrack";
@@ -820,14 +819,6 @@
 
        this.currentSubmoduleIndex = this.searchSubmoduleMatchIndexes[this.searchSubmoduleIndex];
        this.searchSubmoduleMatchIndex = this.currentSubmoduleIndex;
-     },
-
-     fetchPrList(html) {
-       var parser = new DOMParser()
-       var doc = parser.parseFromString(html, "text/html")
-       var prList = Array.from(doc.getElementsByClassName('Link--primary'))
-
-       window.pyobject.read_pr(prList.map(pr => [pr.id, pr.innerHTML]))
      },
 
      searchSubmodulesFinish() {

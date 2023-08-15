@@ -576,13 +576,9 @@ class AppBuffer(BrowserBuffer):
         message_to_emacs("Fetch PR list...")
 
         thread = FetchPrListThread(origin_url)
-        thread.fetch_result.connect(self.handle_fetch_pr_list)
+        thread.fetch_result.connect(self.read_pr)
         self.thread_reference_list.append(thread)
         thread.start()
-
-    @PostGui()
-    def handle_fetch_pr_list(self, html):
-        self.buffer_widget.eval_js("fetchPrList(`{}`);".format(html.replace("`", "")))
 
     @QtCore.pyqtSlot(list)
     def read_pr(self, pr_list):
@@ -590,7 +586,7 @@ class AppBuffer(BrowserBuffer):
             self.pr_ids = []
             self.pr_names = []
             for pr in pr_list:
-                self.pr_ids.append(pr[0].split("_")[1])
+                self.pr_ids.append(pr[0])
                 self.pr_names.append(pr[1])
 
             self.send_input_message("Fetch pull request, please input PR number: ", "fetch_pr", "list", completion_list=self.pr_names)
@@ -2454,7 +2450,7 @@ class HighlightDiffThread(QThread):
         self.fetch_result.emit(self.type, self.file, self.tick, diff_string, patch_set)
 
 class FetchPrListThread(QThread):
-    fetch_result = QtCore.pyqtSignal(str)
+    fetch_result = QtCore.pyqtSignal(list)
 
     def __init__(self, url):
         QThread.__init__(self)
@@ -2463,10 +2459,15 @@ class FetchPrListThread(QThread):
 
     def run(self):
         try:
-            req = urllib.request.Request(url="{}/pulls".format(self.url), method="GET")
-            with urllib.request.urlopen(req) as response:
-                response_data = response.read().decode("utf-8")
-                self.fetch_result.emit(response_data)
+            import requests
+            from bs4 import BeautifulSoup
+
+            html = requests.get("https://github.com/manateelazycat/holo-layer/pulls").content.decode("utf-8")
+            soup = BeautifulSoup(html, 'html.parser')
+            elements = soup.find_all(class_='Link--primary')
+
+            pr_list = list(map(lambda element: [element.get("href").split("/")[-1], element.text], elements))
+            self.fetch_result.emit(pr_list)
         except:
             import traceback
             traceback.print_exc()
