@@ -442,6 +442,10 @@ The input buffer contents are expected to be raw git output."
    (format "Git %s clone..." url)
    (list "git" "clone" url)))
 
+(defun eaf-git-submodule-pull ()
+  (interactive)
+  (eaf-git-run "Git submodule pull..." (list "git" "submodule" "update" "--init" "--recursive")))
+
 (defun eaf-git-show-history ()
   (interactive)
   (let ((point-thing (eaf-git-pointer-thing)))
