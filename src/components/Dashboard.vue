@@ -636,27 +636,10 @@
  .status-left-panel {
    display: flex;
    flex-direction: column;
-
-   /* 30% */
-   /*
-      flex: 3;
-
-      overflow-y: scroll;
-    */
- }
-
- .status-left-panel .dialog {
-   /*
-   flex: initial;
-   */
  }
 
  .status-area.layout-horizontal .status-left-panel {
-   /* 30% */
-   flex: 3;
- }
-
- .status-area.layout-vertical .status-left-panel {
+   flex: 3.2;
  }
 
  .status-left-panel > *:not(:last-child)  {
@@ -669,8 +652,7 @@
  }
 
  .status-area.layout-horizontal .status-right-panel {
-   /* 70% */
-   flex: 7;
+   flex: 6.8;
  }
 
  .status-area.layout-vertical .status-right-panel {
@@ -771,9 +753,5 @@
  .hunk {
    padding: 10px;
    border-radius: 5px;
- }
-
- .untrack-area {
-   /* overflow-y: scroll; */
  }
 </style>
