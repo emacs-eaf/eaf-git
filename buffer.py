@@ -74,7 +74,7 @@ def pretty_date(time):
     now = datetime.now()
     diff = 0
 
-    if type(time) is int:
+    if isinstance(time, int):
         diff = now - datetime.fromtimestamp(time)
     elif isinstance(time, datetime):
         diff = now - time
@@ -119,7 +119,7 @@ def is_binary(filename_or_bytes):
     File is considered to be binary if it contains a NULL byte.
     FIXME: This approach incorrectly reports UTF-16 as binary.
     """
-    if type(filename_or_bytes) == str:
+    if isinstance(filename_or_bytes, str):
         with open(filename_or_bytes, 'rb') as f:
             for block in f:
                 if b'\0' in block:
