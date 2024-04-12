@@ -147,15 +147,17 @@
               v-for="info in stashStatusInfo"
               :key="info.index"
               :class="{ selected: isSelected('stash', info.index) }">
-              <div
-                class="stash-id"
-                :style="{ 'color': idColor }">
-                {{ info.id.slice(0, 7) }}
-              </div>
-              <div
-                class="stash-index"
-                :style="{ 'color': indexColor }">
-                stash@[{{ info.index }}]
+              <div class="stash-item-title">
+                <div
+                  class="stash-id"
+                  :style="{ 'color': idColor }">
+                  {{ info.id.slice(0, 7) }}
+                </div>
+                <div
+                  class="stash-index"
+                  :style="{ 'color': indexColor }">
+                  stash@[{{ info.index }}]
+                </div>
               </div>
               <div class="stash-message">
                 {{ info.message }}
@@ -346,9 +348,9 @@
      });
 
      regsiterJsFunctions(this, ["status_preview_scroll_up_line",
-                              "status_preview_scroll_down_line",
-                              "status_preview_scroll_up",
-                              "status_preview_scroll_down"]);
+                                "status_preview_scroll_down_line",
+                                "status_preview_scroll_up",
+                                "status_preview_scroll_down"]);
    },
    beforeDestroy() {
      this.$root.$off("status_manage_hunk");
@@ -681,11 +683,17 @@
 
  .stash-info-area {
    /*
-   padding: 20px;
-   */
+      padding: 20px;
+    */
  }
 
  .stash-item {
+   display: flex;
+   flex-direction: column;
+   padding: 5px;
+ }
+
+ .stash-item-title {
    display: flex;
    flex-direction: row;
    align-items: center;
@@ -696,7 +704,6 @@
  }
 
  .stash-message {
-   padding-left: 10px;
  }
 
  .hunks-preview-area {
