@@ -198,6 +198,7 @@
       ("a"      ("py_submodule_add" "Add"))
       ("d"      ("js_submodule_remove" "Remove"))
       ("u"      ("js_submodule_update" "Update"))
+      ("m"      ("js_submodule_move" "Change path"))
       ("r"      ("js_submodule_rollback" "Rollback"))
       ("j"      ("js_submodule_select_next" "Next"))
       ("k"      ("js_submodule_select_prev" "Prev"))

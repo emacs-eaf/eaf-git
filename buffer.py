@@ -1831,6 +1831,27 @@ class AppBuffer(BrowserBuffer):
         self.thread_reference_list.append(thread)
         thread.start()
 
+    @QtCore.pyqtSlot(str)
+    def submodule_move(self, module_path):
+        self.submodule_move_path = module_path
+        self.send_input_message("Move submodule {} to new path: ".format(module_path), "submodule_move", "directory",
+                                os.path.join(self.repo_root, module_path))
+
+    def handle_submodule_move(self, submodule_new_path):
+        submodule_old_path = os.path.join(self.repo_root, self.submodule_move_path)
+        message_to_emacs("Git change submodule from {} to {}...".format(submodule_old_path, submodule_new_path))
+        thread = GitMoveThread(self.repo_root, submodule_old_path, submodule_new_path)
+        thread.move_result.connect(self.handle_status_move_report)
+        self.thread_reference_list.append(thread)
+        thread.start()
+
+    @PostGui()
+    def handle_status_move_report(self, message):
+        self.fetch_status_info()
+        self.fetch_submodule_info()
+
+        message_to_emacs(message)
+
     @PostGui()
     def handle_submodule_update_finish(self, message):
         self.fetch_status_info()
@@ -2165,6 +2186,7 @@ class FetchSubmoduleThread(QThread):
             submodule_infos.append({
                 "index": index,
                 "name": submodule_name,
+                "path": submodule_path,
                 "head": submodule_last_commit_message,
                 "date": submodule_last_commit_date,
                 "head_id": head_id,
@@ -2341,6 +2363,25 @@ class GitPushThread(QThread):
         if result == "":
             result = "Git push {} to {}/{} successfully.".format(self.repo.head.name, self.remote, self.remote_branch)
         self.push_result.emit(result)
+
+class GitMoveThread(QThread):
+
+    move_result = QtCore.pyqtSignal(str)
+
+    def __init__(self, repo_root, submodule_old_path, submodule_new_path):
+        QThread.__init__(self)
+
+        self.repo_root = repo_root
+        self.submodule_old_path = submodule_old_path
+        self.submodule_new_path = submodule_new_path
+
+    def run(self):
+        result = get_command_result("cd {}; git mv {} {}".format(self.repo_root, self.submodule_old_path, self.submodule_new_path)).strip()
+        if result == "":
+            submodule_old_sub_path = self.submodule_old_path.replace(self.repo_root, "")
+            submodule_new_sub_path = self.submodule_new_path.replace(self.repo_root, "")
+            result = "Git change submodule from {} to {} successfully.".format(submodule_old_sub_path, submodule_new_sub_path)
+        self.move_result.emit(result)
 
 class GitFetchThread(QThread):
 

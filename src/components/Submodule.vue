@@ -88,6 +88,10 @@
        that.pyobject.submodule_update(that.submoduleInfo[that.currentSubmoduleIndex].name);
      });
 
+     this.$root.$on("submodule_move", function () {
+       that.pyobject.submodule_move(that.submoduleInfo[that.currentSubmoduleIndex].name);
+     });
+
      this.$root.$on("submodule_rollback", function () {
        that.pyobject.submodule_rollback(that.submoduleInfo[that.currentSubmoduleIndex].name,
                                         that.submoduleInfo[that.currentSubmoduleIndex].head_id);
