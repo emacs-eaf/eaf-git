@@ -2547,7 +2547,7 @@ class ParseGitDiffThread(QThread):
             data = {
               "model": model,
               "prompt": '''
-              Please generate a patch title for the following diff content, only return title content, no explaination. Mainly analyze the content starting with - or + at the beginning of the line, with a concise and informative summary instead of a mechanical list. The title should not exceed 300 characters in length. First letter of title should be uppercase and rest words in title all lowercase:
+              Please generate a patch title for the following diff content, only return title content, not explanation, not include 'Patch' word in title, not include '-' in title. Mainly analyze the content starting with - or + at the beginning of the line, with a concise and informative summary instead of a mechanical list. The title should not exceed 300 characters in length:
 
               {}
               '''.format(diff_string)

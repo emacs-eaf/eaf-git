@@ -524,7 +524,14 @@ This assumes that `eaf-git-in-string-p' has already returned true, i.e.
 (defun eaf-git-insert-commit-name (patch-name)
   (when (and (active-minibuffer-window)
              (= (length (minibuffer-contents)) 0))
-    (insert patch-name)))
+    (insert (eaf-git-capitalize-first-char patch-name))))
+
+(defun eaf-git-capitalize-first-char (&optional string)
+  "Capitalize only the first character of the input STRING."
+  (when (and string (> (length string) 0))
+    (let ((first-char (substring string nil 1))
+          (rest-str   (substring string 1)))
+      (concat (capitalize first-char) rest-str))))
 
 (provide 'eaf-git)
 
