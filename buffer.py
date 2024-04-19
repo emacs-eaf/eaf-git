@@ -931,6 +931,19 @@ class AppBuffer(BrowserBuffer):
         self.send_input_message("Commit all files and push with message: ", "commit_and_push")
 
     @QtCore.pyqtSlot()
+    def status_commit_and_push_with_ollama(self):
+        self.send_input_message("Commit all files and push with message: ", "commit_and_push")
+
+        thread = ParseGitDiffThread(self.url)
+        thread.fetch_result.connect(self.handle_status_commit_and_push_with_ollama)
+        self.thread_reference_list.append(thread)
+        thread.start()
+
+    @PostGui()
+    def handle_status_commit_and_push_with_ollama(self, patch_name):
+        eval_in_emacs("eaf-git-insert-commit-name", [patch_name])
+
+    @QtCore.pyqtSlot()
     def status_commit_and_push_with_hooks(self):
         self.send_input_message("Commit all files and push with message: ", "commit_and_push")
 
@@ -2508,6 +2521,48 @@ class FetchPrListThread(QThread):
 
             pr_list = list(map(lambda element: [element.get("href").split("/")[-1], element.text], elements))
             self.fetch_result.emit(pr_list)
+        except:
+            import traceback
+            traceback.print_exc()
+
+class ParseGitDiffThread(QThread):
+    fetch_result = QtCore.pyqtSignal(str)
+
+    def __init__(self, url):
+        QThread.__init__(self)
+
+        self.url = url
+
+    def run(self):
+        try:
+            diff_string = get_command_result(f"cd {self.url} ; git diff")
+
+            import requests
+            import json
+
+            model = "llama3:8b"
+
+            url = 'http://localhost:11434/api/generate'
+
+            data = {
+              "model": model,
+              "prompt": '''
+              Please generate a patch title for the following diff content, only return title content, no explaination. Mainly analyze the content starting with - or + at the beginning of the line, with a concise and informative summary instead of a mechanical list. The title should not exceed 300 characters in length. First letter of title should be uppercase and rest words in title all lowercase:
+
+              {}
+              '''.format(diff_string)
+            }
+
+            result = ""
+            with requests.post(url, json=data, stream=True) as response:
+                for line in response.iter_lines():
+                    if line:
+                        json_response = json.loads(line)
+                        if not json_response["done"]:
+                            result += json_response["response"]
+
+
+            self.fetch_result.emit(result)
         except:
             import traceback
             traceback.print_exc()

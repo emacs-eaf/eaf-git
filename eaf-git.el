@@ -121,7 +121,7 @@
       ("S"  ("js_status_manage_hunk" "Stage/Unstage hunk"))
       ("d"  ("js_status_delete_file" "Delete"))
       ("D"  ("js_status_delete_hunk" "Delete hunk"))
-      ("y"  ("py_status_commit_and_push_with_hooks" "CommitPush with hooks"))
+      ("y"  ("py_status_commit_and_push_with_ollama" "CommitPush with ollama"))
       ("Y"  ("py_status_commit_and_push" "Commit and push"))
       ("C"  ("py_status_commit_all" "Commit all"))
       ("c"  ("py_status_commit_stage" "Commit stage"))
@@ -520,6 +520,11 @@ This assumes that `eaf-git-in-string-p' has already returned true, i.e.
 
 (defun eaf-git-run-commit-and-push-hook ()
   (run-hooks 'eaf-git-commit-and-push-hook))
+
+(defun eaf-git-insert-commit-name (patch-name)
+  (when (and (active-minibuffer-window)
+             (= (length (minibuffer-contents)) 0))
+    (insert patch-name)))
 
 (provide 'eaf-git)
 
