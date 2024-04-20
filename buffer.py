@@ -932,12 +932,17 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot()
     def status_commit_and_push_with_ollama(self):
-        self.send_input_message("Commit all files and push with message: ", "commit_and_push")
+        import shutil
 
-        thread = ParseGitDiffThread(self.url)
-        thread.fetch_result.connect(self.handle_status_commit_and_push_with_ollama)
-        self.thread_reference_list.append(thread)
-        thread.start()
+        if shutil.which("ollama"):
+            self.send_input_message("Commit all files and push with message: ", "commit_and_push")
+
+            thread = ParseGitDiffThread(self.url)
+            thread.fetch_result.connect(self.handle_status_commit_and_push_with_ollama)
+            self.thread_reference_list.append(thread)
+            thread.start()
+        else:
+            message_to_emacs("You need to install ollama in order to use AI to generate git commits")
 
     @PostGui()
     def handle_status_commit_and_push_with_ollama(self, patch_name):
@@ -2552,6 +2557,7 @@ class ParseGitDiffThread(QThread):
               Take the whole conversation in consideration and suggest a good commit message.
               Never say anything that is not your proposed commit message, never appologize.
 
+              - Analysis of patch differences in content
               - Use imperative
               - One line only
               - Be clear and concise
