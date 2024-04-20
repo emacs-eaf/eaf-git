@@ -2547,7 +2547,21 @@ class ParseGitDiffThread(QThread):
             data = {
               "model": model,
               "prompt": '''
-              Please generate a patch title for the following diff content, only return title content, not explanation, not include 'Patch' word in title, not include '-' in title. Mainly analyze the content starting with - or + at the beginning of the line, with a concise and informative summary instead of a mechanical list. The title should not exceed 300 characters in length:
+	      Your task is to help the user write a good commit message.
+
+              Take the whole conversation in consideration and suggest a good commit message.
+              Never say anything that is not your proposed commit message, never appologize.
+
+              - Use imperative
+              - One line only
+              - Be clear and concise
+              - Follow standard commit message conventions
+              - Do not put message in quotes
+              - Just return the commit message, without any explaination
+              - Only first word of commit message is capitalization, rest words in commit message is lowercase
+              - Use spaces to separate words of commit message
+
+              Always provide only the commit message as answer:
 
               {}
               '''.format(diff_string)
