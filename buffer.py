@@ -1012,10 +1012,12 @@ class AppBuffer(BrowserBuffer):
 
     def handle_discard_unstage_hunk(self):
         patch = copy(self.raw_patch_set[self.patch_index])
-        for index, hunk in enumerate(patch):
-            if index != self.hunk_index:
-                patch.remove(hunk)
-        result = get_command_result("cd {}; git apply --reverse".format(self.repo_root), str(patch))
+        hunk = patch[self.hunk_index]
+        hunk_str = str(hunk)
+
+        # Add diff header
+        hunk_str = f"diff --git a/{patch.path} b/{patch.path}\nindex 1234567..89abcdef 100644\n--- a/{patch.path}\n+++ b/{patch.path}\n{hunk_str}"
+        result = get_command_result("cd {}; git apply --reverse".format(self.repo_root), hunk_str)
 
         if result == "":
             message_to_emacs("Discard unstage hunk successfully!")
@@ -1026,14 +1028,15 @@ class AppBuffer(BrowserBuffer):
 
     def handle_discard_stage_hunk(self):
         patch = copy(self.raw_patch_set[self.patch_index])
-        for index, hunk in enumerate(patch):
-            if index != self.hunk_index:
-                patch.remove(hunk)
+        hunk = patch[self.hunk_index]
+        hunk_str = str(hunk)
 
-        result = get_command_result("cd {}; git apply --reverse --cached".format(self.repo_root), str(patch))
+        # Add diff header
+        hunk_str = f"diff --git a/{patch.path} b/{patch.path}\nindex 1234567..89abcdef 100644\n--- a/{patch.path}\n+++ b/{patch.path}\n{hunk_str}"
+        result = get_command_result("cd {}; git apply --reverse --cached".format(self.repo_root), hunk_str)
         if result == "":
             get_command_result("cd {}; git update-index --refresh")
-            result = get_command_result("cd {}; git apply --reverse".format(self.repo_root), str(patch))
+            result = get_command_result("cd {}; git apply --reverse".format(self.repo_root), hunk_str)
 
         if result == "":
             message_to_emacs("Discard this stage hunk successfully!")
