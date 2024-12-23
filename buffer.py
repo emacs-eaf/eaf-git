@@ -695,7 +695,7 @@ class AppBuffer(BrowserBuffer):
             self.repo.default_signature,
             "Revert {}".format(commit_message),
             revert_index.write_tree(),
-            [parent.oid])
+            [parent.oid if hasattr(parent, "oid") else parent.id])
         self.fetch_unpush_info()
         self.fetch_status_info()
         self.fetch_log_info()
@@ -1406,7 +1406,7 @@ class AppBuffer(BrowserBuffer):
 
         try:
             parent, ref = self.repo.resolve_refish(refish=self.repo.head.name)
-            parent = [parent.oid]
+            parent = [parent.oid if hasattr(parent, "oid") else parent.id]
             ref = ref.name
         except GitError:
             pass
@@ -2189,7 +2189,10 @@ class FetchSubmoduleThread(QThread):
         cache_lines = []
 
         for submodule_name in submodule_names:
-            submodule = self.repo.lookup_submodule(submodule_name)
+            if hasattr(self.repo, "lookup_submodule"):
+                submodule = self.repo.lookup_submodule(submodule_name)
+            else:
+                submodule = self.repo.submodules.get(submodule_name)
             head_id = submodule.head_id.__str__()
 
             submodule_path = os.path.join(self.repo_root, submodule_name)
