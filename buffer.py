@@ -1998,7 +1998,7 @@ class AddSubmoduleThread(QThread):
         self.callback.finished.connect(lambda : self.finished.emit(self.url, self.path))
 
         try:
-            self.repo.add_submodule(self.url, self.path, callbacks=self.callback)
+            self.repo.submodules.add(self.url, self.path, callbacks=self.callback)
             self.callback.finished.emit()
         except:
             import traceback
