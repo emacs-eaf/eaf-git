@@ -320,6 +320,9 @@ will be added if not present."
 
   (kill-buffer)
   (eaf-git-restore-window-configuration)
+  ;; We need redraw EAF buffer after restore window configuration.
+  ;; Otherwise, EAF application buffer won't
+  (eaf-monitor-configuration-change)
   (message "Exit git repository %s" repo-path))
 
 (defun eaf-git-restore-window-configuration ()
