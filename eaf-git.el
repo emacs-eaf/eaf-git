@@ -181,8 +181,8 @@
       ))
     ("Stash"
      (
-      ("y"      ("js_stash_apply" "Apply"))
       ("p"      ("js_stash_pop" "Pop"))
+      ("y"      ("js_stash_apply" "Apply"))
       ("d"      ("js_stash_drop" "Drop"))
       ("Enter"  ("js_stash_view_diff" "View diff"))
       ("j"      ("js_stash_select_next" "Next"))
