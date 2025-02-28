@@ -1531,14 +1531,21 @@ class AppBuffer(BrowserBuffer):
         if not self.repo.head_is_unborn:
             message_to_emacs("Git pull {}...".format(self.repo.head.name))
         thread = GitPullThread(self.repo_root)
-        thread.pull_result.connect(self.handle_stash_pull)
+        thread.pull_result.connect(self.handle_status_pull)
         self.thread_reference_list.append(thread)
         thread.start()
 
     @PostGui()
-    def handle_stash_pull(self, message):
+    def handle_status_pull(self, result):
         self.fetch_log_info()
-        message_to_emacs(message)
+
+        result = result.strip()
+        if "Already up to date" in result:
+            message_to_emacs.emit("已经是最新的")
+        elif any(x in result for x in ["Fast-forward", "files changed", "insertions", "deletions"]):
+            message_to_emacs.emit("成功拉取更新")
+        else:
+            message_to_emacs.emit(result)
 
     @QtCore.pyqtSlot()
     def status_push_branch(self):
