@@ -1538,14 +1538,7 @@ class AppBuffer(BrowserBuffer):
     @PostGui()
     def handle_status_pull(self, result):
         self.fetch_log_info()
-
-        result = result.strip()
-        if "Already up to date" in result:
-            message_to_emacs.emit("已经是最新的")
-        elif any(x in result for x in ["Fast-forward", "files changed", "insertions", "deletions"]):
-            message_to_emacs.emit("成功拉取更新")
-        else:
-            message_to_emacs.emit(result)
+        message_to_emacs("Git pull: {}".format(result.strip()))
 
     @QtCore.pyqtSlot()
     def status_push_branch(self):
