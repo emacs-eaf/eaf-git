@@ -536,6 +536,39 @@ This assumes that `eaf-git-in-string-p' has already returned true, i.e.
           (rest-str   (substring string 1)))
       (concat (capitalize first-char) rest-str))))
 
+(defun eaf-git-flash-region (start-pos end-pos)
+  "Flash a region momentarily."
+  (require 'pulse)
+  (let ((pulse-iterations 1)
+        (pulse-delay 0.05))
+    (pulse-momentary-highlight-region start-pos end-pos 'highlight)))
+
+(defun eaf-git-flash-line ()
+  "Flash the current line."
+  (eaf-git-flash-region
+   (save-excursion
+     (vertical-motion 0) (point))
+   (save-excursion
+     (vertical-motion 1) (point))))
+
+(defun eaf-git-find-file-and-goto-line (filepath line-number)
+  "Open FILEPATH and go to LINE-NUMBER, even if file is already open."
+  (let ((line (string-to-number line-number)))
+    ;; First open the file
+    (find-file filepath)
+    
+    ;; Use timer to delay the jump operation
+    (run-with-timer 0.1 nil
+                    (lambda (buf line)
+                      (when (buffer-live-p buf)
+                        (with-current-buffer buf
+                          (goto-char (point-min))
+                          (forward-line (1- line))
+                          (recenter)
+                          ;; Flash the current line
+                          (eaf-git-flash-line))))
+                    (current-buffer) line)))
+
 (provide 'eaf-git)
 
 ;;; eaf-git.el ends here

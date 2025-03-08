@@ -956,21 +956,32 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot(str, int)
     def status_view_file(self, type, file_index):
+        if file_index == -1:
+            message_to_emacs("Please select file to view.")
+            return
+        
         if type == "untrack":
-            if file_index == -1:
-                message_to_emacs("Please select file to view.")
-            else:
-                self.status_open_file(self.untrack_status[file_index]["file"])
-        elif type == "unstage":
-            if file_index == -1:
-                message_to_emacs("Please select file to view.")
-            else:
-                self.status_open_file(self.unstage_status[file_index]["file"])
-        elif type == "stage":
-            if file_index == -1:
-                message_to_emacs("Please select file to view.")
-            else:
-                self.status_open_file(self.stage_status[file_index]["file"])
+            self.status_open_file(self.untrack_status[file_index]["file"])
+        elif type in ["unstage", "stage"]:
+            # Select the appropriate status list and cache parameter based on type
+            status_list = self.unstage_status if type == "unstage" else self.stage_status
+            cached = False if type == "unstage" else True
+            
+            # Get file path
+            filepath = os.path.join(self.repo_root, status_list[file_index]["file"])
+            
+            try:
+                # Get diff information
+                diff = self.repo.diff(cached=cached)
+                line_number = self._find_first_diff_line(diff, status_list[file_index]["file"])
+                
+                if line_number is not None:
+                    # Directly call Elisp function to open file and jump to the specified line
+                    eval_in_emacs('eaf-git-find-file-and-goto-line', [filepath, str(line_number)])
+                else:
+                    self.status_open_file(status_list[file_index]["file"])
+            except Exception as e:
+                self.status_open_file(status_list[file_index]["file"])
 
     def status_open_file(self, filename):
         filepath = os.path.join(self.repo_root, filename)
@@ -1966,6 +1977,33 @@ class AppBuffer(BrowserBuffer):
         self.temp_files = []
 
         eval_in_emacs('eaf-git-exit', [self.repo_root])
+
+    def _find_first_diff_line(self, diff, filepath):
+        """Find the first actual changed line number in the file"""
+        try:
+            for patch in diff:
+                if patch.delta.new_file.path == filepath:
+                    for hunk in patch.hunks:
+                        # Parse the lines in the hunk to find the first actual changed line
+                        lines = hunk.lines
+                        hunk_start = hunk.new_start
+                        
+                        # Iterate through each line in the hunk to find the first added or deleted line
+                        for i, line in enumerate(lines):
+                            # line.origin can be '+', '-' or ' '
+                            if line.origin in ['+', '-']:
+                                # If it's an added line, return its line number directly
+                                if line.origin == '+':
+                                    return hunk_start + i
+                                # If it's a deleted line, return the starting line of the hunk
+                                else:
+                                    return hunk_start
+                        
+                        # If no changed line is found, return the starting line of the hunk
+                        return hunk_start
+            return None
+        except Exception as e:
+            return None
 
 class AddSubmoduleCallback(pygit2.RemoteCallbacks, QtCore.QObject):
 
