@@ -1549,6 +1549,7 @@ class AppBuffer(BrowserBuffer):
     @PostGui()
     def handle_status_pull(self, result):
         self.fetch_log_info()
+        self.fetch_branch_info()
         message_to_emacs("Git pull: {}".format(result.strip()))
 
     @QtCore.pyqtSlot()
@@ -2403,11 +2404,43 @@ class GitPullThread(QThread):
 
     def __init__(self, repo_root):
         QThread.__init__(self)
-
         self.repo_root = repo_root
 
     def run(self):
-        self.pull_result.emit(get_command_result("cd {}; git pull --rebase".format(self.repo_root)).strip())
+        try:
+            # Open repository using pygit2
+            repo = Repository(self.repo_root)
+            
+            # Check if HEAD is detached or unborn
+            if repo.head_is_detached or repo.head_is_unborn:
+                # Get all local branches
+                branches = repo.listall_branches()
+                
+                target_branch = None
+                if "master" in branches:
+                    target_branch = "master"
+                elif "main" in branches:
+                    target_branch = "main"
+                
+                if target_branch:
+                    try:
+                        # Get branch reference and checkout
+                        branch_ref = repo.branches.local[target_branch]
+                        repo.checkout(branch_ref)
+                    except Exception as e:
+                        self.pull_result.emit(f"Failed to switch to branch {target_branch}: {str(e)}")
+                        return
+                else:
+                    self.pull_result.emit("Not on any branch and no master or main branch found, cannot perform pull operation.")
+                    return
+        except Exception as e:
+            # Handle potential exceptions
+            self.pull_result.emit(f"Error checking branch status: {str(e)}")
+            return
+            
+        # Continue with command line execution of git pull --rebase
+        pull_result = get_command_result(f"cd {self.repo_root}; git pull --rebase").strip()
+        self.pull_result.emit(pull_result)
 
 class GitPushThread(QThread):
 
