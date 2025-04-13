@@ -704,19 +704,16 @@ class AppBuffer(BrowserBuffer):
     @QtCore.pyqtSlot(str)
     def log_revert_to(self, commit_id):
         self.revert_to_commit = self.repo.revparse_single(commit_id)
-        self.send_input_message("Revert to commit '{}' {}".format(
-            commit_id,
-            bytes_decode(self.revert_to_commit.raw_message).splitlines()[0]), "log_revert_to_commit", "yes-or-no")
+        self.send_input_message("Input new commit to revert all above commits: ", "log_revert_to_commit", "string")
 
-    def handle_log_revert_to_commit(self):
+    def handle_log_revert_to_commit(self, revert_message):
         short_commit_id = str(self.revert_to_commit.id)[:7]
         revert_to_message = bytes_decode(self.revert_to_commit.raw_message).splitlines()[0]
         result = get_command_result("cd {}; git revert --no-edit -n {}..HEAD".format(self.repo_root, short_commit_id))
 
         if result == "":
-            revert_message = "Revert to commit: {} {}".format(short_commit_id, revert_to_message)
             get_command_result("cd {}; git commit -m '{}'".format(self.repo_root, revert_message))
-            message_to_emacs(revert_message)
+            message_to_emacs("Revert to commit: {} {}".format(short_commit_id, revert_to_message))
         else:
             message_to_emacs("Failed to revert to commit: {} reason: {}".format(self.revert_to_commit.id, result))
 
