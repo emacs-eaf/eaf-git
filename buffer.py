@@ -26,7 +26,6 @@ from copy import copy
 from io import StringIO
 
 import pygit2
-from app.git.utils import get_git_https_url
 from charset_normalizer import from_bytes, from_path
 from core.utils import PostGui, eval_in_emacs, get_emacs_func_result, get_emacs_var, get_emacs_vars, interactive, message_to_emacs
 from core.webengine import BrowserBuffer
@@ -36,6 +35,11 @@ from PyQt6 import QtCore
 from PyQt6.QtCore import QMimeDatabase, QThread, QTimer
 from PyQt6.QtGui import QColor
 from unidiff import LINE_TYPE_ADDED, LINE_TYPE_CONTEXT, LINE_TYPE_REMOVED, Hunk, PatchSet
+
+import sys
+sys.path.append(os.path.dirname(__file__))
+
+from utils import get_git_https_url
 
 GIT_STATUS_DICT = {
     GIT_STATUS_CURRENT: "Current",
